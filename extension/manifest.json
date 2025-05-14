@@ -1,11 +1,11 @@
 {
   "name": "YT-Notes-Extension",
   "version": "2.0.0",
-  "description": "saves timestamp notes for youtube videos",
+  "description": "saves timestamp notes for youtube videos and provide summaries",
   "manifest_version": 3,
   "author": "Muskan Sindhu",
   "action": {
-    "default_popup": "popup/popup.html"
+    "default_popup": "popup.html"
   },
   "permissions": ["activeTab", "tabs", "scripting"]
 }

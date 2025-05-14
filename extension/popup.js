@@ -108,3 +108,47 @@ document.getElementById("submit").addEventListener("click", function () {
       console.error("Error:", error);
     });
 });
+
+document.getElementById("summarize").addEventListener("click", function () {
+  const videoUrl = document.getElementById("video-url").value;
+  console.log(videoUrl);
+
+  const data = {
+    video_url: videoUrl,
+  };
+
+  fetch("http://127.0.0.1:5000/summarize", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(data),
+  })
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error("Network response was not ok");
+      }
+      return response.json();
+    })
+    .then((data) => {
+      console.log("Success:", data);
+      const summary = data.message;
+      const summaryList = document.getElementById("summary-list");
+      const summarySection = document.getElementById("summary-section");
+
+      summaryList.innerHTML = "";
+
+      summary.split("\n").forEach((line) => {
+        if (line.trim()) {
+          const li = document.createElement("li");
+          li.textContent = line.trim();
+          summaryList.appendChild(li);
+        }
+      });
+
+      summarySection.style.display = "block";
+    })
+    .catch((error) => {
+      console.error("Error:", error);
+    });
+});
