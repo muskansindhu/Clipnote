@@ -79,3 +79,14 @@ document.addEventListener("click", function (event) {
     }
   }
 });
+
+document.getElementById("search").addEventListener("input", function () {
+  const searchTerm = this.value.toLowerCase();
+  const cards = document.getElementsByClassName("card");
+
+  Array.from(cards).forEach((card) => {
+    const title = card.querySelector("h3").textContent.toLowerCase();
+    const matches = title.includes(searchTerm);
+    card.style.display = matches ? "block" : "none";
+  });
+});
