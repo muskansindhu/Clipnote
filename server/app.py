@@ -67,6 +67,18 @@ def mark_note_as_fav():
 
     return {"message": "Note marked as favourite."}, 200
 
+@app.route("/unfav-note", methods=["POST"])
+def mark_note_as_unfav():
+    data = request.json
+    video_title = data["video_title"]
+
+    with psycopg.connect(SUPABASE_CONNECTION_STRING) as conn:
+        with conn.cursor() as cur:
+            cur.execute("UPDATE ytnotes SET fav = FALSE WHERE video_title = %s", (video_title,))
+        conn.commit()
+
+    return {"message": "Note marked as favourite."}, 200
+
 
 if __name__ == "__main__":
     app.run(debug=True)

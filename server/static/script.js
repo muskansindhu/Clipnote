@@ -22,7 +22,7 @@ document.addEventListener("DOMContentLoaded", function () {
           card.innerHTML = `
             <div class="card-header">
               <h3 id="video-title">${note.video_title}</h3>
-              <img src="${iconSrc}" alt="fav" class="fav-icon" />
+              <img src="${iconSrc}" alt="fav" class="fav-icon"/>
             </div>
           `;
 
@@ -42,7 +42,16 @@ document.addEventListener("click", function (event) {
       .closest(".card")
       .querySelector("h3").textContent;
 
-    fetch("/fav-note", {
+    const isFavourited = event.target
+      .getAttribute("src")
+      .includes("fav_filled");
+
+    const endpoint = isFavourited ? "/unfav-note" : "/fav-note";
+    const newIcon = isFavourited
+      ? "static/assets/fav_unfilled.png"
+      : "static/assets/fav_filled.png";
+
+    fetch(endpoint, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -53,7 +62,7 @@ document.addEventListener("click", function (event) {
         if (!response.ok) {
           throw new Error("Network response was not ok");
         }
-        console.log("Favourited:", videoTitle);
+        event.target.setAttribute("src", newIcon);
       })
       .catch((err) => console.error(err));
   }
