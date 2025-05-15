@@ -57,6 +57,7 @@ body {
   border-radius: 10px;
   padding: 16px;
   box-shadow: 0 0 8px rgba(80, 0, 100, 0.15);
+  cursor: pointer;
 }
 
 .card h3 {
@@ -89,4 +90,34 @@ body {
   height: 20px;
   cursor: pointer;
   margin-left: 12px;
+}
+
+.notes-card {
+  position: absolute;
+  top: 55%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: #fff;
+  height: 80vh;
+  overflow-y: auto;
+  border-radius: 12px;
+  padding: 24px;
+}
+
+.note-content h2 {
+  color: #ff9be8;
+  font-size: 20px;
+  margin-bottom: 16px;
+}
+
+.note-list {
+  margin-top: 24px;
+}
+
+.note-entry {
+  margin-bottom: 12px;
+  padding: 10px;
+  background: #22043a;
+  border-radius: 6px;
+  font-size: 14px;
 }

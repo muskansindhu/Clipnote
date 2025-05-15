@@ -1,5 +1,6 @@
 from youtube_transcript_api import YouTubeTranscriptApi, TranscriptsDisabled, NoTranscriptFound, VideoUnavailable
 from google import genai
+from urllib.parse import urlparse, parse_qs
 
 from config import GEMINI_API_KEY
 
@@ -24,3 +25,8 @@ def summarize_video(transcript):
         model="gemini-2.0-flash", contents=prompt
     )
     return response.text
+
+def extract_video_id(url: str) -> str | None:
+    parsed = urlparse(url)
+    query_params = parse_qs(parsed.query)
+    return query_params.get("v", [None])[0]

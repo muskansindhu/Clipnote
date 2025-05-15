@@ -14,6 +14,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
           const card = document.createElement("div");
           card.className = "card";
+          card.id = note.video_yt_id;
 
           const iconSrc = isFavourited
             ? "static/assets/fav_filled.png"
@@ -65,5 +66,16 @@ document.addEventListener("click", function (event) {
         event.target.setAttribute("src", newIcon);
       })
       .catch((err) => console.error(err));
+  }
+});
+
+document.addEventListener("click", function (event) {
+  if (event.target.classList.contains("fav-icon")) return;
+  const card = event.target.closest(".card");
+  if (card) {
+    const videoId = card.id;
+    if (videoId) {
+      window.location.href = `/${videoId}`;
+    }
   }
 });
