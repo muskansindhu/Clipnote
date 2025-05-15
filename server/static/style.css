@@ -71,3 +71,22 @@ body {
   line-height: 1.6;
   color: #bfa3cb;
 }
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.card-header h3 {
+  margin: 0;
+  font-size: 16px;
+  color: #e2b8ff;
+}
+
+.fav-icon {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  margin-left: 12px;
+}

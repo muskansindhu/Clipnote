@@ -6,16 +6,55 @@ document.addEventListener("DOMContentLoaded", function () {
     })
     .then((data) => {
       const container = document.getElementById("notes-container");
+      const noteTitle = [];
+
       data.forEach((note) => {
-        const card = document.createElement("div");
-        card.className = "card";
-        card.innerHTML = `
-            <h3>${note.video_title}</h3>
+        if (!noteTitle.includes(note.video_title)) {
+          const isFavourited = note.fav === true;
+
+          const card = document.createElement("div");
+          card.className = "card";
+
+          const iconSrc = isFavourited
+            ? "static/assets/fav_filled.png"
+            : "static/assets/fav_unfilled.png";
+
+          card.innerHTML = `
+            <div class="card-header">
+              <h3 id="video-title">${note.video_title}</h3>
+              <img src="${iconSrc}" alt="fav" class="fav-icon" />
+            </div>
           `;
-        container.appendChild(card);
+
+          container.appendChild(card);
+          noteTitle.push(note.video_title);
+        }
       });
     })
     .catch((error) => {
       console.error("Error loading notes:", error);
     });
+});
+
+document.addEventListener("click", function (event) {
+  if (event.target.classList.contains("fav-icon")) {
+    const videoTitle = event.target
+      .closest(".card")
+      .querySelector("h3").textContent;
+
+    fetch("/fav-note", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ video_title: videoTitle }),
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Network response was not ok");
+        }
+        console.log("Favourited:", videoTitle);
+      })
+      .catch((err) => console.error(err));
+  }
 });

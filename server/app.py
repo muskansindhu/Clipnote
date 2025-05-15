@@ -29,11 +29,11 @@ def get_all_notes():
                 "video_url" : note[2],
                 "video_title" : note[3],
                 "video_timestamp" : note[4],
-                "note": note[5]
+                "note": note[5],
+                "fav": note[6]
             })
 
     return all_notes
-
 
 @app.route("/add-notes", methods=["POST"])
 def add_notes():
@@ -54,6 +54,19 @@ def get_video_summary():
     transcript = get_video_transcription(video_id)
     summary = summarize_video(transcript)
     return jsonify({"message": summary}), 200
+
+@app.route("/fav-note", methods=["POST"])
+def mark_note_as_fav():
+    data = request.json
+    video_title = data["video_title"]
+
+    with psycopg.connect(SUPABASE_CONNECTION_STRING) as conn:
+        with conn.cursor() as cur:
+            cur.execute("UPDATE ytnotes SET fav = TRUE WHERE video_title = %s", (video_title,))
+        conn.commit()
+
+    return {"message": "Note marked as favourite."}, 200
+
 
 if __name__ == "__main__":
     app.run(debug=True)
