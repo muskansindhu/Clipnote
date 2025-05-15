@@ -1,51 +1,116 @@
 body {
-  font-family: Arial, sans-serif;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
   padding: 20px;
-  background-color: #f5f7fa;
-  max-width: 800px;
+  background: linear-gradient(135deg, #07030f, #110020);
+  color: #f1e8ff;
+  max-width: 500px;
+}
+
+#popup-container {
+  width: 350px;
+  height: auto;
+  background-color: #150122;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 0 25px rgba(255, 0, 153, 0.2);
+  border: 1px solid rgba(255, 0, 153, 0.3);
 }
 
 h1 {
   text-align: center;
-  color: #333;
+  color: #ff3cac;
+  margin-bottom: 20px;
 }
 
 label {
   display: block;
-  margin-top: 10px;
-  font-weight: bold;
-  color: #444;
+  margin-top: 12px;
+  font-weight: 600;
+  color: #ff9be8;
 }
 
 input[type="text"] {
   width: 100%;
-  padding: 8px;
-  margin-top: 4px;
-  margin-bottom: 10px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
+  padding: 10px;
+  margin-top: 6px;
+  margin-bottom: 12px;
+  background-color: #1a0428;
+  border: 1px solid #ff5fc6;
+  border-radius: 6px;
+  color: #ffe5f7;
   box-sizing: border-box;
+}
+
+input[type="text"]::placeholder {
+  color: #c672d8;
 }
 
 .button-container {
   display: flex;
   justify-content: space-between;
+  margin-top: 15px;
 }
 
 button {
-  padding: 10px 15px;
+  flex: 1;
+  padding: 10px 12px;
   font-weight: bold;
   border: none;
-  border-radius: 4px;
+  border-radius: 6px;
   cursor: pointer;
+  transition: all 0.2s ease;
+  margin: 0 5px;
 }
 
 #submit {
-  background-color: #4caf50;
+  background-color: #761259;
   color: white;
+  box-shadow: 0 0 10px rgba(125, 3, 90, 0.5);
+}
+
+#submit:hover {
+  background-color: #e600a8;
 }
 
 #summarize {
-  background-color: #2196f3;
+  background-color: #4e138c;
   color: white;
+  box-shadow: 0 0 10px rgba(71, 7, 140, 0.5);
+}
+
+#summarize:hover {
+  background-color: #6500cc;
+}
+
+#summary-section {
+  background-color: #1c0128;
+  border: 1px solid #a500ff;
+  border-radius: 10px;
+  padding: 15px;
+  margin-top: 20px;
+  color: #f5d4ff;
+  box-shadow: 0 0 15px rgba(165, 0, 255, 0.2);
+}
+
+#summary-list {
+  padding-left: 20px;
+  list-style-type: disc;
+}
+
+ul li {
+  margin-bottom: 6px;
+}
+
+.notes-input {
+  height: 100px;
+  width: 100%;
+  margin-top: 6px;
+  padding: 10px;
+  background-color: #1a0428;
+  border: 1px solid #ff5fc6;
+  border-radius: 6px;
+  color: #ffe5f7;
+  resize: vertical;
+  font-family: inherit;
+  box-sizing: border-box;
 }

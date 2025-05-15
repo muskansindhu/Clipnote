@@ -1,12 +1,38 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
 import psycopg
 
 from config import SUPABASE_CONNECTION_STRING
 from utils import get_video_transcription, summarize_video
 
-app = Flask(__name__)
+app = Flask(__name__, template_folder='templates', static_folder='static')
 CORS(app)
+
+
+@app.route("/", methods=["GET"])
+def home():
+    return render_template("home.html")
+
+@app.route("/all-notes", methods=["GET"])
+def get_all_notes():
+    all_notes = []
+
+    with psycopg.connect(SUPABASE_CONNECTION_STRING) as conn:
+        with conn.cursor() as cur:
+            cur.execute("SELECT * FROM ytnotes")
+            notes = cur.fetchall()
+        
+        for note in notes:
+            all_notes.append({
+                "id" : note[0],
+                "created_at" : note[1],
+                "video_url" : note[2],
+                "video_title" : note[3],
+                "video_timestamp" : note[4],
+                "note": note[5]
+            })
+
+    return all_notes
 
 
 @app.route("/add-notes", methods=["POST"])

@@ -6,30 +6,31 @@
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
-    <h1>YT Notes</h1>
-    <form id="notes-form">
-      <input type="text" id="video-url" name="video-url" hidden />
+    <div id="popup-container">
+      <form id="notes-form">
+        <input type="text" id="video-url" name="video-url" hidden />
 
-      <label for="video-title">Video Title:</label>
-      <input type="text" id="video-title" name="video-title" />
+        <label for="video-title">Video Title:</label>
+        <input type="text" id="video-title" name="video-title" />
 
-      <label for="timestamp">Timestamp:</label>
-      <input type="text" id="timestamp" name="timestamp" />
+        <label for="timestamp">Timestamp:</label>
+        <input type="text" id="timestamp" name="timestamp" />
 
-      <label for="notes">Notes:</label>
-      <input type="text" id="notes" name="notes" />
+        <label for="notes">Notes:</label>
+        <textarea class="notes-input" id="notes" name="notes"></textarea>
 
-      <div class="button-container">
-        <button type="submit" id="submit">Submit</button>
-        <button type="button" id="summarize">Summarize Video</button>
+        <div class="button-container">
+          <button type="submit" id="submit">Submit</button>
+          <button type="button" id="summarize">Summarize Video</button>
+        </div>
+      </form>
+
+      <div id="summary-section" style="display: none; margin-top: 20px">
+        <h2>Video Summary</h2>
+        <ul id="summary-list" style="padding-left: 20px"></ul>
       </div>
-    </form>
 
-    <div id="summary-section" style="display: none; margin-top: 20px">
-      <h2>Video Summary</h2>
-      <ul id="summary-list" style="padding-left: 20px"></ul>
+      <script src="popup.js"></script>
     </div>
-
-    <script src="popup.js"></script>
   </body>
 </html>
