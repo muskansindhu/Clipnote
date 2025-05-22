@@ -19,15 +19,23 @@ document.addEventListener("DOMContentLoaded", function () {
             <h2>${note.video_title}</h2>
             <div class="note-list">
               ${data
-                .map(
-                  (item) => `
+                .map((item) => {
+                  const parts = item.video_timestamp.split(":").map(Number);
+                  const seconds =
+                    parts.length === 3
+                      ? parts[0] * 3600 + parts[1] * 60 + parts[2]
+                      : parts.length === 2
+                      ? parts[0] * 60 + parts[1]
+                      : parts[0];
+
+                  return `
                 <div class="note-entry">
-                  <strong>${item.video_timestamp}</strong> - ${
-                    item.note || "(No note)"
-                  }
+                  <a href="${note.video_url}&t=${seconds}s" target="_blank">
+                    <strong>${item.video_timestamp}</strong>
+                  </a> - ${item.note || "(No note)"}
                 </div>
-              `
-                )
+              `;
+                })
                 .join("")}
             </div>
           </div>

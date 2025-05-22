@@ -1,20 +1,20 @@
 document.addEventListener("DOMContentLoaded", function () {
-  fetch("/all-notes")
+  fetch("/all-video")
     .then((response) => {
       if (!response.ok) throw new Error("Failed to fetch notes.");
       return response.json();
     })
     .then((data) => {
       const container = document.getElementById("notes-container");
-      const noteTitle = [];
+      const videoTitle = [];
 
-      data.forEach((note) => {
-        if (!noteTitle.includes(note.video_title)) {
-          const isFavourited = note.fav === true;
+      data.forEach((video) => {
+        if (!videoTitle.includes(video.video_title)) {
+          const isFavourited = video.fav === true;
 
           const card = document.createElement("div");
           card.className = "card";
-          card.id = note.video_yt_id;
+          card.id = video.id;
 
           const iconSrc = isFavourited
             ? "static/assets/fav_filled.png"
@@ -22,18 +22,82 @@ document.addEventListener("DOMContentLoaded", function () {
 
           card.innerHTML = `
             <div class="card-header">
-              <h3 id="video-title">${note.video_title}</h3>
+              <h3 id="video-title">${video.video_title}</h3>
               <img src="${iconSrc}" alt="fav" class="fav-icon"/>
             </div>
           `;
 
           container.appendChild(card);
-          noteTitle.push(note.video_title);
+          videoTitle.push(video.video_title);
         }
       });
     })
     .catch((error) => {
       console.error("Error loading notes:", error);
+    });
+
+  fetch("/labels")
+    .then((response) => {
+      if (!response.ok) throw new Error("Failed to fetch notes.");
+      return response.json();
+    })
+    .then((data) => {
+      const container = document.getElementById("labels");
+      const labels = [];
+
+      data.forEach((label) => {
+        if (!labels.includes(label)) {
+          const labelBtn = document.createElement("button");
+          labelBtn.className = "label";
+          labelBtn.innerHTML = `${label.label_name}`;
+
+          labelBtn.addEventListener("click", function () {
+            document.querySelectorAll(".label").forEach((btn) => {
+              btn.classList.remove("active");
+            });
+
+            this.classList.add("active");
+
+            fetch(`/${label.label_name}/note`)
+              .then((response) => {
+                if (!response.ok)
+                  throw new Error("Failed to fetch label-specific notes.");
+                return response.json();
+              })
+              .then((videos) => {
+                const container = document.getElementById("notes-container");
+                container.innerHTML = "";
+
+                videos.forEach((video) => {
+                  const isFavourited = video.fav === true;
+
+                  const card = document.createElement("div");
+                  card.className = "card";
+                  card.id = video.video_id;
+
+                  const iconSrc = isFavourited
+                    ? "static/assets/fav_filled.png"
+                    : "static/assets/fav_unfilled.png";
+
+                  card.innerHTML = `
+          <div class="card-header">
+            <h3 id="video-title">${video.video_title}</h3>
+            <img src="${iconSrc}" alt="fav" class="fav-icon"/>
+          </div>
+        `;
+
+                  container.appendChild(card);
+                });
+              })
+              .catch((err) =>
+                console.error("Error fetching videos by label:", err)
+              );
+          });
+
+          container.appendChild(labelBtn);
+          labels.push(label.label_name);
+        }
+      });
     });
 });
 
