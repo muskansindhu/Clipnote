@@ -1,5 +1,5 @@
 {
-  "name": "YT-Notes-Extension",
+  "name": "notefy",
   "version": "2.0.0",
   "description": "saves timestamp notes for youtube videos and provide summaries",
   "manifest_version": 3,

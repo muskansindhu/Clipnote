@@ -2,8 +2,8 @@ body {
   font-family: "Inter", sans-serif;
   margin: 0;
   padding: 0;
-  background-color: #0f1125;
-  color: #f1e8ff;
+  background-color: #0a0a0a;
+  color: #ffffff;
 }
 
 a {
@@ -12,16 +12,14 @@ a {
 }
 
 .navbar {
-  background-color: #150122;
   padding: 15px 30px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 1px solid #ff5fc6;
 }
 
 .navbar h1 {
-  color: #ff3cac;
+  color: #ff3b2f;
   margin: 0;
   font-size: 24px;
 }
@@ -44,9 +42,8 @@ a {
   font-size: 16px;
   border-radius: 8px;
   border: none;
-  background-color: #1a0428;
-  color: #fff;
-  border: 1px solid #ff5fc6;
+  background-color: #1f1f1f;
+  color: #ffffff;
 }
 
 .cards {
@@ -56,16 +53,14 @@ a {
 }
 
 .card {
-  background-color: #16091f;
-  border: 1px solid #3d2b4f;
+  background-color: #141414;
   border-radius: 10px;
   padding: 16px;
-  box-shadow: 0 0 8px rgba(80, 0, 100, 0.15);
   cursor: pointer;
 }
 
 .card h3 {
-  color: #e2b8ff;
+  color: #ff675e;
   font-size: 16px;
   font-weight: 500;
   margin-bottom: 8px;
@@ -74,7 +69,7 @@ a {
 .card p {
   font-size: 13px;
   line-height: 1.6;
-  color: #bfa3cb;
+  color: #cccccc;
 }
 
 .card-header {
@@ -86,7 +81,7 @@ a {
 .card-header h3 {
   margin: 0;
   font-size: 16px;
-  color: #e2b8ff;
+  color: #ff675e;
 }
 
 .fav-icon {
@@ -94,6 +89,7 @@ a {
   height: 20px;
   cursor: pointer;
   margin-left: 12px;
+  filter: brightness(1.2);
 }
 
 .notes-card {
@@ -101,15 +97,16 @@ a {
   top: 55%;
   left: 50%;
   transform: translate(-50%, -50%);
-  color: #fff;
+  color: #ffffff;
   height: 80vh;
   overflow-y: auto;
   border-radius: 12px;
   padding: 24px;
+  width: 70vw;
 }
 
 .note-content h2 {
-  color: #ff9be8;
+  color: #ff3b2f;
   font-size: 20px;
   margin-bottom: 16px;
 }
@@ -121,21 +118,23 @@ a {
 .note-entry {
   margin-bottom: 12px;
   padding: 10px;
-  background: #22043a;
+  background: #1c1c1c;
   border-radius: 6px;
   font-size: 14px;
-}
-
-.label {
-  border: 1px solid #9e2469;
-  border-radius: 10px;
-  border-width: 2px;
-  background: #0f1125;
   color: #ffffff;
 }
 
+.label {
+  border-radius: 10px;
+  background: #0a0a0a;
+  color: #ffffff;
+  padding: 4px 10px;
+  font-size: 13px;
+  border: 2px solid #ff3b2f;
+}
+
 .label.active {
-  background-color: #9e2469;
+  background-color: #ff3b2f;
   color: white;
-  border-color: #9e2469;
+  border-color: #ff3b2f;
 }

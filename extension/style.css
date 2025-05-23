@@ -1,32 +1,31 @@
 body {
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
   padding: 20px;
-  background: linear-gradient(135deg, #07030f, #110020);
-  color: #f1e8ff;
+  background: linear-gradient(135deg, #0a0a0a, #101010);
+  color: #ffffff;
   max-width: 500px;
 }
 
 #popup-container {
   width: 350px;
   height: auto;
-  background-color: #150122;
   border-radius: 12px;
   padding: 20px;
-  box-shadow: 0 0 25px rgba(255, 0, 153, 0.2);
-  border: 1px solid rgba(255, 0, 153, 0.3);
 }
 
 h1 {
   text-align: center;
-  color: #ff3cac;
+  color: #ff3b2f;
   margin-bottom: 20px;
+  font-size: 1.8em;
+  font-weight: 700;
 }
 
 label {
   display: block;
   margin-top: 12px;
   font-weight: 600;
-  color: #ff9be8;
+  color: #cccccc;
 }
 
 input[type="text"] {
@@ -34,15 +33,15 @@ input[type="text"] {
   padding: 10px;
   margin-top: 6px;
   margin-bottom: 12px;
-  background-color: #1a0428;
-  border: 1px solid #ff5fc6;
+  background-color: #1f1f1f;
+  border: none;
   border-radius: 6px;
-  color: #ffe5f7;
+  color: #ffffff;
   box-sizing: border-box;
 }
 
 input[type="text"]::placeholder {
-  color: #c672d8;
+  color: #888888;
 }
 
 .button-container {
@@ -58,38 +57,33 @@ button {
   border: none;
   border-radius: 6px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: background 0.2s ease;
   margin: 0 5px;
+  color: #ffffff;
 }
 
 #submit {
-  background-color: #761259;
-  color: white;
-  box-shadow: 0 0 10px rgba(125, 3, 90, 0.5);
+  background-color: #ff3b2f;
 }
 
 #submit:hover {
-  background-color: #e600a8;
+  background-color: #e52a1f;
 }
 
 #summarize {
-  background-color: #4e138c;
-  color: white;
-  box-shadow: 0 0 10px rgba(71, 7, 140, 0.5);
+  background-color: #ff3b2f;
 }
 
 #summarize:hover {
-  background-color: #6500cc;
+  background-color: #e52a1f;
 }
 
 #summary-section {
-  background-color: #1c0128;
-  border: 1px solid #a500ff;
+  background-color: #181818;
   border-radius: 10px;
   padding: 15px;
   margin-top: 20px;
-  color: #f5d4ff;
-  box-shadow: 0 0 15px rgba(165, 0, 255, 0.2);
+  color: #ffffff;
 }
 
 #summary-list {
@@ -106,10 +100,10 @@ ul li {
   width: 100%;
   margin-top: 6px;
   padding: 10px;
-  background-color: #1a0428;
-  border: 1px solid #ff5fc6;
+  background-color: #1f1f1f;
+  border: none;
   border-radius: 6px;
-  color: #ffe5f7;
+  color: #ffffff;
   resize: vertical;
   font-family: inherit;
   box-sizing: border-box;
