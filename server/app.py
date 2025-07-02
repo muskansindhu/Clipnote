@@ -2,8 +2,8 @@ from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
 import psycopg
 
-from config import SUPABASE_CONNECTION_STRING
-from utils import get_video_transcription, summarize_video, extract_video_id
+from config import SUPABASE_CONNECTION_STRING, S3_BUCKET
+from utils import get_video_transcription_apify, summarize_video, extract_video_id, put_object_to_s3, get_object_from_s3
 
 app = Flask(__name__, template_folder='templates', static_folder='static')
 CORS(app)
@@ -68,18 +68,25 @@ def add_notes():
 
     with psycopg.connect(SUPABASE_CONNECTION_STRING) as conn:
         with conn.cursor() as cur:
-            cur.execute(
-                """
-                INSERT INTO video (id, video_url, video_title)
-                VALUES (%s, %s, %s)
-                ON CONFLICT (id) DO NOTHING
-                """,
-                (video_yt_id, data["videoUrl"], data["videoTitle"])
-            )
-            conn.commit()
 
-    with psycopg.connect(SUPABASE_CONNECTION_STRING) as conn:
-        with conn.cursor() as cur:
+            cur.execute("SELECT 1 FROM video WHERE id = %s", (video_yt_id,))
+            video_exists = cur.fetchone() is not None
+
+            if not video_exists:
+                transcript = get_video_transcription_apify(video_yt_id)
+                uploaded = put_object_to_s3(video_yt_id, S3_BUCKET , transcript)
+
+                if uploaded:
+                    cur.execute(
+                        """
+                        INSERT INTO video (id, video_url, video_title)
+                        VALUES (%s, %s, %s)
+                        """,
+                        (video_yt_id, data["videoUrl"], data["videoTitle"])
+                    )
+                else:
+                    return jsonify({"error": "Failed to upload transcript to S3"}), 500
+                
             cur.execute(
                 "INSERT INTO notes (video_timestamp, note, video_id) VALUES (%s, %s, %s)",
                 (data["currentTimeStamp"], data["notes"], video_yt_id)
@@ -92,8 +99,9 @@ def add_notes():
 def get_video_summary():
     data = request.json
     video_id = data["video_url"].split("=")[1]
-    transcript = get_video_transcription(video_id)
-    summary = summarize_video(transcript)
+    timestamped_transcript = get_object_from_s3(video_id, S3_BUCKET)
+    compiled_transcript = " ".join(snippet["text"] for snippet in timestamped_transcript if "text" in snippet)
+    summary = summarize_video(compiled_transcript)
     return jsonify({"message": summary}), 200
 
 @app.route("/fav-note", methods=["POST"])
