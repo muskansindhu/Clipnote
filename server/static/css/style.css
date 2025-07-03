@@ -24,6 +24,12 @@ a {
   font-size: 24px;
 }
 
+.logo {
+  height: 28px;
+  width: 28px;
+  object-fit: contain;
+}
+
 .container {
   padding: 40px 20px;
   max-width: 900px;
