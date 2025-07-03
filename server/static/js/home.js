@@ -1,4 +1,5 @@
 document.addEventListener("DOMContentLoaded", function () {
+  setupThemeToggle();
   fetch("/all-video")
     .then((response) => {
       if (!response.ok) throw new Error("Failed to fetch notes.");
@@ -154,3 +155,24 @@ document.getElementById("search").addEventListener("input", function () {
     card.style.display = matches ? "block" : "none";
   });
 });
+
+function setupThemeToggle() {
+  const toggle = document.getElementById("theme-toggle");
+  const body = document.body;
+
+  if (!toggle) return;
+
+  if (window.lucide) lucide.createIcons();
+
+  const savedTheme = localStorage.getItem("theme");
+  if (savedTheme === "light") {
+    body.classList.add("light-mode");
+    toggle.checked = true;
+  }
+
+  toggle.addEventListener("change", () => {
+    const isLight = toggle.checked;
+    body.classList.toggle("light-mode", isLight);
+    localStorage.setItem("theme", isLight ? "light" : "dark");
+  });
+}

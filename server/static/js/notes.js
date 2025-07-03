@@ -1,4 +1,6 @@
 document.addEventListener("DOMContentLoaded", function () {
+  setupThemeToggle();
+
   const videoId = window.location.href.split("/").pop();
 
   fetch(`/note/${videoId}`)
@@ -47,3 +49,24 @@ document.addEventListener("DOMContentLoaded", function () {
       console.error("Error fetching video note:", err);
     });
 });
+
+function setupThemeToggle() {
+  const toggle = document.getElementById("theme-toggle");
+  const body = document.body;
+
+  if (!toggle) return;
+
+  if (window.lucide) lucide.createIcons();
+
+  const savedTheme = localStorage.getItem("theme");
+  if (savedTheme === "light") {
+    body.classList.add("light-mode");
+    toggle.checked = true;
+  }
+
+  toggle.addEventListener("change", () => {
+    const isLight = toggle.checked;
+    body.classList.toggle("light-mode", isLight);
+    localStorage.setItem("theme", isLight ? "light" : "dark");
+  });
+}
