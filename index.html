@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YT AI Notes - Smart YouTube Note Taking</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-left">
+            <div class="logo-container">
+                <svg class="logo" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="#ff3b2f" stroke-width="2" stroke-linejoin="round"/>
+                    <path d="M2 17L12 22L22 17" stroke="#ff3b2f" stroke-width="2" stroke-linejoin="round"/>
+                    <path d="M2 12L12 17L22 12" stroke="#ff3b2f" stroke-width="2" stroke-linejoin="round"/>
+                </svg>
+                <h1>YT AI Notes</h1>
+            </div>
+        </div>
+        <div class="nav-right">
+            <label class="theme-switch">
+                <input type="checkbox" id="theme-toggle">
+                <span class="slider">
+                    <svg class="icon sun" viewBox="0 0 24 24" fill="none">
+                        <circle cx="12" cy="12" r="5"/>
+                        <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+                    </svg>
+                    <svg class="icon moon" viewBox="0 0 24 24" fill="none">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+                    </svg>
+                </span>
+            </label>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <section class="hero">
+            <div class="hero-content">
+                <h1 class="hero-title">
+                    Take <span class="highlight">AI-powered notes</span> from any YouTube video
+                </h1>
+                <p class="hero-description">
+                    Transform your learning experience with intelligent note-taking. Extract key insights, 
+                    generate summaries, and organize knowledge from YouTube videos effortlessly.
+                </p>
+                <div class="hero-actions">
+                    <button class="btn btn-primary">Get Started</button>
+                    <button class="btn btn-secondary">View Demo</button>
+                </div>
+            </div>
+            <div class="hero-visual">
+                <div class="demo-card">
+                    <div class="demo-header">
+                        <div class="demo-dots">
+                            <span class="dot red"></span>
+                            <span class="dot yellow"></span>
+                            <span class="dot green"></span>
+                        </div>
+                        <span class="demo-title">AI Notes Preview</span>
+                    </div>
+                    <div class="demo-content">
+                        <div class="note-item">
+                            <span class="timestamp">02:34</span>
+                            <p>Key concept: Machine learning fundamentals</p>
+                        </div>
+                        <div class="note-item">
+                            <span class="timestamp">05:12</span>
+                            <p>Important: Neural network architecture explained</p>
+                        </div>
+                        <div class="note-item">
+                            <span class="timestamp">08:45</span>
+                            <p>Summary: Backpropagation algorithm overview</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="features">
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24" fill="none">
+                            <path d="M9 12L11 14L15 10" stroke="#ff3b2f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <circle cx="12" cy="12" r="10" stroke="#ff3b2f" stroke-width="2"/>
+                        </svg>
+                    </div>
+                    <h3>Smart Extraction</h3>
+                    <p>AI automatically identifies and extracts key points, definitions, and important concepts from video content.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24" fill="none">
+                            <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="#ff3b2f" stroke-width="2" stroke-linejoin="round"/>
+                            <path d="M2 17L12 22L22 17" stroke="#ff3b2f" stroke-width="2" stroke-linejoin="round"/>
+                            <path d="M2 12L12 17L22 12" stroke="#ff3b2f" stroke-width="2" stroke-linejoin="round"/>
+                        </svg>
+                    </div>
+                    <h3>Organized Knowledge</h3>
+                    <p>Notes are automatically organized with timestamps, categories, and searchable tags for easy retrieval.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24" fill="none">
+                            <path d="M21 15A2 2 0 0 1 19 17H7L4 20V4A2 2 0 0 1 6 2H19A2 2 0 0 1 21 4V15Z" stroke="#ff3b2f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </div>
+                    <h3>Instant Summaries</h3>
+                    <p>Generate concise summaries of long videos to quickly understand the main topics and key takeaways.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="cta">
+            <div class="cta-content">
+                <h2>Ready to enhance your learning?</h2>
+                <p>Start taking smarter notes from YouTube videos today.</p>
+                <button class="btn btn-primary">Install Extension</button>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="footer-content">
+            <p>&copy; 2024 YT AI Notes. Built for better learning.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Theme toggle functionality
+        const themeToggle = document.getElementById('theme-toggle');
+        const body = document.body;
+
+        // Check for saved theme preference or default to dark mode
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'light') {
+            body.classList.add('light-mode');
+            themeToggle.checked = true;
+        }
+
+        themeToggle.addEventListener('change', () => {
+            if (themeToggle.checked) {
+                body.classList.add('light-mode');
+                localStorage.setItem('theme', 'light');
+            } else {
+                body.classList.remove('light-mode');
+                localStorage.setItem('theme', 'dark');
+            }
+        });
+    </script>
+</body>
+</html>
