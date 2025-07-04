@@ -1,9 +1,20 @@
-from flask import Flask, request, jsonify, render_template
-from flask_cors import CORS
+import json
 import psycopg
 
+from flask import Flask, request, jsonify, render_template
+from flask_cors import CORS
+
 from config import SUPABASE_CONNECTION_STRING, S3_BUCKET
-from utils import get_video_transcription_apify, summarize_video, extract_video_id, put_object_to_s3, get_object_from_s3
+from utils import (
+    get_video_transcription_apify,
+    summarize_video,
+    extract_video_id,
+    put_object_to_s3,
+    get_object_from_s3,
+    extract_transcript_snippet,
+    generate_ai_note,
+    hms_to_seconds
+)
 
 app = Flask(__name__, template_folder='templates', static_folder='static')
 CORS(app)
@@ -63,8 +74,13 @@ def get_note(video_yt_id):
 
 @app.route("/add-notes", methods=["POST"])
 def add_notes():
-    data = request.json
+    raw_body = request.get_data(as_text=True)     # to prevent cors options method call
+    data = json.loads(raw_body)
+
     video_yt_id = extract_video_id(data["videoUrl"])
+    note_text = data["notes"].strip()
+    timestamp = data["currentTimeStamp"]
+    center_time_sec = hms_to_seconds(timestamp)
 
     with psycopg.connect(SUPABASE_CONNECTION_STRING) as conn:
         with conn.cursor() as cur:
@@ -86,10 +102,15 @@ def add_notes():
                     )
                 else:
                     return jsonify({"error": "Failed to upload transcript to S3"}), 500
-                
+            
+            if not note_text:
+                transcript = get_object_from_s3(video_yt_id, S3_BUCKET)
+                transcript_chunk = extract_transcript_snippet(transcript, center_time_sec)
+                note_text = generate_ai_note(transcript_chunk)
+
             cur.execute(
                 "INSERT INTO notes (video_timestamp, note, video_id) VALUES (%s, %s, %s)",
-                (data["currentTimeStamp"], data["notes"], video_yt_id)
+                (data["currentTimeStamp"], note_text, video_yt_id)
             )
             conn.commit()
 
@@ -97,7 +118,8 @@ def add_notes():
 
 @app.route("/summarize", methods=["POST"])
 def get_video_summary():
-    data = request.json
+    raw_body = request.get_data(as_text=True) 
+    data = json.loads(raw_body)
     video_id = data["video_url"].split("=")[1]
     timestamped_transcript = get_object_from_s3(video_id, S3_BUCKET)
     compiled_transcript = " ".join(snippet["text"] for snippet in timestamped_transcript if "text" in snippet)
@@ -215,4 +237,4 @@ def add_video_label():
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(host='0.0.0.0', port=5001, debug=True)

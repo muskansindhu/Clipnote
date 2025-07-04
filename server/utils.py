@@ -105,3 +105,32 @@ def extract_video_id(url: str) -> str | None:
     parsed = urlparse(url)
     query_params = parse_qs(parsed.query)
     return query_params.get("v", [None])[0]
+
+def extract_transcript_snippet(transcript, center_timestamp, window=15):
+    start_window = center_timestamp - window
+    end_window = center_timestamp + window
+
+    snippet = [
+        entry['text']
+        for entry in transcript
+        if 'text' in entry and start_window <= float(entry['start']) <= end_window
+    ]
+
+    return " ".join(snippet)
+
+def generate_ai_note(transcript_chunk):
+    prompt = f"Generate a 1 liner note for the given text and do not add any extra line other than the note content: {transcript_chunk}"
+    response = genai_client.models.generate_content(
+        model="gemini-2.0-flash", contents=prompt
+    )
+    return response.text
+
+def hms_to_seconds(hms_str):
+    parts = hms_str.split(":")
+    parts = [float(p) for p in parts]
+    if len(parts) == 3:
+        return parts[0] * 3600 + parts[1] * 60 + parts[2]
+    elif len(parts) == 2:
+        return parts[0] * 60 + parts[1]
+    else:
+        return parts[0]

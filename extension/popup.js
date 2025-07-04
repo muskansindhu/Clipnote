@@ -88,10 +88,10 @@ document.getElementById("submit").addEventListener("click", function () {
     notes: document.getElementById("notes").value,
   };
 
-  fetch("http://127.0.0.1:5000/add-notes", {
+  fetch("http://127.0.0.1:5001/add-notes", {
     method: "POST",
     headers: {
-      "Content-Type": "application/json",
+      "Content-Type": "text/plain",
     },
     body: JSON.stringify(data),
   })
@@ -117,10 +117,10 @@ document.getElementById("summarize").addEventListener("click", function () {
     video_url: videoUrl,
   };
 
-  fetch("http://127.0.0.1:5000/summarize", {
+  fetch("http://127.0.0.1:5001/summarize", {
     method: "POST",
     headers: {
-      "Content-Type": "application/json",
+      "Content-Type": "text/plain",
     },
     body: JSON.stringify(data),
   })
