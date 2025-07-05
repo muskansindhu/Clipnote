@@ -19,10 +19,13 @@ from utils import (
 app = Flask(__name__, template_folder='templates', static_folder='static')
 CORS(app)
 
-
 @app.route("/", methods=["GET"])
 def home():
     return render_template("home.html")
+
+@app.route("/dashboard", methods=["GET"])
+def dashboard():
+    return render_template("dashboard.html")
 
 @app.route("/all-video", methods=["GET"])
 def get_all_notes():

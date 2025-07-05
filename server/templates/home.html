@@ -1,15 +1,16 @@
-<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <title>clipnote</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Clipnote - Smart YouTube Note Taking</title>
     <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
       rel="stylesheet"
     />
     <link href="static/css/style.css" rel="stylesheet" />
     <script src="https://unpkg.com/lucide@latest"></script>
   </head>
+
   <body>
     <div class="navbar">
       <a href="/" style="display: flex; align-items: center; gap: 10px">
@@ -21,7 +22,7 @@
           class="logo"
           id="clipnote-logo"
         />
-        <h1>clipnote</h1>
+        <h1>Clipnote</h1>
       </a>
       <label class="theme-switch">
         <input type="checkbox" id="theme-toggle" />
@@ -32,14 +33,164 @@
       </label>
     </div>
 
-    <div class="container">
-      <div class="search-box">
-        <input type="text" id="search" placeholder="Search notes..." />
+    <main class="main-content">
+      <section class="hero">
+        <div class="hero-content">
+          <h1 class="hero-title">
+            Take <span class="highlight">AI-powered notes</span> from any
+            YouTube video
+          </h1>
+
+          <p class="hero-description">
+            Transform your learning experience with intelligent note-taking.
+            Extract key insights, generate summaries, and organize knowledge
+            from YouTube videos effortlessly.
+          </p>
+
+          <div class="hero-actions">
+            <button
+              class="btn btn-primary"
+              onclick="window.location.href='/dashboard'"
+            >
+              Get Started
+            </button>
+            <button class="btn btn-secondary">View Demo</button>
+          </div>
+        </div>
+
+        <div class="hero-visual">
+          <div class="demo-card">
+            <div class="demo-header">
+              <div class="demo-dots">
+                <span class="dot red"></span>
+                <span class="dot yellow"></span>
+                <span class="dot green"></span>
+              </div>
+            </div>
+
+            <div class="demo-content">
+              <div class="note-item">
+                <span class="timestamp">02:34</span>
+                <p>Key concept: Machine learning fundamentals</p>
+              </div>
+
+              <div class="note-item">
+                <span class="timestamp">05:12</span>
+                <p>Important: Neural network architecture explained</p>
+              </div>
+
+              <div class="note-item">
+                <span class="timestamp">08:45</span>
+                <p>Summary: Backpropagation algorithm overview</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="features">
+        <div class="features-grid">
+          <div class="feature-card">
+            <div class="feature-icon">
+              <svg viewBox="0 0 24 24" fill="none">
+                <path
+                  d="M9 12L11 14L15 10"
+                  stroke="#ff3b2f"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+
+                <circle
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="#ff3b2f"
+                  stroke-width="2"
+                />
+              </svg>
+            </div>
+
+            <h3>Smart Extraction</h3>
+
+            <p>
+              AI automatically identifies and extracts key points, definitions,
+              and important concepts from video content.
+            </p>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-icon">
+              <svg viewBox="0 0 24 24" fill="none">
+                <path
+                  d="M12 2L2 7L12 12L22 7L12 2Z"
+                  stroke="#ff3b2f"
+                  stroke-width="2"
+                  stroke-linejoin="round"
+                />
+
+                <path
+                  d="M2 17L12 22L22 17"
+                  stroke="#ff3b2f"
+                  stroke-width="2"
+                  stroke-linejoin="round"
+                />
+
+                <path
+                  d="M2 12L12 17L22 12"
+                  stroke="#ff3b2f"
+                  stroke-width="2"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            </div>
+
+            <h3>Organized Knowledge</h3>
+
+            <p>
+              Notes are automatically organized with timestamps, categories, and
+              searchable tags for easy retrieval.
+            </p>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-icon">
+              <svg viewBox="0 0 24 24" fill="none">
+                <path
+                  d="M21 15A2 2 0 0 1 19 17H7L4 20V4A2 2 0 0 1 6 2H19A2 2 0 0 1 21 4V15Z"
+                  stroke="#ff3b2f"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            </div>
+
+            <h3>Instant Summaries</h3>
+
+            <p>
+              Generate concise summaries of long videos to quickly understand
+              the main topics and key takeaways.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section class="cta">
+        <div class="cta-content">
+          <h2>Ready to enhance your learning?</h2>
+
+          <p>Start taking smarter notes from YouTube videos today.</p>
+          <button class="btn btn-primary">Install Extension</button>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-content">
+        <p>&copy; 2025 Clipnote. Built for better learning.</p>
       </div>
-      <div id="labels"></div>
-      <br />
-      <div class="cards" id="notes-container"></div>
-    </div>
+    </footer>
     <script src="static/js/home.js"></script>
   </body>
 </html>

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <title>Clipnote</title>
@@ -31,7 +31,15 @@
         </span>
       </label>
     </div>
-    <div class="cards" id="notes-content-container"></div>
-    <script src="static/js/notes.js"></script>
+
+    <div class="container">
+      <div class="search-box">
+        <input type="text" id="search" placeholder="Search notes..." />
+      </div>
+      <div id="labels"></div>
+      <br />
+      <div class="cards" id="notes-container"></div>
+    </div>
+    <script src="static/js/dashboard.js"></script>
   </body>
 </html>
