@@ -77,6 +77,8 @@ function populateFormDetails(videoURL, videoTitle, currentTimestamp) {
 }
 
 document.getElementById("submit").addEventListener("click", function () {
+  showLoader("Saving note...");
+
   var videoTitle = document.getElementById("video-title").value;
   var currentTimeStamp = document.getElementById("timestamp").value;
   var videoUrl = document.getElementById("video-url").value;
@@ -106,10 +108,15 @@ document.getElementById("submit").addEventListener("click", function () {
     })
     .catch((error) => {
       console.error("Error:", error);
+    })
+    .finally(() => {
+      hideLoader();
     });
 });
 
 document.getElementById("summarize").addEventListener("click", function () {
+  showLoader("Summarizing video...");
+
   const videoUrl = document.getElementById("video-url").value;
   console.log(videoUrl);
 
@@ -150,5 +157,18 @@ document.getElementById("summarize").addEventListener("click", function () {
     })
     .catch((error) => {
       console.error("Error:", error);
+    })
+    .finally(() => {
+      hideLoader();
     });
 });
+
+function showLoader(message = "") {
+  document.getElementById("loader-wrapper").style.display = "block";
+  document.getElementById("loader-message").textContent = message;
+}
+
+function hideLoader() {
+  document.getElementById("loader-wrapper").style.display = "none";
+  document.getElementById("loader-message").textContent = "";
+}

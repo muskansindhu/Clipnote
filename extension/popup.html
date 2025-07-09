@@ -20,11 +20,28 @@
         <textarea class="notes-input" id="notes" name="notes"></textarea>
 
         <div class="button-container">
-          <button type="submit" id="submit">Submit</button>
+          <button type="button" id="submit">Submit</button>
           <button type="button" id="summarize">Summarize Video</button>
         </div>
       </form>
-
+      <div
+        id="loader-wrapper"
+        style="
+          display: none;
+          position: fixed;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          z-index: 9999;
+          text-align: center;
+        "
+      >
+        <div class="spinner"></div>
+        <div
+          id="loader-message"
+          style="color: white; margin-top: 10px; font-size: 1rem"
+        ></div>
+      </div>
       <div id="summary-section" style="display: none; margin-top: 20px">
         <h2>Video Summary</h2>
         <ul id="summary-list" style="padding-left: 20px"></ul>
