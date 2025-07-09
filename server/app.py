@@ -79,6 +79,7 @@ def get_note(video_yt_id):
 def add_notes():
     raw_body = request.get_data(as_text=True)     # to prevent cors options method call
     data = json.loads(raw_body)
+    note_source = "user"
 
     video_yt_id = extract_video_id(data["videoUrl"])
     note_text = data["notes"].strip()
@@ -107,13 +108,14 @@ def add_notes():
                     return jsonify({"error": "Failed to upload transcript to S3"}), 500
             
             if not note_text:
+                note_source = "ai"
                 transcript = get_object_from_s3(video_yt_id, S3_BUCKET)
                 transcript_chunk = extract_transcript_snippet(transcript, center_time_sec)
                 note_text = generate_ai_note(transcript_chunk)
 
             cur.execute(
-                "INSERT INTO notes (video_timestamp, note, video_id) VALUES (%s, %s, %s)",
-                (data["currentTimeStamp"], note_text, video_yt_id)
+                "INSERT INTO notes (video_timestamp, note, video_id, note_source) VALUES (%s, %s, %s, %s)",
+                (data["currentTimeStamp"], note_text, video_yt_id, note_source)
             )
             conn.commit()
 

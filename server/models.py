@@ -18,6 +18,7 @@ class Note(SQLModel, table=True):
     created_at: datetime = Field(default_factory=datetime.utcnow)
     video_timestamp: Optional[str]
     note: Optional[str]
+    note_source: Optional[str]
     video_id: str = Field(foreign_key="video.id")
 
     video: Optional[Video] = Relationship(back_populates="notes")
