@@ -125,7 +125,7 @@ def add_notes():
 def get_video_summary():
     raw_body = request.get_data(as_text=True) 
     data = json.loads(raw_body)
-    video_id = data["video_url"].split("=")[1]
+    video_id = data["video_url"].split("v=")[1].split("&")[0]
     timestamped_transcript = get_object_from_s3(video_id, S3_BUCKET)
     compiled_transcript = " ".join(snippet["text"] for snippet in timestamped_transcript if "text" in snippet)
     summary = summarize_video(compiled_transcript)
@@ -240,6 +240,39 @@ def add_video_label():
         
     return jsonify({"message": "Video Label added successfully"}), 201
 
+@app.route("/<video_yt_id>", methods=["PATCH"])
+def update_note(video_yt_id):
+    raw_body = request.get_data(as_text=True)  
+    data = json.loads(raw_body)
+    note_text = data["notes"].strip()
+    timestamp = data["timestamp"]
+
+    with psycopg.connect(SUPABASE_CONNECTION_STRING) as conn:
+            with conn.cursor() as cur:
+                cur.execute("""
+                    UPDATE notes
+                    SET note = %s
+                    WHERE video_id = %s AND video_timestamp = %s
+                """, (note_text, video_yt_id, timestamp))
+                conn.commit()
+
+    return jsonify({"status": "success"}), 200
+
+@app.route("/<video_yt_id>", methods=["DELETE"])
+def delete_note(video_yt_id):
+    raw_body = request.get_data(as_text=True)  
+    data = json.loads(raw_body)
+    timestamp = data["timestamp"]
+
+    with psycopg.connect(SUPABASE_CONNECTION_STRING) as conn:
+            with conn.cursor() as cur:
+                cur.execute("""
+                    DELETE FROM notes
+                    WHERE video_id = %s AND video_timestamp = %s
+                """, (video_yt_id, timestamp))
+                conn.commit()
+
+    return jsonify({"status": "success"}), 200
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=5001, debug=True)
