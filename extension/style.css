@@ -1,7 +1,7 @@
 body {
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  font-family: "Inter", sans-serif;
   padding: 20px;
-  background: linear-gradient(135deg, #0a0a0a, #101010);
+  background: #141414;
   color: #ffffff;
   max-width: 500px;
 }
@@ -105,7 +105,7 @@ ul li {
   border-radius: 6px;
   color: #ffffff;
   resize: vertical;
-  font-family: inherit;
+  /* font-family: inherit; */
   box-sizing: border-box;
 }
 
@@ -126,4 +126,42 @@ ul li {
   100% {
     transform: rotate(360deg);
   }
+}
+
+body.login-page {
+  font-family: "Inter", sans-serif;
+  margin: 0;
+  padding: 20px;
+  width: 300px;
+  background-color: #141414;
+  color: #fff;
+}
+
+.login-page .login-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.login-page input {
+  padding: 10px;
+  border: none;
+  border-radius: 6px;
+  background-color: #1f1f1f;
+  color: #fff;
+}
+
+.login-page button {
+  padding: 10px;
+  background-color: #ff3b2f;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.login-page .error {
+  color: #ff4d4d;
+  font-size: 14px;
+  display: none;
 }

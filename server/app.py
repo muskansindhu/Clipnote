@@ -1,10 +1,12 @@
 import json
 import psycopg
+import jwt
+from datetime import datetime, timedelta, timezone
 
 from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
 
-from config import SUPABASE_CONNECTION_STRING, S3_BUCKET
+from config import SUPABASE_CONNECTION_STRING, S3_BUCKET, JWT_SECRET, ADMIN_USERNAME, ADMIN_PASSWORD
 from utils import (
     get_video_transcription_apify,
     summarize_video,
@@ -13,7 +15,8 @@ from utils import (
     get_object_from_s3,
     extract_transcript_snippet,
     generate_ai_note,
-    hms_to_seconds
+    hms_to_seconds,
+    require_auth
 )
 
 app = Flask(__name__, template_folder='templates', static_folder='static')
@@ -23,11 +26,38 @@ CORS(app)
 def home():
     return render_template("home.html")
 
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    if request.method == "GET":
+        return render_template("login.html")
+
+    data = request.get_json()
+    username = data.get("username")
+    password = data.get("password")
+
+    if username != ADMIN_USERNAME:
+        return jsonify({"message": "Invalid credentials"}), 401
+
+    if password != ADMIN_PASSWORD:
+        return jsonify({"message": "Invalid credentials"}), 401
+
+    payload = {
+        "sub": username,
+        "exp": datetime.now(timezone.utc) + timedelta(days=15)
+    }
+    token = jwt.encode(payload, JWT_SECRET, algorithm="HS256")
+    return jsonify(access_token=token), 200
+
 @app.route("/dashboard", methods=["GET"])
 def dashboard():
     return render_template("dashboard.html")
 
+@app.route("/<video_yt_id>")
+def get_note_page(video_yt_id):
+    return render_template("note.html")
+
 @app.route("/all-video", methods=["GET"])
+@require_auth
 def get_all_notes():
     all_notes = []
 
@@ -47,6 +77,7 @@ def get_all_notes():
     return all_notes
 
 @app.route("/note/<video_yt_id>", methods=["GET"])
+@require_auth
 def get_note(video_yt_id):
     video_notes = []
 
@@ -76,6 +107,7 @@ def get_note(video_yt_id):
     return jsonify(video_notes), 200
 
 @app.route("/add-notes", methods=["POST"])
+@require_auth
 def add_notes():
     raw_body = request.get_data(as_text=True)     # to prevent cors options method call
     data = json.loads(raw_body)
@@ -122,6 +154,7 @@ def add_notes():
     return jsonify({"message": "Note added successfully"}), 201
 
 @app.route("/summarize", methods=["POST"])
+@require_auth
 def get_video_summary():
     raw_body = request.get_data(as_text=True) 
     data = json.loads(raw_body)
@@ -132,6 +165,7 @@ def get_video_summary():
     return jsonify({"message": summary}), 200
 
 @app.route("/fav-note", methods=["POST"])
+@require_auth
 def mark_note_as_fav():
     data = request.json
     video_title = data["video_title"]
@@ -144,6 +178,7 @@ def mark_note_as_fav():
     return {"message": "Note marked as favourite."}, 200
 
 @app.route("/unfav-note", methods=["POST"])
+@require_auth
 def mark_note_as_unfav():
     data = request.json
     video_title = data["video_title"]
@@ -155,11 +190,8 @@ def mark_note_as_unfav():
 
     return {"message": "Note marked as favourite."}, 200
 
-@app.route("/<video_yt_id>")
-def get_note_page(video_yt_id):
-    return render_template("note.html")
-
 @app.route("/labels", methods=["GET"])
+@require_auth
 def get_all_labels():
     all_labels = []
 
@@ -177,6 +209,7 @@ def get_all_labels():
     return all_labels
 
 @app.route("/label", methods=["POST"])
+@require_auth
 def add_new_label():
 
     data = request.json
@@ -190,6 +223,7 @@ def add_new_label():
     return jsonify({"message":"Label added successfully"}), 201
 
 @app.route("/<label>/note", methods=["GET"])
+@require_auth
 def filter_note_by_label(label):
     filtered_videos = []
 
@@ -222,6 +256,7 @@ def filter_note_by_label(label):
     return jsonify(filtered_videos), 200
 
 @app.route("/video-label", methods=["POST"])
+@require_auth
 def add_video_label():
     data = request.json
     with psycopg.connect(SUPABASE_CONNECTION_STRING) as conn:
@@ -241,6 +276,7 @@ def add_video_label():
     return jsonify({"message": "Video Label added successfully"}), 201
 
 @app.route("/<video_yt_id>", methods=["PATCH"])
+@require_auth
 def update_note(video_yt_id):
     raw_body = request.get_data(as_text=True)  
     data = json.loads(raw_body)
@@ -259,6 +295,7 @@ def update_note(video_yt_id):
     return jsonify({"status": "success"}), 200
 
 @app.route("/<video_yt_id>", methods=["DELETE"])
+@require_auth
 def delete_note(video_yt_id):
     raw_body = request.get_data(as_text=True)  
     data = json.loads(raw_body)

@@ -1,14 +1,17 @@
 import json
 import logging
 from urllib.parse import urlparse, parse_qs
+from functools import wraps
 
+import jwt
 import boto3
 from botocore.exceptions import ClientError
 from youtube_transcript_api import YouTubeTranscriptApi, TranscriptsDisabled, NoTranscriptFound, VideoUnavailable
 from apify_client import ApifyClient
 from google import genai
+from flask import request, jsonify
 
-from config import GEMINI_API_KEY, APIFY_TOKEN
+from config import GEMINI_API_KEY, APIFY_TOKEN, JWT_SECRET
 
 ytt_api = YouTubeTranscriptApi()
 
@@ -134,3 +137,28 @@ def hms_to_seconds(hms_str):
         return parts[0] * 60 + parts[1]
     else:
         return parts[0]
+    
+def require_auth(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        token = None
+
+        if "Authorization" in request.headers:
+            auth_header = request.headers["Authorization"]
+            parts = auth_header.split(" ")
+            if len(parts) == 2 and parts[0] == "Bearer":
+                token = parts[1]
+
+        if not token:
+            return jsonify({"message": "Token missing"}), 401
+
+        try:
+            payload = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
+            request.user = payload["sub"]
+        except jwt.ExpiredSignatureError:
+            return jsonify({"message": "Token expired"}), 401
+        except jwt.InvalidTokenError:
+            return jsonify({"message": "Invalid token"}), 401
+
+        return f(*args, **kwargs)
+    return decorated

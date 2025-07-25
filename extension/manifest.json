@@ -5,7 +5,7 @@
   "manifest_version": 3,
   "author": "Muskan Sindhu",
   "action": {
-    "default_popup": "popup.html"
+    "default_popup": "login.html"
   },
-  "permissions": ["activeTab", "tabs", "scripting"]
+  "permissions": ["activeTab", "tabs", "scripting", "storage"]
 }

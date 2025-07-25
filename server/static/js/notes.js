@@ -2,8 +2,14 @@ document.addEventListener("DOMContentLoaded", function () {
   setupThemeToggle();
 
   const videoId = window.location.href.split("/").pop();
+  const token = localStorage.getItem("clipnote_token");
 
-  fetch(`/note/${videoId}`)
+  fetch(`/note/${videoId}`, {
+    headers: {
+      Authorization: "Bearer " + token,
+      "Content-Type": "application/json",
+    },
+  })
     .then((response) => {
       if (!response.ok) throw new Error("Failed to fetch notes.");
       return response.json();

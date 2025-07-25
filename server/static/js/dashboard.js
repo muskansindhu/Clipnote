@@ -1,6 +1,14 @@
 document.addEventListener("DOMContentLoaded", function () {
   setupThemeToggle();
-  fetch("/all-video")
+
+  const token = localStorage.getItem("clipnote_token");
+  if (!token) {
+    window.location.href = "/login";
+  }
+
+  fetch("/all-video", {
+    headers: { Authorization: "Bearer " + token },
+  })
     .then((response) => {
       if (!response.ok) throw new Error("Failed to fetch notes.");
       return response.json();
@@ -37,7 +45,9 @@ document.addEventListener("DOMContentLoaded", function () {
       console.error("Error loading notes:", error);
     });
 
-  fetch("/labels")
+  fetch("/labels", {
+    headers: { Authorization: "Bearer " + token },
+  })
     .then((response) => {
       if (!response.ok) throw new Error("Failed to fetch notes.");
       return response.json();
@@ -59,7 +69,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
             this.classList.add("active");
 
-            fetch(`/${label.label_name}/note`)
+            fetch(`/${label.label_name}/note`, {
+              headers: { Authorization: "Bearer " + token },
+            })
               .then((response) => {
                 if (!response.ok)
                   throw new Error("Failed to fetch label-specific notes.");
@@ -104,6 +116,12 @@ document.addEventListener("DOMContentLoaded", function () {
 
 document.addEventListener("click", function (event) {
   if (event.target.classList.contains("fav-icon")) {
+    const token = localStorage.getItem("clipnote_token");
+    if (!token) {
+      window.location.href = "/login";
+      return;
+    }
+
     const videoTitle = event.target
       .closest(".card")
       .querySelector("h3").textContent;
@@ -120,6 +138,7 @@ document.addEventListener("click", function (event) {
     fetch(endpoint, {
       method: "POST",
       headers: {
+        Authorization: "Bearer " + token,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({ video_title: videoTitle }),

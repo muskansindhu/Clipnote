@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Clipnote - Smart YouTube Note Taking</title>
+    <link
+      rel="icon"
+      type="image/png"
+      href="/static/assets/clipnote-logo-64x64.png"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap"
+      rel="stylesheet"
+    />
+    <link href="static/css/style.css" rel="stylesheet" />
+    <script src="https://unpkg.com/lucide@latest"></script>
+  </head>
+  <body class="login-page">
+    <label class="theme-switch">
+      <input type="checkbox" id="theme-toggle" />
+      <span class="slider">
+        <i data-lucide="sun" class="icon sun"></i>
+        <i data-lucide="moon" class="icon moon"></i>
+      </span>
+    </label>
+
+    <div class="login-container">
+      <h2>Login</h2>
+      <div class="error-message" id="error-msg"></div>
+      <form id="login-form">
+        <input
+          type="text"
+          id="username"
+          name="username"
+          placeholder="Username"
+          autocomplete="username"
+          required
+        />
+        <input
+          type="password"
+          id="password"
+          name="password"
+          placeholder="Password"
+          autocomplete="current-password"
+          required
+        />
+        <button type="submit">Submit</button>
+      </form>
+    </div>
+    <script src="static/js/login.js"></script>
+  </body>
+</html>

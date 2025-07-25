@@ -1,5 +1,18 @@
 document.addEventListener("DOMContentLoaded", async function () {
+  const hasToken = await checkAuthToken();
+
+  if (!hasToken) {
+    window.location.href = chrome.runtime.getURL("login.html");
+    return;
+  }
+
   const tabDetails = await getTabDetails();
+  if (!tabDetails) {
+    document.getElementById("error-message").style.display = "block";
+    document.getElementById("content-wrapper").style.display = "none";
+    return;
+  }
+
   const videoTitle = await execute(getVideoTitle, tabDetails.id);
   const currentTimestamp = await execute(getTimestamp, tabDetails.id);
 
@@ -79,88 +92,111 @@ function populateFormDetails(videoURL, videoTitle, currentTimestamp) {
 document.getElementById("submit").addEventListener("click", function () {
   showLoader("Saving note...");
 
-  var videoTitle = document.getElementById("video-title").value;
-  var currentTimeStamp = document.getElementById("timestamp").value;
-  var videoUrl = document.getElementById("video-url").value;
+  chrome.storage.local.get("clipnote_token", function (result) {
+    const token = result.clipnote_token;
 
-  var data = {
-    videoUrl: videoUrl,
-    videoTitle: videoTitle,
-    currentTimeStamp: currentTimeStamp,
-    notes: document.getElementById("notes").value,
-  };
-
-  fetch("http://127.0.0.1:5001/add-notes", {
-    method: "POST",
-    headers: {
-      "Content-Type": "text/plain",
-    },
-    body: JSON.stringify(data),
-  })
-    .then((response) => {
-      if (!response.ok) {
-        throw new Error("Network response was not ok");
-      }
-      return response.json();
-    })
-    .then((data) => {
-      console.log("Success:", data);
-    })
-    .catch((error) => {
-      console.error("Error:", error);
-    })
-    .finally(() => {
+    if (!token) {
+      console.error("No token found in storage");
       hideLoader();
-    });
+      return;
+    }
+
+    const videoTitle = document.getElementById("video-title").value;
+    const currentTimeStamp = document.getElementById("timestamp").value;
+    const videoUrl = document.getElementById("video-url").value;
+    const notes = document.getElementById("notes").value;
+
+    const data = {
+      videoUrl,
+      videoTitle,
+      currentTimeStamp,
+      notes,
+    };
+
+    fetch("http://127.0.0.1:5001/add-notes", {
+      method: "POST",
+      headers: {
+        Authorization: "Bearer " + token,
+        "Content-Type": "text/plain",
+      },
+      body: JSON.stringify(data),
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Network response was not ok");
+        }
+        return response.json();
+      })
+      .then((data) => {
+        console.log("Success:", data);
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+      })
+      .finally(() => {
+        hideLoader();
+      });
+  });
 });
 
 document.getElementById("summarize").addEventListener("click", function () {
   showLoader("Summarizing video...");
 
-  const videoUrl = document.getElementById("video-url").value;
-  console.log(videoUrl);
+  chrome.storage.local.get("clipnote_token", function (result) {
+    const token = result.clipnote_token;
 
-  const data = {
-    video_url: videoUrl,
-  };
-
-  fetch("http://127.0.0.1:5001/summarize", {
-    method: "POST",
-    headers: {
-      "Content-Type": "text/plain",
-    },
-    body: JSON.stringify(data),
-  })
-    .then((response) => {
-      if (!response.ok) {
-        throw new Error("Network response was not ok");
-      }
-      return response.json();
-    })
-    .then((data) => {
-      console.log("Success:", data);
-      const summary = data.message;
-      const summaryList = document.getElementById("summary-list");
-      const summarySection = document.getElementById("summary-section");
-
-      summaryList.innerHTML = "";
-
-      summary.split("\n").forEach((line) => {
-        if (line.trim()) {
-          const li = document.createElement("li");
-          li.textContent = line.trim();
-          summaryList.appendChild(li);
-        }
-      });
-
-      summarySection.style.display = "block";
-    })
-    .catch((error) => {
-      console.error("Error:", error);
-    })
-    .finally(() => {
+    if (!token) {
+      console.error("No token found in storage");
       hideLoader();
-    });
+      return;
+    }
+
+    const videoUrl = document.getElementById("video-url").value;
+    console.log(videoUrl);
+
+    const data = {
+      video_url: videoUrl,
+    };
+
+    fetch("http://127.0.0.1:5001/summarize", {
+      method: "POST",
+      headers: {
+        Authorization: "Bearer " + token,
+        "Content-Type": "text/plain",
+      },
+      body: JSON.stringify(data),
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Network response was not ok");
+        }
+        return response.json();
+      })
+      .then((data) => {
+        console.log("Success:", data);
+        const summary = data.message;
+        const summaryList = document.getElementById("summary-list");
+        const summarySection = document.getElementById("summary-section");
+
+        summaryList.innerHTML = "";
+
+        summary.split("\n").forEach((line) => {
+          if (line.trim()) {
+            const li = document.createElement("li");
+            li.textContent = line.trim();
+            summaryList.appendChild(li);
+          }
+        });
+
+        summarySection.style.display = "block";
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+      })
+      .finally(() => {
+        hideLoader();
+      });
+  });
 });
 
 function showLoader(message = "") {
@@ -171,4 +207,13 @@ function showLoader(message = "") {
 function hideLoader() {
   document.getElementById("loader-wrapper").style.display = "none";
   document.getElementById("loader-message").textContent = "";
+}
+
+async function checkAuthToken() {
+  return new Promise((resolve) => {
+    chrome.storage.local.get("clipnote_token", (result) => {
+      const token = result.clipnote_token;
+      resolve(typeof token === "string" && token.trim().length > 0);
+    });
+  });
 }

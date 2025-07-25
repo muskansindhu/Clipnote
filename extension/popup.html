@@ -2,49 +2,51 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <title>clipnote</title>
+    <title>Clipnote</title>
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
     <div id="popup-container">
-      <form id="notes-form">
-        <input type="text" id="video-url" name="video-url" hidden />
+      <div id="content-wrapper">
+        <form id="notes-form">
+          <input type="text" id="video-url" name="video-url" hidden />
 
-        <label for="video-title">Video Title:</label>
-        <input type="text" id="video-title" name="video-title" readonly />
+          <label for="video-title">Video Title:</label>
+          <input type="text" id="video-title" name="video-title" readonly />
 
-        <label for="timestamp">Timestamp:</label>
-        <input type="text" id="timestamp" name="timestamp" readonly />
+          <label for="timestamp">Timestamp:</label>
+          <input type="text" id="timestamp" name="timestamp" readonly />
 
-        <label for="notes">Notes:</label>
-        <textarea class="notes-input" id="notes" name="notes"></textarea>
+          <label for="notes">Note:</label>
+          <textarea class="notes-input" id="notes" name="notes"></textarea>
 
-        <div class="button-container">
-          <button type="button" id="submit">Submit</button>
-          <button type="button" id="summarize">Summarize Video</button>
+          <div class="button-container">
+            <button type="button" id="submit">Submit</button>
+            <button type="button" id="summarize">Summarize</button>
+          </div>
+        </form>
+
+        <div id="loader-wrapper" style="display: none">
+          <div class="spinner"></div>
+          <div id="loader-message"></div>
         </div>
-      </form>
+
+        <div id="summary-section" style="display: none">
+          <h2>Video Summary</h2>
+          <ul id="summary-list"></ul>
+        </div>
+      </div>
       <div
-        id="loader-wrapper"
+        id="error-message"
         style="
           display: none;
-          position: fixed;
-          top: 50%;
-          left: 50%;
-          transform: translate(-50%, -50%);
-          z-index: 9999;
+          color: #ff3b2f;
+          margin-top: 10px;
           text-align: center;
+          font-size: 20px;
         "
       >
-        <div class="spinner"></div>
-        <div
-          id="loader-message"
-          style="color: white; margin-top: 10px; font-size: 1rem"
-        ></div>
-      </div>
-      <div id="summary-section" style="display: none; margin-top: 20px">
-        <h2>Video Summary</h2>
-        <ul id="summary-list" style="padding-left: 20px"></ul>
+        Please open a valid YouTube page to take notes.
       </div>
 
       <script src="popup.js"></script>
