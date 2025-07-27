@@ -23,33 +23,91 @@ document.addEventListener("DOMContentLoaded", function () {
       container.className = "notes-card";
 
       container.innerHTML = `
-          <div class="note-content">
-            <h2>${note.video_title}</h2>
-            <div class="note-list">
-              ${data
-                .map((item) => {
-                  const parts = item.video_timestamp.split(":").map(Number);
-                  const seconds =
-                    parts.length === 3
-                      ? parts[0] * 3600 + parts[1] * 60 + parts[2]
-                      : parts.length === 2
-                      ? parts[0] * 60 + parts[1]
-                      : parts[0];
+        <div class="note-content">
+          <h2>${note.video_title}</h2>
+          <div class="note-list">
+            ${data
+              .map((item) => {
+                const parts = item.video_timestamp.split(":").map(Number);
+                const seconds =
+                  parts.length === 3
+                    ? parts[0] * 3600 + parts[1] * 60 + parts[2]
+                    : parts.length === 2
+                    ? parts[0] * 60 + parts[1]
+                    : parts[0];
 
-                  return `
-                <div class="note-entry">
-                  <a href="${note.video_url}&t=${seconds}s" target="_blank">
-                    <strong>${item.video_timestamp}</strong>
-                  </a> - ${item.note || "(No note)"}
-                </div>
-              `;
-                })
-                .join("")}
-            </div>
+                return `
+                  <div class="note-entry">
+                    <div class="note-text">
+                      <a href="${note.video_url}&t=${seconds}s" target="_blank">
+                        <strong>${item.video_timestamp}</strong>
+                      </a> - ${item.note || "(No note)"}
+                    </div>
+                    <div class="action-items">
+                      <img src="static/assets/edit.png" class="action-item-icon edit-icon" />
+                      <img src="static/assets/trash.png" class="action-item-icon trash-icon" />
+                    </div>
+                  </div>
+                `;
+              })
+              .join("")}
           </div>
-        `;
+        </div>
+      `;
 
       document.body.appendChild(container);
+
+      // DELETE note
+      document.querySelectorAll(".trash-icon").forEach((icon, index) => {
+        icon.addEventListener("click", () => {
+          const timestamp = data[index].video_timestamp;
+
+          fetch(`/${videoId}`, {
+            method: "DELETE",
+            headers: {
+              Authorization: "Bearer " + token,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ timestamp }),
+          })
+            .then((res) => {
+              if (!res.ok) throw new Error("Failed to delete note.");
+              location.reload(); // Refresh to reflect deletion
+            })
+            .catch((err) => {
+              console.error("Delete failed:", err);
+            });
+        });
+      });
+
+      document.querySelectorAll(".edit-icon").forEach((icon, index) => {
+        icon.addEventListener("click", () => {
+          const originalNote = data[index].note;
+          const timestamp = data[index].video_timestamp;
+
+          const updatedNote = prompt("Edit your note:", originalNote);
+          if (updatedNote === null) return;
+
+          fetch(`/${videoId}`, {
+            method: "PATCH",
+            headers: {
+              Authorization: "Bearer " + token,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              timestamp,
+              notes: updatedNote,
+            }),
+          })
+            .then((res) => {
+              if (!res.ok) throw new Error("Failed to update note.");
+              location.reload();
+            })
+            .catch((err) => {
+              console.error("Update failed:", err);
+            });
+        });
+      });
     })
     .catch((err) => {
       console.error("Error fetching video note:", err);
