@@ -52,6 +52,26 @@
       <br />
       <div class="cards" id="notes-container"></div>
     </div>
+    <div id="label-modal" class="modal" style="display: none">
+      <div class="modal-content">
+        <span class="close-button" id="close-label-modal">&times;</span>
+        <h3>Add New Label</h3>
+        <form
+          id="label-form"
+          style="display: flex; flex-direction: column; align-items: center"
+        >
+          <input
+            type="text"
+            id="new-label-input"
+            placeholder="Enter label name"
+            required
+            style="width: 100%"
+          />
+          <button type="submit">Add</button>
+        </form>
+      </div>
+    </div>
+
     <script src="static/js/dashboard.js"></script>
   </body>
 </html>

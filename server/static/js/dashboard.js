@@ -112,6 +112,67 @@ document.addEventListener("DOMContentLoaded", function () {
           labels.push(label.label_name);
         }
       });
+
+      const plusIcon = document.createElement("img");
+      plusIcon.src =
+        localStorage.getItem("theme") === "light"
+          ? "/static/assets/plus-light.png"
+          : "/static/assets/plus.png";
+
+      plusIcon.alt = "Add Label";
+      plusIcon.style.width = "20px";
+      plusIcon.style.height = "20px";
+      plusIcon.style.cursor = "pointer";
+      plusIcon.style.marginLeft = "6px";
+      plusIcon.style.position = "relative";
+      plusIcon.style.verticalAlign = "middle";
+
+      plusIcon.setAttribute("data-dark", "/static/assets/plus.png");
+      plusIcon.setAttribute("data-light", "/static/assets/plus-light.png");
+      plusIcon.setAttribute("data-theme-switchable", "true");
+
+      plusIcon.addEventListener("click", () => {
+        document.getElementById("label-modal").style.display = "block";
+      });
+
+      document
+        .getElementById("close-label-modal")
+        .addEventListener("click", () => {
+          document.getElementById("label-modal").style.display = "none";
+        });
+
+      document
+        .getElementById("label-form")
+        .addEventListener("submit", function (e) {
+          e.preventDefault();
+          const labelName = document
+            .getElementById("new-label-input")
+            .value.trim();
+          if (!labelName) return;
+
+          fetch("/label", {
+            method: "POST",
+            headers: {
+              Authorization: "Bearer " + token,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ label_name: labelName }),
+          })
+            .then((res) => {
+              if (!res.ok) throw new Error("Failed to add label.");
+              return res.json();
+            })
+            .then(() => {
+              document.getElementById("label-modal").style.display = "none";
+              location.reload();
+            })
+            .catch((err) => {
+              console.error("Error adding label:", err);
+              alert("Failed to add label.");
+            });
+        });
+
+      container.appendChild(plusIcon);
     });
 });
 
