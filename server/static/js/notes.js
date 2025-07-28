@@ -57,7 +57,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
       document.body.appendChild(container);
 
-      // DELETE note
       document.querySelectorAll(".trash-icon").forEach((icon, index) => {
         icon.addEventListener("click", () => {
           const timestamp = data[index].video_timestamp;
@@ -72,7 +71,7 @@ document.addEventListener("DOMContentLoaded", function () {
           })
             .then((res) => {
               if (!res.ok) throw new Error("Failed to delete note.");
-              location.reload(); // Refresh to reflect deletion
+              location.reload();
             })
             .catch((err) => {
               console.error("Delete failed:", err);
@@ -82,30 +81,68 @@ document.addEventListener("DOMContentLoaded", function () {
 
       document.querySelectorAll(".edit-icon").forEach((icon, index) => {
         icon.addEventListener("click", () => {
+          const noteCard = icon.closest(".note-entry");
+          const noteText = noteCard.querySelector(".note-text");
+          const actionContainer = icon.parentElement;
+
           const originalNote = data[index].note;
           const timestamp = data[index].video_timestamp;
 
-          const updatedNote = prompt("Edit your note:", originalNote);
-          if (updatedNote === null) return;
+          const textarea = document.createElement("textarea");
+          textarea.value = originalNote;
+          textarea.className = "edit-textarea";
 
-          fetch(`/${videoId}`, {
-            method: "PATCH",
-            headers: {
-              Authorization: "Bearer " + token,
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              timestamp,
-              notes: updatedNote,
-            }),
-          })
-            .then((res) => {
-              if (!res.ok) throw new Error("Failed to update note.");
-              location.reload();
+          noteText.replaceWith(textarea);
+          textarea.focus();
+
+          const saveImg = document.createElement("img");
+          saveImg.src = "/static/assets/save.png";
+          saveImg.alt = "Save";
+          saveImg.className = "action-item-icon";
+
+          const cancelImg = document.createElement("img");
+          cancelImg.src = "/static/assets/cancel.png";
+          cancelImg.alt = "Cancel";
+          cancelImg.className = "action-item-icon";
+
+          const trashIcon = actionContainer.querySelector(".trash-icon");
+
+          actionContainer.insertBefore(saveImg, trashIcon);
+          actionContainer.insertBefore(cancelImg, trashIcon);
+
+          icon.remove();
+
+          cancelImg.addEventListener("click", () => {
+            textarea.replaceWith(noteText);
+
+            actionContainer.insertBefore(icon, saveImg);
+            saveImg.remove();
+            cancelImg.remove();
+          });
+
+          saveImg.addEventListener("click", () => {
+            const updatedNote = textarea.value.trim();
+            if (updatedNote === "") return;
+
+            fetch(`/${videoId}`, {
+              method: "PATCH",
+              headers: {
+                Authorization: "Bearer " + token,
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                timestamp,
+                notes: updatedNote,
+              }),
             })
-            .catch((err) => {
-              console.error("Update failed:", err);
-            });
+              .then((res) => {
+                if (!res.ok) throw new Error("Failed to update note.");
+                location.reload();
+              })
+              .catch((err) => {
+                console.error("Update failed:", err);
+              });
+          });
         });
       });
     })
