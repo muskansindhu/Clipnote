@@ -89,7 +89,7 @@ def get_note(video_yt_id):
             if not video:
                 return jsonify({"message": "Video not found"}), 404
 
-            cur.execute("SELECT id, created_at, video_timestamp, note FROM notes WHERE video_id = %s", (video_yt_id,))
+            cur.execute("SELECT id, created_at, video_timestamp, note, note_source FROM notes WHERE video_id = %s", (video_yt_id,))
             notes = cur.fetchall()
 
             for note in notes:
@@ -101,7 +101,8 @@ def get_note(video_yt_id):
                     "video_title": video[2],
                     "video_timestamp": note[2],
                     "note": note[3],
-                    "fav": video[3]
+                    "fav": video[3],
+                    "note_source": note[4]
                 })
 
     return jsonify(video_notes), 200

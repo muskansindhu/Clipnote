@@ -40,7 +40,11 @@ document.addEventListener("DOMContentLoaded", function () {
                     : parts[0];
 
                 return `
-                  <div class="note-entry">
+                  <div class="note-entry ${
+                    item.note_source?.toLowerCase() === "ai"
+                      ? "ai-note"
+                      : "user-note"
+                  }">
                     <div class="note-text">
                       <a href="${note.video_url}&t=${seconds}s" target="_blank">
                         <strong class="timestamp">${

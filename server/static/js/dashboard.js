@@ -57,6 +57,7 @@ document.addEventListener("DOMContentLoaded", function () {
       const container = document.getElementById("labels");
       const labels = [];
 
+      let activeLabel = null;
       data.forEach((label) => {
         if (!labels.includes(label)) {
           const labelBtn = document.createElement("button");
@@ -64,48 +65,100 @@ document.addEventListener("DOMContentLoaded", function () {
           labelBtn.innerHTML = `${label.label_name}`;
 
           labelBtn.addEventListener("click", function () {
-            document.querySelectorAll(".label").forEach((btn) => {
-              btn.classList.remove("active");
-            });
+            const container = document.getElementById("notes-container");
 
-            this.classList.add("active");
+            if (activeLabel === label.label_name) {
+              this.classList.remove("active");
+              activeLabel = null;
 
-            fetch(`/${label.label_name}/note`, {
-              headers: { Authorization: "Bearer " + token },
-            })
-              .then((response) => {
-                if (!response.ok)
-                  throw new Error("Failed to fetch label-specific notes.");
-                return response.json();
+              fetch("/all-video", {
+                headers: { Authorization: "Bearer " + token },
               })
-              .then((videos) => {
-                const container = document.getElementById("notes-container");
-                container.innerHTML = "";
+                .then((res) => res.json())
+                .then((allVideos) => {
+                  container.innerHTML = "";
+                  allVideos.forEach((video) => {
+                    const isFavourited = video.fav === true;
+                    const card = document.createElement("div");
+                    card.className = "card";
+                    card.id = video.id;
 
-                videos.forEach((video) => {
-                  const isFavourited = video.fav === true;
+                    const iconSrc = isFavourited
+                      ? "static/assets/fav_filled.png"
+                      : "static/assets/fav_unfilled.png";
 
-                  const card = document.createElement("div");
-                  card.className = "card";
-                  card.id = video.video_id;
+                    card.innerHTML = `
+            <div class="card-header">
+              <h3 id="video-title">${video.video_title}</h3>
+              <img src="${iconSrc}" alt="fav" class="fav-icon"/>
+            </div>
+          `;
 
-                  const iconSrc = isFavourited
-                    ? "static/assets/fav_filled.png"
-                    : "static/assets/fav_unfilled.png";
-
-                  card.innerHTML = `
-          <div class="card-header">
-            <h3 id="video-title">${video.video_title}</h3>
-            <img src="${iconSrc}" alt="fav" class="fav-icon"/>
-          </div>
-        `;
-
-                  container.appendChild(card);
+                    container.appendChild(card);
+                  });
                 });
+            } else {
+              document.querySelectorAll(".label").forEach((btn) => {
+                btn.classList.remove("active");
+              });
+
+              this.classList.add("active");
+              activeLabel = label.label_name;
+
+              fetch(`/${label.label_name}/note`, {
+                headers: { Authorization: "Bearer " + token },
               })
-              .catch((err) =>
-                console.error("Error fetching videos by label:", err)
-              );
+                .then((response) => {
+                  if (!response.ok)
+                    throw new Error("Failed to fetch label-specific notes.");
+                  return response.json();
+                })
+                .then((videos) => {
+                  container.innerHTML = "";
+
+                  if (videos.length === 0) {
+                    const noDataMessage = document.createElement("p");
+                    noDataMessage.textContent =
+                      "No videos found for this label.";
+                    noDataMessage.className = "no-videos-message";
+
+                    const theme = localStorage.getItem("theme");
+                    noDataMessage.style.color =
+                      theme === "light" ? "#444" : "#aaa";
+
+                    noDataMessage.style.fontStyle = "italic";
+                    noDataMessage.style.padding = "10px";
+                    noDataMessage.style.textAlign = "center";
+
+                    container.appendChild(noDataMessage);
+                    return;
+                  }
+
+                  videos.forEach((video) => {
+                    const isFavourited = video.fav === true;
+
+                    const card = document.createElement("div");
+                    card.className = "card";
+                    card.id = video.video_id;
+
+                    const iconSrc = isFavourited
+                      ? "static/assets/fav_filled.png"
+                      : "static/assets/fav_unfilled.png";
+
+                    card.innerHTML = `
+            <div class="card-header">
+              <h3 id="video-title">${video.video_title}</h3>
+              <img src="${iconSrc}" alt="fav" class="fav-icon"/>
+            </div>
+          `;
+
+                    container.appendChild(card);
+                  });
+                })
+                .catch((err) =>
+                  console.error("Error fetching videos by label:", err)
+                );
+            }
           });
 
           container.appendChild(labelBtn);
