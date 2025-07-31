@@ -153,7 +153,7 @@ a {
   width: 70vw;
 }
 
-.note-content h2 {
+.note-content .video-title {
   color: #ff675e;
   font-size: 20px;
   margin-bottom: 16px;
@@ -582,6 +582,85 @@ a {
   color: #f1f1f1;
 }
 
+.video-tag {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.tag-icon {
+  width: 18px;
+  height: 18px;
+}
+
+.add-tag-button {
+  margin-left: 3px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  background-color: #ff3b2f;
+  color: white;
+  border: none;
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+
+.add-tag-button:hover {
+  background-color: #ff5e56;
+}
+
+.label-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.remove-label-btn {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  background-color: #ff3b2f;
+  color: #282424;
+  border-radius: 50%;
+  width: 15px;
+  height: 15px;
+  font-size: 12px;
+  font-weight: bold;
+  cursor: pointer;
+  line-height: 15px;
+  text-align: center;
+}
+
+.label-dropdown {
+  padding: 6px 12px;
+  border: 2px solid #ff3b2f;
+  border-radius: 8px;
+  background-color: transparent;
+  color: #ff3b2f;
+  font-size: 14px;
+  cursor: pointer;
+  outline: none;
+  appearance: none;
+  transition: all 0.3s ease;
+  background-image: url('data:image/svg+xml;utf8,<svg fill="%23ff5c5c" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>');
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 16px 16px;
+  min-width: 160px;
+}
+
+.label-dropdown option {
+  color: #333;
+  background-color: #d4c8b4;
+  font-size: 14px;
+  padding: 8px;
+}
+
+.label-dropdown:hover,
+.label-dropdown:focus {
+  border-color: #ff3b2f;
+  box-shadow: 0 0 0 2px rgba(255, 92, 92, 0.2);
+}
+
 /* Light Mode */
 .light-mode {
   background-color: #d4c8b4;
@@ -612,7 +691,7 @@ a {
 
 .light-mode .card h3,
 .light-mode .card-header h3,
-.light-mode .note-content h2 {
+.light-mode .note-content .video-title {
   color: #d63031;
 }
 
@@ -807,6 +886,24 @@ a {
 
 .light-mode .close-button {
   color: #000;
+}
+
+.light-mode .label-pill {
+  border: 2px solid #d63031;
+  color: #d63031;
+  background-color: #d4c8b4;
+}
+
+.light-mode .remove-label-btn {
+  background-color: #d63031;
+  color: #d4c8b4;
+}
+
+.light-mode .label-dropdown {
+  border-color: #d63031;
+  color: #d63031;
+  background-color: #d4c8b4;
+  background-image: url('data:image/svg+xml;utf8,<svg fill="%23d63031" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>');
 }
 
 .theme-switch {

@@ -25,9 +25,17 @@ document.addEventListener("DOMContentLoaded", function () {
 
       container.innerHTML = `
         <div class="note-content">
-          <a href="${note.video_url}" target="_blank"><h2>${
+        <h2><a href="${note.video_url}" target="_blank" class="video-title">${
         note.video_title
-      }</h2></a>
+      }</a></h2>
+      <div class="video-tag">
+       <img src="static/assets/tag.png" 
+       class="action-item-icon tag-icon"
+       data-light="static/assets/tag-light.png" 
+       data-dark="static/assets/tag.png" 
+       data-theme-switchable='true'
+       />
+      </div>
           <div class="note-list">
             ${data
               .map((item) => {
@@ -65,6 +73,8 @@ document.addEventListener("DOMContentLoaded", function () {
       `;
 
       document.body.appendChild(container);
+      applyThemeToIconImages();
+      getVideoLabel(videoId, token);
 
       document.querySelectorAll(".trash-icon").forEach((icon, index) => {
         icon.addEventListener("click", () => {
@@ -214,4 +224,117 @@ function insertDashboardIconIfLoggedIn() {
   placeholder.addEventListener("click", () => {
     window.location.href = "/dashboard";
   });
+}
+
+function applyThemeToIconImages() {
+  const isLight = localStorage.getItem("theme") === "light";
+  document
+    .querySelectorAll("img[data-theme-switchable='true']")
+    .forEach((img) => {
+      img.src = isLight ? img.dataset.light : img.dataset.dark;
+    });
+}
+
+function getVideoLabel(videoId, token) {
+  fetch(`/${videoId}/label`, {
+    headers: {
+      Authorization: "Bearer " + token,
+      "Content-Type": "application/json",
+    },
+  })
+    .then((res) => {
+      if (!res.ok) throw new Error("Failed to fetch label.");
+      return res.json();
+    })
+    .then((data) => {
+      const tagDiv = document.querySelector(".video-tag");
+      if (!tagDiv) return;
+
+      if (data.label) {
+        const labelWrapper = document.createElement("div");
+        labelWrapper.className = "label-wrapper";
+
+        const labelElement = document.createElement("span");
+        labelElement.className = "label";
+        labelElement.textContent = data.label;
+
+        const removeBtn = document.createElement("span");
+        removeBtn.className = "remove-label-btn";
+        removeBtn.innerHTML = "&times;";
+        removeBtn.title = "Remove Tag";
+
+        removeBtn.addEventListener("click", () => {
+          fetch(`/video-label`, {
+            method: "DELETE",
+            headers: {
+              Authorization: "Bearer " + token,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ video_id: videoId }),
+          })
+            .then((res) => {
+              if (!res.ok) throw new Error("Failed to remove label");
+              location.reload();
+            })
+            .catch((err) => console.error("Error removing label:", err));
+        });
+
+        labelWrapper.appendChild(labelElement);
+        labelWrapper.appendChild(removeBtn);
+        tagDiv.appendChild(labelWrapper);
+        return;
+      }
+      const dropdown = document.createElement("select");
+      dropdown.className = "label-dropdown";
+      dropdown.innerHTML = `<option disabled selected>Select label</option>`;
+
+      fetch("/labels", {
+        headers: {
+          Authorization: "Bearer " + token,
+          "Content-Type": "application/json",
+        },
+      })
+        .then((res) => res.json())
+        .then((labelData) => {
+          const seen = new Set();
+
+          labelData.forEach((labelObj) => {
+            const name = labelObj.label_name.trim();
+            if (!seen.has(name)) {
+              seen.add(name);
+              const option = document.createElement("option");
+              option.value = name;
+              option.textContent =
+                name.length > 10 ? name.slice(0, 10) + "..." : name;
+              dropdown.appendChild(option);
+            }
+          });
+        });
+
+      dropdown.addEventListener("change", () => {
+        const selectedLabel = dropdown.value;
+
+        fetch(`/video-label`, {
+          method: "POST",
+          headers: {
+            Authorization: "Bearer " + token,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            label_name: selectedLabel,
+            video_id: videoId,
+          }),
+        })
+          .then((res) => {
+            if (!res.ok) throw new Error("Failed to set label.");
+            location.reload();
+          })
+          .catch((err) => console.error("Error adding label:", err));
+      });
+
+      tagDiv.appendChild(dropdown);
+    })
+    .catch((err) => {
+      console.error("Error fetching video label:", err);
+    });
 }

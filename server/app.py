@@ -256,6 +256,24 @@ def filter_note_by_label(label):
 
     return jsonify(filtered_videos), 200
 
+@app.route("/<video_yt_id>/label", methods=['GET'])
+@require_auth
+def get_video_label(video_yt_id):
+    with psycopg.connect(SUPABASE_CONNECTION_STRING) as conn:
+        with conn.cursor() as cur:
+            cur.execute("SELECT label_id FROM video_label WHERE yt_video_id = %s", (video_yt_id,))
+            result = cur.fetchone()
+            if not result:
+                return {"label": None}, 200
+
+            label_id = result[0]
+
+            cur.execute("SELECT label_name FROM label WHERE id = %s", (label_id,))
+            label_result = cur.fetchone()
+            label_name = label_result[0] if label_result else None
+
+    return {"label": label_name}, 200
+
 @app.route("/video-label", methods=["POST"])
 @require_auth
 def add_video_label():
@@ -275,6 +293,16 @@ def add_video_label():
 
         
     return jsonify({"message": "Video Label added successfully"}), 201
+
+@app.route("/video-label", methods=["DELETE"])
+@require_auth
+def remove_video_label():
+    data = request.json
+    with psycopg.connect(SUPABASE_CONNECTION_STRING) as conn:
+        with conn.cursor() as cur:
+            cur.execute("DELETE FROM video_label WHERE yt_video_id = %s", (data["video_id"],))
+            conn.commit()
+    return jsonify({"message": "Video label removed successfully"}), 200
 
 @app.route("/<video_yt_id>", methods=["PATCH"])
 @require_auth
