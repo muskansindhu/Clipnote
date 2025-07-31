@@ -63,7 +63,7 @@ def get_all_notes():
 
     with psycopg.connect(SUPABASE_CONNECTION_STRING) as conn:
         with conn.cursor() as cur:
-            cur.execute("SELECT * FROM video")
+            cur.execute("SELECT * FROM video ORDER BY created_at DESC")
             notes = cur.fetchall()
         
         for note in notes:
@@ -132,10 +132,15 @@ def add_notes():
                 if uploaded:
                     cur.execute(
                         """
-                        INSERT INTO video (id, video_url, video_title)
-                        VALUES (%s, %s, %s)
+                        INSERT INTO video (id, video_url, video_title, created_at)
+                        VALUES (%s, %s, %s, %s)
                         """,
-                        (video_yt_id, data["videoUrl"], data["videoTitle"])
+                        (
+                            video_yt_id,
+                            data["videoUrl"],
+                            data["videoTitle"],
+                            datetime.now(timezone.utc)
+                        )
                     )
                 else:
                     return jsonify({"error": "Failed to upload transcript to S3"}), 500
