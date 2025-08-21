@@ -113,7 +113,7 @@ document.getElementById("submit").addEventListener("click", function () {
       notes,
     };
 
-    fetch("http://127.0.0.1:5001/add-notes", {
+    fetch(`${CONFIG.BASE_URL}/add-notes`, {
       method: "POST",
       headers: {
         Authorization: "Bearer " + token,
@@ -158,7 +158,7 @@ document.getElementById("summarize").addEventListener("click", function () {
       video_url: videoUrl,
     };
 
-    fetch("http://127.0.0.1:5001/summarize", {
+    fetch(`${CONFIG.BASE_URL}/summarize`, {
       method: "POST",
       headers: {
         Authorization: "Bearer " + token,

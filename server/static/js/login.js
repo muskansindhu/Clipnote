@@ -1,9 +1,12 @@
 document.addEventListener("DOMContentLoaded", function () {
   setupThemeToggle();
 
+  const EXT_ID = "bdolajikajidpcodloegllkneeochbaf";
+
   const token = localStorage.getItem("clipnote_token");
   if (token) {
     window.location.href = "/dashboard";
+    return;
   }
 
   const form = document.getElementById("login-form");
@@ -29,7 +32,28 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const { access_token } = await res.json();
     localStorage.setItem("clipnote_token", access_token);
-    window.location.href = "/dashboard";
+
+    if (window.chrome?.runtime?.sendMessage) {
+      chrome.runtime.sendMessage(
+        EXT_ID,
+        { type: "SET_TOKEN", jwt: access_token },
+        (response) => {
+          if (chrome.runtime.lastError) {
+            console.error(
+              "Failed to send token to extension:",
+              chrome.runtime.lastError.message
+            );
+          } else if (!response?.ok) {
+            console.warn("Extension responded but not ok:", response);
+          } else {
+            console.log("Token delivered to extension");
+          }
+          window.location.href = "/dashboard";
+        }
+      );
+    } else {
+      window.location.href = "/dashboard";
+    }
   });
 });
 
@@ -46,6 +70,7 @@ function setupThemeToggle() {
     body.classList.add("light-mode");
     toggle.checked = true;
   }
+
   toggle.addEventListener("change", () => {
     const isLight = toggle.checked;
     body.classList.toggle("light-mode", isLight);

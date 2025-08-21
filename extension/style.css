@@ -165,3 +165,9 @@ body.login-page {
   font-size: 14px;
   display: none;
 }
+
+.login-link {
+  color: #ff3b2f;
+  text-decoration: underline;
+  cursor: pointer;
+}
