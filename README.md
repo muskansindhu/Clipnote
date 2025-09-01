@@ -110,3 +110,35 @@ This generates a JWT token, automatically stored in both the dashboard’s and e
   - (Optional) Click **Summary** → Get the entire video summarized in 5 points.
 
 - All notes instantly sync to your dashboard.
+
+---
+
+## 📸 Screenshots
+
+### Extension Popup
+
+<p align="center">
+  <img src="./screenshots/clipnote-extension.png" alt="Extension Popup" width="40%">
+</p>
+
+### Dashboard View
+
+<p align="center">
+  <img src="./screenshots/clipnote-dashboard.png" alt="Dashboard" width="40%">
+</p>
+<p align="center">
+  <img src="./screenshots/clipnote-notepage.png" alt="Note Page" width="40%">
+</p>
+
+### Mobile View
+
+<p align="center">
+  <img src="./screenshots/clipnote-mobileview-dashboard-lightmode.png" alt="Mobile Dashboard" width="30%">
+  <img src="./screenshots/clipnote-mobileview-notepage-darkmode.png" alt="Mobile Note Page" width="30%">
+</p>
+
+---
+
+## 🎥 Demo Video
+
+👉 [Click here to watch the Clipnote Demo](https://www.youtube.com/watch?v=jLILbQJOhv8)
