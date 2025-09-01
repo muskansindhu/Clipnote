@@ -85,14 +85,17 @@ docker build -t clipnote-server .
 docker run -d -p 5001:5001 --name clipnote clipnote-server
 ```
 
-### 4. Configure Extension
+### 4. Configure Extension & Login
 
 1. Open extension/config.js.
 2. Update the BASE_URL to point to your backend.
+3. Visit http://localhost:5001/dashboard and log in.
+
+This generates a JWT token, automatically stored in both the dashboard’s and extension’s local storage for seamless authentication.
 
 ### 5. Dashboard
 
-- Visit http://localhost:5001/dashboard to view/manage notes.
+- Once logged in, use the dashboard to manage, search, label, and filter your notes.
 
 ## ✅ Usage
 
