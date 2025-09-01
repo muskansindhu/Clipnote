@@ -11,7 +11,7 @@ from apify_client import ApifyClient
 from google import genai
 from flask import request, jsonify
 
-from config import GEMINI_API_KEY, APIFY_TOKEN, JWT_SECRET
+from config import GEMINI_API_KEY, APIFY_TOKEN, JWT_SECRET, ACCESS_KEY, SECRET_KEY
 
 ytt_api = YouTubeTranscriptApi()
 
@@ -19,7 +19,7 @@ genai_client = genai.Client(api_key=GEMINI_API_KEY)
 
 client = ApifyClient(token=APIFY_TOKEN)
 
-s3_client = boto3.client('s3')
+s3_client = boto3.client('s3', aws_access_key_id=ACCESS_KEY, aws_secret_access_key=SECRET_KEY)
 
 def put_object_to_s3(object_name, bucket, data):
     try:
