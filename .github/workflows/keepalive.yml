@@ -1,0 +1,14 @@
+name: Keep Clipnote Alive
+
+on:
+  schedule:
+    - cron: "*/15 * * * *" # Runs every 15 minutes
+
+jobs:
+  keepalive:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Curl ping clipnote site
+        run: |
+          echo "Pinging Clipnote to keep it awake..."
+          curl -s -o /dev/null -w "%{http_code}" https://clipnote.muskansindhu.tech
