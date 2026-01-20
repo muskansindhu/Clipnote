@@ -25,9 +25,14 @@ document.addEventListener("DOMContentLoaded", function () {
 
       container.innerHTML = `
         <div class="note-content">
-        <h2><a href="${note.video_url}" target="_blank" class="video-title">${
-        note.video_title
-      }</a></h2>
+        <div class="video-thumbnail-wrapper">
+          <img src="https://img.youtube.com/vi/${videoId}/maxresdefault.jpg" 
+               alt="${note.video_title}" 
+               class="video-thumbnail"
+               onerror="this.src='https://img.youtube.com/vi/${videoId}/hqdefault.jpg'" />
+        </div>
+        <h2><a href="${note.video_url}" target="_blank" class="video-title">${note.video_title
+        }</a></h2>
       <div class="video-tag">
        <img src="static/assets/tag.png" 
        class="action-item-icon tag-icon"
@@ -38,26 +43,24 @@ document.addEventListener("DOMContentLoaded", function () {
       </div>
           <div class="note-list">
             ${data
-              .map((item) => {
-                const parts = item.video_timestamp.split(":").map(Number);
-                const seconds =
-                  parts.length === 3
-                    ? parts[0] * 3600 + parts[1] * 60 + parts[2]
-                    : parts.length === 2
-                    ? parts[0] * 60 + parts[1]
-                    : parts[0];
+          .map((item) => {
+            const parts = item.video_timestamp.split(":").map(Number);
+            const seconds =
+              parts.length === 3
+                ? parts[0] * 3600 + parts[1] * 60 + parts[2]
+                : parts.length === 2
+                  ? parts[0] * 60 + parts[1]
+                  : parts[0];
 
-                return `
-                  <div class="note-entry ${
-                    item.note_source?.toLowerCase() === "ai"
-                      ? "ai-note"
-                      : "user-note"
-                  }">
+            return `
+                  <div class="note-entry ${item.note_source?.toLowerCase() === "ai"
+                ? "ai-note"
+                : "user-note"
+              }">
                     <div class="note-text">
                       <a href="${note.video_url}&t=${seconds}s" target="_blank">
-                        <strong class="timestamp">${
-                          item.video_timestamp
-                        }</strong>
+                        <strong class="timestamp">${item.video_timestamp
+              }</strong>
                       </a> - ${item.note || "(No note)"}
                     </div>
                     <div class="action-items">
@@ -66,8 +69,8 @@ document.addEventListener("DOMContentLoaded", function () {
                     </div>
                   </div>
                 `;
-              })
-              .join("")}
+          })
+          .join("")}
           </div>
         </div>
       `;

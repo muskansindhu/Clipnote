@@ -1,77 +1,59 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Clipnote - Smart YouTube Note Taking</title>
-    <link
-      rel="icon"
-      type="image/png"
-      href="/static/assets/clipnote-logo-64x64.png"
-    />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap"
-      rel="stylesheet"
-    />
-    <link href="static/css/style.css" rel="stylesheet" />
-    <script src="https://unpkg.com/lucide@latest"></script>
-  </head>
-  <body>
-    <div class="navbar">
-      <a href="/" style="display: flex; align-items: center; gap: 10px">
-        <img
-          src="/static/assets/clipnote-logo-64x64.png"
-          data-dark="/static/assets/clipnote-logo-64x64.png"
-          data-light="/static/assets/clipnote-logo-light-64x64.png"
-          alt="Clipnote Logo"
-          class="logo"
-          id="clipnote-logo"
-          data-theme-switchable="true"
-        />
-        <h1>Clipnote</h1>
-      </a>
-      <img
-        id="dashboard-icon-placeholder"
-        class="action-item-icon"
-        style="display: none"
-      />
-      <label class="theme-switch">
-        <input type="checkbox" id="theme-toggle" />
-        <span class="slider">
-          <i data-lucide="sun" class="icon sun"></i>
-          <i data-lucide="moon" class="icon moon"></i>
-        </span>
-      </label>
-    </div>
 
-    <div class="container">
-      <div class="search-box">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Clipnote - Smart YouTube Note Taking</title>
+  <link rel="icon" type="image/png" href="/static/assets/clipnote-logo-64x64.png" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
+  <link href="static/css/style.css" rel="stylesheet" />
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+
+<body>
+  <div class="navbar">
+    <a href="/" style="display: flex; align-items: center; gap: 10px">
+      <img src="/static/assets/clipnote-logo-64x64.png" data-dark="/static/assets/clipnote-logo-64x64.png"
+        data-light="/static/assets/clipnote-logo-light-64x64.png" alt="Clipnote Logo" class="logo" id="clipnote-logo"
+        data-theme-switchable="true" />
+      <h1>Clipnote</h1>
+    </a>
+    <img id="dashboard-icon-placeholder" class="action-item-icon" style="display: none" />
+    <label class="theme-switch">
+      <input type="checkbox" id="theme-toggle" />
+      <span class="slider">
+        <i data-lucide="sun" class="icon sun"></i>
+        <i data-lucide="moon" class="icon moon"></i>
+      </span>
+    </label>
+  </div>
+
+  <div class="container">
+    <div class="search-box">
+      <div class="search-wrapper">
         <input type="text" id="search" placeholder="Search notes..." />
-      </div>
-      <div id="labels"></div>
-      <br />
-      <div class="cards" id="notes-container"></div>
-    </div>
-    <div id="label-modal" class="modal" style="display: none">
-      <div class="modal-content">
-        <span class="close-button" id="close-label-modal">&times;</span>
-        <h3>Add New Label</h3>
-        <form
-          id="label-form"
-          style="display: flex; flex-direction: column; align-items: center"
-        >
-          <input
-            type="text"
-            id="new-label-input"
-            placeholder="Enter label name"
-            required
-            style="width: 100%"
-          />
-          <button type="submit">Add</button>
-        </form>
+        <button id="search-btn" class="search-btn">
+          <i data-lucide="search"></i>
+        </button>
       </div>
     </div>
+    <div id="labels"></div>
+    <br />
+    <div class="cards" id="notes-container"></div>
+  </div>
+  <div id="label-modal" class="modal" style="display: none">
+    <div class="modal-content">
+      <span class="close-button" id="close-label-modal">&times;</span>
+      <h3>Add New Label</h3>
+      <form id="label-form" style="display: flex; flex-direction: column; align-items: center">
+        <input type="text" id="new-label-input" placeholder="Enter label name" required style="width: 100%" />
+        <button type="submit">Add</button>
+      </form>
+    </div>
+  </div>
 
-    <script src="static/js/dashboard.js"></script>
-  </body>
+  <script src="static/js/dashboard.js"></script>
+</body>
+
 </html>

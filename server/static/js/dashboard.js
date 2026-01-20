@@ -30,10 +30,16 @@ document.addEventListener("DOMContentLoaded", function () {
             ? "static/assets/fav_filled.png"
             : "static/assets/fav_unfilled.png";
 
+          const videoId = video.video_url.split('v=')[1]?.split('&')[0] || '';
           card.innerHTML = `
-            <div class="card-header">
-              <h3 id="video-title">${video.video_title}</h3>
-              <img src="${iconSrc}" alt="fav" class="fav-icon"/>
+            <div class="card-content-wrapper">
+              <div class="card-thumbnail">
+                <img src="https://img.youtube.com/vi/${videoId}/hqdefault.jpg" alt="${video.video_title}" />
+              </div>
+              <div class="card-header">
+                <h3 id="video-title">${video.video_title}</h3>
+                <img src="${iconSrc}" alt="fav" class="fav-icon"/>
+              </div>
             </div>
           `;
 
@@ -87,10 +93,16 @@ document.addEventListener("DOMContentLoaded", function () {
                       ? "static/assets/fav_filled.png"
                       : "static/assets/fav_unfilled.png";
 
+                    const videoId = video.video_url.split('v=')[1]?.split('&')[0] || '';
                     card.innerHTML = `
-            <div class="card-header">
-              <h3 id="video-title">${video.video_title}</h3>
-              <img src="${iconSrc}" alt="fav" class="fav-icon"/>
+            <div class="card-content-wrapper">
+              <div class="card-thumbnail">
+                <img src="https://img.youtube.com/vi/${videoId}/hqdefault.jpg" alt="${video.video_title}" />
+              </div>
+              <div class="card-header">
+                <h3 id="video-title">${video.video_title}</h3>
+                <img src="${iconSrc}" alt="fav" class="fav-icon"/>
+              </div>
             </div>
           `;
 
@@ -145,10 +157,16 @@ document.addEventListener("DOMContentLoaded", function () {
                       ? "static/assets/fav_filled.png"
                       : "static/assets/fav_unfilled.png";
 
+                    const videoId = video.video_url.split('v=')[1]?.split('&')[0] || '';
                     card.innerHTML = `
-            <div class="card-header">
-              <h3 id="video-title">${video.video_title}</h3>
-              <img src="${iconSrc}" alt="fav" class="fav-icon"/>
+            <div class="card-content-wrapper">
+              <div class="card-thumbnail">
+                <img src="https://img.youtube.com/vi/${videoId}/hqdefault.jpg" alt="${video.video_title}" />
+              </div>
+              <div class="card-header">
+                <h3 id="video-title">${video.video_title}</h3>
+                <img src="${iconSrc}" alt="fav" class="fav-icon"/>
+              </div>
             </div>
           `;
 
@@ -176,9 +194,7 @@ document.addEventListener("DOMContentLoaded", function () {
       plusIcon.style.width = "20px";
       plusIcon.style.height = "20px";
       plusIcon.style.cursor = "pointer";
-      plusIcon.style.marginLeft = "6px";
-      plusIcon.style.position = "relative";
-      plusIcon.style.verticalAlign = "middle";
+      plusIcon.style.cursor = "pointer";
 
       plusIcon.setAttribute("data-dark", "/static/assets/plus.png");
       plusIcon.setAttribute("data-light", "/static/assets/plus-light.png");
@@ -279,16 +295,39 @@ document.addEventListener("click", function (event) {
   }
 });
 
-document.getElementById("search").addEventListener("input", function () {
-  const searchTerm = this.value.toLowerCase();
+// Search Functionality
+function performSearch() {
+  const searchInput = document.getElementById("search");
+  if (!searchInput) return;
+
+  const searchTerm = searchInput.value.toLowerCase();
   const cards = document.getElementsByClassName("card");
 
   Array.from(cards).forEach((card) => {
-    const title = card.querySelector("h3").textContent.toLowerCase();
-    const matches = title.includes(searchTerm);
-    card.style.display = matches ? "block" : "none";
+    const titleEl = card.querySelector("h3");
+    if (titleEl) {
+      const title = titleEl.textContent.toLowerCase();
+      const matches = title.includes(searchTerm);
+      card.style.display = matches ? "block" : "none";
+    }
   });
-});
+}
+
+const searchInput = document.getElementById("search");
+const searchBtn = document.getElementById("search-btn");
+
+if (searchInput) {
+  searchInput.addEventListener("input", performSearch);
+  searchInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      performSearch();
+    }
+  });
+}
+
+if (searchBtn) {
+  searchBtn.addEventListener("click", performSearch);
+}
 
 function setupThemeToggle() {
   const toggle = document.getElementById("theme-toggle");
