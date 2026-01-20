@@ -31,24 +31,31 @@
   <main class="main-content">
     <section class="hero">
       <div class="hero-content">
+        <div style="margin-bottom: 24px;">
+          <div class="badge-pill">
+            <span class="badge-dot"></span>
+            New: Enhanced AI Summaries
+          </div>
+        </div>
+
         <h1 class="hero-title">
-          Take <span class="highlight">AI-powered notes</span> from any
-          YouTube video
+          The <span class="highlight">modern way</span> to <br />
+          learn from YouTube
         </h1>
 
         <p class="hero-description">
-          Transform your learning experience with intelligent note-taking.
-          Extract key insights, generate summaries, and organize knowledge
-          from YouTube videos effortlessly.
+          Transform your learning experience with intelligent note-taking. Extract key insights, generate summaries, and
+          organize your knowledge effortlessly.
         </p>
 
         <div class="hero-actions">
           <a href="https://github.com/muskansindhu/Clipnote/blob/main/README.md" class="btn btn-primary" target="_blank"
             rel="noopener noreferrer">
-            Get Started
+            Get Started for Free
           </a>
           <a href="https://www.youtube.com/watch?v=jLILbQJOhv8" class="btn btn-secondary" target="_blank"
             rel="noopener noreferrer">
+            <i data-lucide="play-circle" style="width: 18px; height: 18px; margin-right: 8px;"></i>
             Watch Demo
           </a>
         </div>
@@ -56,28 +63,43 @@
 
       <div class="hero-visual">
         <div class="demo-card">
+          <!-- Browser Header -->
           <div class="demo-header">
             <div class="demo-dots">
               <span class="dot red"></span>
               <span class="dot yellow"></span>
               <span class="dot green"></span>
             </div>
+            <div class="browser-bar">
+              <span>clipnote.muskansindhu.tech/dashboard</span>
+            </div>
           </div>
 
+          <!-- App Mockup Content -->
           <div class="demo-content">
-            <div class="note-item">
-              <span class="timestamp">02:34</span>
-              <p>Key concept: Machine learning fundamentals</p>
+            <!-- Sidebar Mock -->
+            <div class="demo-sidebar">
+              <div class="sidebar-line primary" style="width: 80%;"></div>
+              <div class="sidebar-line" style="width: 60%;"></div>
+              <div class="sidebar-line" style="width: 70%;"></div>
+              <div class="sidebar-line" style="width: 50%;"></div>
             </div>
 
-            <div class="note-item">
-              <span class="timestamp">05:12</span>
-              <p>Important: Neural network architecture explained</p>
-            </div>
-
-            <div class="note-item">
-              <span class="timestamp">08:45</span>
-              <p>Summary: Backpropagation algorithm overview</p>
+            <!-- Notes Area -->
+            <div class="demo-main">
+              <div class="note-item" style="opacity: 0.8; transform: scale(0.98);">
+                <span class="timestamp">02:34</span>
+                <p>Key concept: Machine learning fundamentals</p>
+              </div>
+              <div class="note-item"
+                style="transform: scale(1.02); box-shadow: 0 10px 30px rgba(0,0,0,0.5); z-index: 10; border-color: var(--accent-primary);">
+                <span class="timestamp">05:12</span>
+                <p>Important: Neural network architecture explained</p>
+              </div>
+              <div class="note-item" style="opacity: 0.8; transform: scale(0.98);">
+                <span class="timestamp">08:45</span>
+                <p>Summary: Backpropagation algorithm overview</p>
+              </div>
             </div>
           </div>
         </div>
@@ -88,12 +110,7 @@
       <div class="features-grid">
         <div class="feature-card">
           <div class="feature-icon">
-            <svg viewBox="0 0 24 24" fill="none">
-              <path d="M9 12L11 14L15 10" stroke="#ff3b2f" stroke-width="2" stroke-linecap="round"
-                stroke-linejoin="round" />
-
-              <circle cx="12" cy="12" r="10" stroke="#ff3b2f" stroke-width="2" />
-            </svg>
+            <i data-lucide="brain-circuit"></i>
           </div>
 
           <h3>Smart Extraction</h3>
@@ -106,13 +123,7 @@
 
         <div class="feature-card">
           <div class="feature-icon">
-            <svg viewBox="0 0 24 24" fill="none">
-              <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="#ff3b2f" stroke-width="2" stroke-linejoin="round" />
-
-              <path d="M2 17L12 22L22 17" stroke="#ff3b2f" stroke-width="2" stroke-linejoin="round" />
-
-              <path d="M2 12L12 17L22 12" stroke="#ff3b2f" stroke-width="2" stroke-linejoin="round" />
-            </svg>
+            <i data-lucide="library"></i>
           </div>
 
           <h3>Organized Knowledge</h3>
@@ -125,10 +136,7 @@
 
         <div class="feature-card">
           <div class="feature-icon">
-            <svg viewBox="0 0 24 24" fill="none">
-              <path d="M21 15A2 2 0 0 1 19 17H7L4 20V4A2 2 0 0 1 6 2H19A2 2 0 0 1 21 4V15Z" stroke="#ff3b2f"
-                stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-            </svg>
+            <i data-lucide="zap"></i>
           </div>
 
           <h3>Instant Summaries</h3>
@@ -161,10 +169,7 @@
         <div class="step-card">
           <div class="step-number">2</div>
           <div class="step-icon">
-            <svg viewBox="0 0 24 24" fill="none">
-              <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="#ff3b2f" stroke-width="2" stroke-linejoin="round" />
-              <path d="M2 12L12 17L22 12" stroke="#ff3b2f" stroke-width="2" stroke-linejoin="round" />
-            </svg>
+            <i data-lucide="monitor-play"></i>
           </div>
           <h3>Watch & Take Notes</h3>
           <p>AI captures key moments and insights as you watch, or add your own custom notes</p>
@@ -173,13 +178,7 @@
         <div class="step-card">
           <div class="step-number">3</div>
           <div class="step-icon">
-            <svg viewBox="0 0 24 24" fill="none">
-              <path
-                d="M22 11.08V12C22 17.52 17.52 22 12 22C6.48 22 2 17.52 2 12C2 6.48 6.48 2 12 2C13.66 2 15.21 2.48 16.54 3.32"
-                stroke="#ff3b2f" stroke-width="2" stroke-linecap="round" />
-              <path d="M22 4L12 14L9 11" stroke="#ff3b2f" stroke-width="2" stroke-linecap="round"
-                stroke-linejoin="round" />
-            </svg>
+            <i data-lucide="layout-dashboard"></i>
           </div>
           <h3>Review & Organize</h3>
           <p>Access all your notes in one organized dashboard with search and categorization</p>
@@ -187,49 +186,6 @@
       </div>
     </section>
 
-    <!-- Testimonials Section -->
-    <section class="testimonials-section">
-      <div class="section-header">
-        <h2>Trusted by <span class="gradient-text">Learners</span></h2>
-        <p>See what our users are saying about Clipnote</p>
-      </div>
-
-      <div class="testimonials-grid">
-        <div class="testimonial-card">
-          <div class="user-profile">
-            <div class="user-avatar">A</div>
-            <div class="user-info">
-              <h4>Alex Chen</h4>
-              <span>CS Student</span>
-            </div>
-          </div>
-          <p>"Clipnote saves me hours every week. The AI summaries are spot on and help me verify my own notes."</p>
-        </div>
-
-        <div class="testimonial-card">
-          <div class="user-profile">
-            <div class="user-avatar">S</div>
-            <div class="user-info">
-              <h4>Sarah Miller</h4>
-              <span>Content Creator</span>
-            </div>
-          </div>
-          <p>"Finally a way to quickly extract value from tutorial videos without watching at 2x speed. Amazing tool."
-          </p>
-        </div>
-
-        <div class="testimonial-card">
-          <div class="user-profile">
-            <div class="user-avatar">M</div>
-            <div class="user-info">
-              <h4>Mike Ross</h4>
-              <span>Developer</span>
-            </div>
-          </div>
-          <p>"The extension is seamless. I love how it handles code snippets in the notes. Highly recommended."</p>
-        </div>
-      </div>
-    </section>
 
     <!-- FAQ Section -->
     <section class="faq-section">
@@ -246,18 +202,18 @@
 
         <div class="faq-item">
           <h3>Which browsers are supported?</h3>
-          <p>Clipnote works on all modern browsers including Chrome, Firefox, Edge, and Brave.</p>
+          <p>Clipnote currently supports Google Chrome. Support for other browsers is coming soon.</p>
         </div>
 
         <div class="faq-item">
           <h3>How does AI note-taking work?</h3>
-          <p>Our AI analyzes video transcripts and identifies key concepts, definitions, and important moments
-            automatically.</p>
+          <p>Clipnote lets users take notes at a particular timestamp, so every note stays synced with the exact point
+            in the video.</p>
         </div>
 
         <div class="faq-item">
           <h3>Can I export my notes?</h3>
-          <p>Yes, you can export your notes in multiple formats and share them with others easily.</p>
+          <p>We’re currently working on note export. You’ll be able to download and share your notes soon.</p>
         </div>
 
         <div class="faq-item">
