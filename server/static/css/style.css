@@ -799,6 +799,53 @@ h6 {
   letter-spacing: 0.02em;
 }
 
+/* Pagination Controls */
+.pagination-controls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+  margin-top: 40px;
+  margin-bottom: 60px;
+}
+
+.pagination-btn {
+  padding: 10px 24px;
+  border-radius: 100px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text-main);
+  border: 1px solid var(--border-subtle);
+}
+
+.pagination-btn:hover:not(:disabled) {
+  background: rgba(255, 59, 47, 0.2);
+  border-color: rgba(255, 59, 47, 0.5);
+  color: #ff3b2f;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 59, 47, 0.15);
+}
+
+.pagination-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: rgba(255, 255, 255, 0.01);
+}
+
+#page-indicator {
+  font-size: 14px;
+  color: var(--text-muted);
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+
 .note-item p {
   margin: 0;
   font-size: 14px;

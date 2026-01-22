@@ -59,12 +59,22 @@ def get_note_page(video_yt_id):
 @app.route("/all-video", methods=["GET"])
 @require_auth
 def get_all_notes():
+    page = request.args.get("page", 1, type=int)
+    limit = 10
+    offset = (page - 1) * limit
+    
     all_notes = []
+    has_next = False
 
     with psycopg.connect(SUPABASE_CONNECTION_STRING) as conn:
         with conn.cursor() as cur:
-            cur.execute("SELECT * FROM video ORDER BY created_at DESC")
+            # Fetch one extra to check if there are more
+            cur.execute("SELECT * FROM video ORDER BY created_at DESC LIMIT %s OFFSET %s", (limit + 1, offset))
             notes = cur.fetchall()
+            
+            if len(notes) > limit:
+                has_next = True
+                notes = notes[:limit]
         
         for note in notes:
             all_notes.append({
@@ -74,7 +84,10 @@ def get_all_notes():
                 "fav": note[3]
             })
 
-    return all_notes
+    return jsonify({
+        "videos": all_notes,
+        "has_next": has_next
+    })
 
 @app.route("/note/<video_yt_id>", methods=["GET"])
 @require_auth

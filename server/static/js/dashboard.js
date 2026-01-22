@@ -7,19 +7,44 @@ document.addEventListener("DOMContentLoaded", function () {
     window.location.href = "/login";
   }
 
-  fetch("/all-video", {
-    headers: { Authorization: "Bearer " + token },
-  })
-    .then((response) => {
-      if (!response.ok) throw new Error("Failed to fetch notes.");
-      return response.json();
-    })
-    .then((data) => {
-      const container = document.getElementById("notes-container");
-      const videoTitle = [];
+  let currentPage = 1;
 
-      data.forEach((video) => {
-        if (!videoTitle.includes(video.video_title)) {
+  function updatePaginationControls(hasNext) {
+    const controls = document.getElementById("pagination-controls");
+    const prevBtn = document.getElementById("prev-page");
+    const nextBtn = document.getElementById("next-page");
+    const pageIndicator = document.getElementById("page-indicator");
+
+    // Controls display is managed by CSS now, or triggered by loadAllVideos
+    // We just need to make sure it's visible if it was hidden by label filter
+    controls.style.display = "flex";
+
+    pageIndicator.innerText = `Page ${currentPage}`;
+
+    prevBtn.disabled = currentPage === 1;
+    // Removed inline opacity, handled by CSS :disabled
+
+    nextBtn.disabled = !hasNext;
+    // Removed inline opacity, handled by CSS :disabled
+  }
+
+  function loadAllVideos(page) {
+    fetch(`/all-video?page=${page}`, {
+      headers: { Authorization: "Bearer " + token },
+    })
+      .then((response) => {
+        if (!response.ok) throw new Error("Failed to fetch notes.");
+        return response.json();
+      })
+      .then((data) => {
+        const container = document.getElementById("notes-container");
+        container.innerHTML = ""; // Clear existing notes
+
+        // Handle new response format { videos: [], has_next: bool }
+        const videos = data.videos || [];
+        const hasNext = data.has_next || false;
+
+        videos.forEach((video) => {
           const isFavourited = video.fav === true;
 
           const card = document.createElement("div");
@@ -44,13 +69,29 @@ document.addEventListener("DOMContentLoaded", function () {
           `;
 
           container.appendChild(card);
-          videoTitle.push(video.video_title);
-        }
+        });
+
+        currentPage = page;
+        updatePaginationControls(hasNext);
+      })
+      .catch((error) => {
+        console.error("Error loading notes:", error);
       });
-    })
-    .catch((error) => {
-      console.error("Error loading notes:", error);
-    });
+  }
+
+  // Initial Load
+  loadAllVideos(currentPage);
+
+  // Pagination Event Listeners
+  document.getElementById("prev-page").addEventListener("click", () => {
+    if (currentPage > 1) {
+      loadAllVideos(currentPage - 1);
+    }
+  });
+
+  document.getElementById("next-page").addEventListener("click", () => {
+    loadAllVideos(currentPage + 1);
+  });
 
   fetch("/labels", {
     headers: { Authorization: "Bearer " + token },
@@ -71,44 +112,16 @@ document.addEventListener("DOMContentLoaded", function () {
           labelBtn.innerHTML = `${label.label_name}`;
 
           labelBtn.addEventListener("click", function () {
-            const container = document.getElementById("notes-container");
+            const notesContainer = document.getElementById("notes-container");
+            const paginationControls = document.getElementById("pagination-controls");
 
             if (activeLabel === label.label_name) {
               this.classList.remove("active");
               activeLabel = null;
 
-              fetch("/all-video", {
-                headers: { Authorization: "Bearer " + token },
-              })
-                .then((res) => res.json())
-                .then((allVideos) => {
-                  container.innerHTML = "";
-                  allVideos.forEach((video) => {
-                    const isFavourited = video.fav === true;
-                    const card = document.createElement("div");
-                    card.className = "card";
-                    card.id = video.id;
-
-                    const iconSrc = isFavourited
-                      ? "static/assets/fav_filled.png"
-                      : "static/assets/fav_unfilled.png";
-
-                    const videoId = video.video_url.split('v=')[1]?.split('&')[0] || '';
-                    card.innerHTML = `
-            <div class="card-content-wrapper">
-              <div class="card-thumbnail">
-                <img src="https://img.youtube.com/vi/${videoId}/hqdefault.jpg" alt="${video.video_title}" />
-              </div>
-              <div class="card-header">
-                <h3 id="video-title">${video.video_title}</h3>
-                <img src="${iconSrc}" alt="fav" class="fav-icon"/>
-              </div>
-            </div>
-          `;
-
-                    container.appendChild(card);
-                  });
-                });
+              // Return to all videos view (reset pagination)
+              currentPage = 1;
+              loadAllVideos(currentPage);
             } else {
               document.querySelectorAll(".label").forEach((btn) => {
                 btn.classList.remove("active");
@@ -116,6 +129,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
               this.classList.add("active");
               activeLabel = label.label_name;
+
+              // Hide pagination controls when filtering by label
+              paginationControls.style.display = "none";
 
               fetch(`/${label.label_name}/note`, {
                 headers: { Authorization: "Bearer " + token },
@@ -126,7 +142,7 @@ document.addEventListener("DOMContentLoaded", function () {
                   return response.json();
                 })
                 .then((videos) => {
-                  container.innerHTML = "";
+                  notesContainer.innerHTML = "";
 
                   if (videos.length === 0) {
                     const noDataMessage = document.createElement("p");
@@ -142,7 +158,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     noDataMessage.style.padding = "10px";
                     noDataMessage.style.textAlign = "center";
 
-                    container.appendChild(noDataMessage);
+                    notesContainer.appendChild(noDataMessage);
                     return;
                   }
 
@@ -170,7 +186,7 @@ document.addEventListener("DOMContentLoaded", function () {
             </div>
           `;
 
-                    container.appendChild(card);
+                    notesContainer.appendChild(card);
                   });
                 })
                 .catch((err) =>
