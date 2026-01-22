@@ -52,6 +52,10 @@ def login():
 def dashboard():
     return render_template("dashboard.html")
 
+@app.route("/profile", methods=["GET"])
+def profile():
+    return render_template("profile.html")
+
 @app.route("/<video_yt_id>")
 def get_note_page(video_yt_id):
     return render_template("note.html")
@@ -240,6 +244,36 @@ def add_new_label():
             (label_name,))
         
     return jsonify({"message":"Label added successfully"}), 201
+
+@app.route("/label", methods=["PATCH"])
+@require_auth
+def update_label():
+    data = request.json
+    label_id = data["label_id"]
+    new_name = data["new_name"]
+
+    with psycopg.connect(SUPABASE_CONNECTION_STRING) as conn:
+        with conn.cursor() as cur:
+            cur.execute("UPDATE label SET label_name = %s WHERE id = %s", (new_name, label_id))
+        conn.commit()
+    
+    return jsonify({"message": "Label updated successfully"}), 200
+
+@app.route("/label", methods=["DELETE"])
+@require_auth
+def delete_label():
+    data = request.json
+    label_id = data["label_id"]
+
+    with psycopg.connect(SUPABASE_CONNECTION_STRING) as conn:
+        with conn.cursor() as cur:
+            # First delete all associations in video_label
+            cur.execute("DELETE FROM video_label WHERE label_id = %s", (label_id,))
+            # Then delete the label itself
+            cur.execute("DELETE FROM label WHERE id = %s", (label_id,))
+        conn.commit()
+    
+    return jsonify({"message": "Label deleted successfully"}), 200
 
 @app.route("/<label>/note", methods=["GET"])
 @require_auth

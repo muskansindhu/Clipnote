@@ -4,17 +4,20 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 function setupThemeToggle() {
-  const toggle = document.getElementById("theme-toggle");
+  const toggleBtn = document.getElementById("theme-toggle-btn");
   const body = document.body;
   const logo = document.getElementById("clipnote-logo");
 
-  if (!toggle || !logo) return;
+  if (!toggleBtn || !logo) return;
 
-  if (window.lucide) lucide.createIcons();
+  const updateIcon = (isLight) => {
+    const iconName = isLight ? "moon" : "sun";
+    toggleBtn.innerHTML = `<i data-lucide="${iconName}" style="width: 20px; height: 20px;"></i>`;
+    if (window.lucide) lucide.createIcons();
+  };
 
   const applyTheme = (isLight) => {
     body.classList.toggle("light-mode", isLight);
-    toggle.checked = isLight;
     localStorage.setItem("theme", isLight ? "light" : "dark");
 
     document
@@ -22,13 +25,18 @@ function setupThemeToggle() {
       .forEach((img) => {
         img.src = isLight ? img.dataset.light : img.dataset.dark;
       });
+
+    updateIcon(isLight);
+
+    updateIcon(isLight);
   };
 
   const savedTheme = localStorage.getItem("theme");
   applyTheme(savedTheme === "light");
 
-  toggle.addEventListener("change", () => {
-    applyTheme(toggle.checked);
+  toggleBtn.addEventListener("click", () => {
+    const isLight = body.classList.contains("light-mode");
+    applyTheme(!isLight);
   });
 }
 
@@ -36,25 +44,23 @@ function insertDashboardIconIfLoggedIn() {
   const token = localStorage.getItem("clipnote_token");
   if (!token) return;
 
-  const placeholder = document.getElementById("dashboard-icon-placeholder");
-  if (!placeholder) return;
+  // Dashboard Icon
+  const dashboardBtn = document.getElementById("dashboard-btn");
+  if (dashboardBtn) {
+    dashboardBtn.style.display = "flex";
+    dashboardBtn.addEventListener("click", () => {
+      window.location.href = "/dashboard";
+    });
+    if (window.lucide) lucide.createIcons();
+  }
 
-  placeholder.src = "/static/assets/dashboard.png";
-  placeholder.alt = "Dashboard";
-  placeholder.classList.add("dashboard-icon");
-  placeholder.style.display = "inline-block";
-  placeholder.style.cursor = "pointer";
-
-  placeholder.setAttribute("data-dark", "/static/assets/dashboard.png");
-  placeholder.setAttribute("data-light", "/static/assets/dashboard-light.png");
-  placeholder.setAttribute("data-theme-switchable", "true");
-
-  placeholder.src =
-    localStorage.getItem("theme") === "light"
-      ? "/static/assets/dashboard-light.png"
-      : "/static/assets/dashboard.png";
-
-  placeholder.addEventListener("click", () => {
-    window.location.href = "/dashboard";
-  });
+  // Profile Icon
+  const profilePlaceholder = document.getElementById("profile-icon-placeholder");
+  if (profilePlaceholder) {
+    profilePlaceholder.style.display = "flex";
+    profilePlaceholder.addEventListener("click", () => {
+      window.location.href = "/profile";
+    });
+    if (window.lucide) lucide.createIcons();
+  }
 }

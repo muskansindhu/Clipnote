@@ -18,14 +18,17 @@
         data-theme-switchable="true" />
       <h1>Clipnote</h1>
     </a>
-    <img id="dashboard-icon-placeholder" class="action-item-icon" style="display: none" />
-    <label class="theme-switch">
-      <input type="checkbox" id="theme-toggle" />
-      <span class="slider">
-        <i data-lucide="sun" class="icon sun"></i>
-        <i data-lucide="moon" class="icon moon"></i>
-      </span>
-    </label>
+    <div style="display: flex; align-items: center; gap: 12px;">
+      <button id="dashboard-btn" class="dashboard-btn" style="display: none" title="Dashboard">
+        <i data-lucide="layout-grid"></i>
+      </button>
+      <div id="profile-icon-placeholder" class="profile-btn" style="display: none" title="Profile">
+        <i data-lucide="user" style="width: 18px; height: 18px;"></i>
+      </div>
+      <button id="theme-toggle-btn" class="theme-toggle-btn" title="Toggle Theme">
+        <i data-lucide="sun" style="width: 20px; height: 20px;"></i>
+      </button>
+    </div>
   </div>
 
   <main class="main-content">
