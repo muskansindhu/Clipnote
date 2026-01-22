@@ -777,14 +777,48 @@ h6 {
 }
 
 .ai-note {
-  border-left: 2px solid #ff7f50;
-  padding-left: 12px;
-  background-color: rgba(255, 127, 80, 0.06);
+  border-left: 3px solid #ff7f50;
+  padding-left: 16px;
+  background-color: rgba(255, 127, 80, 0.08);
+  border-radius: 6px;
 }
 
 .user-note {
-  border-left: 2px solid #ffb347;
-  padding-left: 12px;
+  border-left: 3px solid #ffb347;
+  padding-left: 16px;
+  background-color: rgba(255, 179, 71, 0.08);
+  border-radius: 6px;
+}
+
+/* Note Source Icons */
+.note-source-indicator {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  margin-right: 8px;
+  margin-bottom: 4px;
+  vertical-align: middle;
+  border: 1px solid transparent;
+}
+
+.note-source-indicator.ai {
+  background: rgba(255, 127, 80, 0.15);
+  color: #ff7f50;
+  border-color: rgba(255, 127, 80, 0.3);
+}
+
+.note-source-indicator.user {
+  background: rgba(255, 179, 71, 0.15);
+  color: #ffb347;
+  border-color: rgba(255, 179, 71, 0.3);
+}
+
+.source-icon {
+  width: 16px;
+  height: 16px;
 }
 
 .timestamp {
@@ -2557,4 +2591,16 @@ h6 {
 
 .light-mode .stat-label {
   color: #666;
+}
+/* Light Mode Note Icons - High Contrast */
+.light-mode .note-source-indicator.ai {
+  background: rgba(255, 127, 80, 0.2);
+  color: #d63031;
+  border: 1px solid rgba(214, 48, 49, 0.3);
+}
+
+.light-mode .note-source-indicator.user {
+  background: rgba(255, 179, 71, 0.2);
+  color: #e67e22;
+  border: 1px solid rgba(230, 126, 34, 0.3);
 }

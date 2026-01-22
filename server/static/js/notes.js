@@ -58,6 +58,11 @@ document.addEventListener("DOMContentLoaded", function () {
                 : "user-note"
               }">
                     <div class="note-text">
+                      <div class="note-source-indicator ${item.note_source?.toLowerCase() === "ai" ? "ai" : "user"}" 
+                           title="${item.note_source?.toLowerCase() === "ai" ? "AI Generated" : "User Note"}">
+                        <i data-lucide="${item.note_source?.toLowerCase() === "ai" ? "bot" : "user"}" 
+                           class="source-icon"></i>
+                      </div>
                       <a href="${note.video_url}&t=${seconds}s" target="_blank">
                         <strong class="timestamp">${item.video_timestamp
               }</strong>
@@ -76,6 +81,7 @@ document.addEventListener("DOMContentLoaded", function () {
       `;
 
       document.body.appendChild(container);
+      if (window.lucide) lucide.createIcons();
       applyThemeToIconImages();
       getVideoLabel(videoId, token);
 
