@@ -132,7 +132,7 @@ document.addEventListener("DOMContentLoaded", function () {
       plusBtn.innerHTML = `<i data-lucide="plus" style="width:18px; height:18px;" stroke-width="2"></i>`;
       plusBtn.title = "Add Label";
       plusBtn.addEventListener("click", () => {
-        document.getElementById("label-modal").style.display = "block";
+        document.getElementById("label-modal").style.display = "flex";
       });
       toolbar.appendChild(plusBtn);
 
@@ -222,6 +222,13 @@ document.addEventListener("DOMContentLoaded", function () {
       const modal = document.getElementById("label-modal");
       const closeBtn = document.getElementById("close-label-modal");
       if (closeBtn) closeBtn.onclick = () => modal.style.display = "none";
+
+      // Close on outside click for label modal
+      modal.addEventListener("click", (e) => {
+        if (e.target === modal) {
+          modal.style.display = "none";
+        }
+      });
 
       const form = document.getElementById("label-form");
 

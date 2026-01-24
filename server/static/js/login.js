@@ -125,6 +125,11 @@ function setupThemeToggle() {
     body.classList.toggle("light-mode", isLight);
     localStorage.setItem("theme", isLight ? "light" : "dark");
     updateIcon(isLight);
+
+    const logoImg = document.getElementById("login-logo-img");
+    if (logoImg) {
+      logoImg.src = isLight ? logoImg.dataset.light : logoImg.dataset.dark;
+    }
   };
 
   const savedTheme = localStorage.getItem("theme");
