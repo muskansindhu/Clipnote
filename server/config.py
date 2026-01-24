@@ -12,3 +12,4 @@ ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD")
 JWT_SECRET = os.getenv("JWT_SECRET")
 ACCESS_KEY = os.getenv("ACCESS_KEY")
 SECRET_KEY = os.getenv("SECRET_KEY")
+GEMINI_MODEL = "gemini-1.5-flash"

@@ -11,7 +11,7 @@ from apify_client import ApifyClient
 from google import genai
 from flask import request, jsonify
 
-from config import GEMINI_API_KEY, APIFY_TOKEN, JWT_SECRET, ACCESS_KEY, SECRET_KEY
+from config import GEMINI_API_KEY, APIFY_TOKEN, JWT_SECRET, ACCESS_KEY, SECRET_KEY, GEMINI_MODEL
 
 ytt_api = YouTubeTranscriptApi()
 
@@ -124,7 +124,7 @@ def extract_transcript_snippet(transcript, center_timestamp, window=15):
 def generate_ai_note(transcript_chunk):
     prompt = f"Generate a 1 liner note for the given text and do not add any extra line other than the note content: {transcript_chunk}"
     response = genai_client.models.generate_content(
-        model="gemini-2.0-flash", contents=prompt
+        model=GEMINI_MODEL, contents=prompt
     )
     return response.text
 
