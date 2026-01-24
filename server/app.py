@@ -1,10 +1,12 @@
 import json
+import uuid
 import psycopg
 import jwt
 from datetime import datetime, timedelta, timezone
 
 from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
+from werkzeug.security import generate_password_hash, check_password_hash
 
 from config import SUPABASE_CONNECTION_STRING, S3_BUCKET, JWT_SECRET, ADMIN_USERNAME, ADMIN_PASSWORD
 from utils import (
@@ -35,15 +37,72 @@ def login():
     username = data.get("username")
     password = data.get("password")
 
-    if username != ADMIN_USERNAME:
-        return jsonify({"message": "Invalid credentials"}), 401
+    if not username or not password:
+        return jsonify({"message": "Username and password required"}), 400
 
-    if password != ADMIN_PASSWORD:
-        return jsonify({"message": "Invalid credentials"}), 401
+    with psycopg.connect(SUPABASE_CONNECTION_STRING) as conn:
+        with conn.cursor() as cur:
+            cur.execute("SELECT id, password FROM users WHERE username = %s", (username,))
+            user_row = cur.fetchone()
+            
+            if user_row and check_password_hash(user_row[1], password):
+                 pass
+            else:
+                 return jsonify({"message": "Invalid credentials"}), 401
+    
+    payload = {
+        "sub": str(user_row[0]),
+        "username": username,
+        "exp": datetime.now(timezone.utc) + timedelta(days=15)
+    }
+    token = jwt.encode(payload, JWT_SECRET, algorithm="HS256")
+    return jsonify(access_token=token), 200
+
+@app.route("/signup", methods=["POST"])
+def signup():
+    data = request.get_json()
+    username = data.get("username")
+    password = data.get("password")
+
+    if not username or not password:
+        return jsonify({"message": "Username and password required"}), 400
+    
+    if len(password) < 6:
+        return jsonify({"message": "Password must be at least 6 characters"}), 400
+
+    with psycopg.connect(SUPABASE_CONNECTION_STRING) as conn:
+        with conn.cursor() as cur:
+            cur.execute("SELECT 1 FROM users WHERE username = %s", (username,))
+            if cur.fetchone():
+                 return jsonify({"message": "Username already exists"}), 409
+            
+            hashed = generate_password_hash(password)
+            cur.execute("INSERT INTO users (username, password) VALUES (%s, %s)", (username, hashed))
+            conn.commit()
+
+    with psycopg.connect(SUPABASE_CONNECTION_STRING) as conn:
+        with conn.cursor() as cur:
+            cur.execute("SELECT id FROM users WHERE username = %s", (username,))
+            user_id = cur.fetchone()[0]
 
     payload = {
-        "sub": username,
+        "sub": str(user_id),
+        "username": username,
         "exp": datetime.now(timezone.utc) + timedelta(days=15)
+    }
+    token = jwt.encode(payload, JWT_SECRET, algorithm="HS256")
+    return jsonify(access_token=token), 201
+
+
+
+@app.route("/guest-login", methods=["POST"])
+def guest_login():
+    guest_id = "guest_" + str(uuid.uuid4())
+    now = datetime.now(timezone.utc)
+    payload = {
+        "sub": guest_id,
+        "exp": now + timedelta(days=3),
+        "trial_start": now.isoformat()
     }
     token = jwt.encode(payload, JWT_SECRET, algorithm="HS256")
     return jsonify(access_token=token), 200
@@ -55,6 +114,30 @@ def dashboard():
 @app.route("/profile", methods=["GET"])
 def profile():
     return render_template("profile.html")
+
+@app.route("/user-status", methods=["GET"])
+@require_auth
+def get_user_status():
+    if not request.user.startswith("guest_"):
+        return jsonify({"is_guest": False}), 200
+    
+    # Calculate time remaining based on token expiry
+    exp_timestamp = request.auth_payload.get("exp")
+    if exp_timestamp:
+        exp_date = datetime.fromtimestamp(exp_timestamp, tz=timezone.utc)
+        now = datetime.now(timezone.utc)
+        remaining = exp_date - now
+        days_remaining = max(0, remaining.days)
+        hours_remaining = max(0, remaining.seconds // 3600)
+    else:
+        days_remaining = 0
+        hours_remaining = 0
+
+    return jsonify({
+        "is_guest": True,
+        "days_remaining": days_remaining,
+        "hours_remaining": hours_remaining
+    }), 200
 
 @app.route("/<video_yt_id>")
 def get_note_page(video_yt_id):
@@ -72,8 +155,16 @@ def get_all_notes():
 
     with psycopg.connect(SUPABASE_CONNECTION_STRING) as conn:
         with conn.cursor() as cur:
-            # Fetch one extra to check if there are more
-            cur.execute("SELECT * FROM video ORDER BY created_at DESC LIMIT %s OFFSET %s", (limit + 1, offset))
+            query = """
+                SELECT DISTINCT v.id, v.video_url, v.video_title, v.fav, MAX(n.created_at) as last_note_date
+                FROM video v
+                JOIN notes n ON v.id = n.video_id
+                WHERE n.user_id = %s
+                GROUP BY v.id, v.video_url, v.video_title, v.fav
+                ORDER BY last_note_date DESC
+                LIMIT %s OFFSET %s
+            """
+            cur.execute(query, (request.user, limit + 1, offset))
             notes = cur.fetchall()
             
             if len(notes) > limit:
@@ -106,7 +197,7 @@ def get_note(video_yt_id):
             if not video:
                 return jsonify({"message": "Video not found"}), 404
 
-            cur.execute("SELECT id, created_at, video_timestamp, note, note_source FROM notes WHERE video_id = %s", (video_yt_id,))
+            cur.execute("SELECT id, created_at, video_timestamp, note, note_source FROM notes WHERE video_id = %s AND user_id = %s", (video_yt_id, request.user))
             notes = cur.fetchall()
 
             for note in notes:
@@ -127,7 +218,7 @@ def get_note(video_yt_id):
 @app.route("/add-notes", methods=["POST"])
 @require_auth
 def add_notes():
-    raw_body = request.get_data(as_text=True)     # to prevent cors options method call
+    raw_body = request.get_data(as_text=True)    
     data = json.loads(raw_body)
     note_source = "user"
 
@@ -149,14 +240,16 @@ def add_notes():
                 if uploaded:
                     cur.execute(
                         """
-                        INSERT INTO video (id, video_url, video_title, created_at)
-                        VALUES (%s, %s, %s, %s)
+                        INSERT INTO video (id, video_url, video_title, created_at, user_id)
+                        VALUES (%s, %s, %s, %s, %s)
+                        ON CONFLICT (id) DO NOTHING
                         """,
                         (
                             video_yt_id,
                             data["videoUrl"],
                             data["videoTitle"],
-                            datetime.now(timezone.utc)
+                            datetime.now(timezone.utc),
+                            request.user 
                         )
                     )
                 else:
@@ -169,8 +262,8 @@ def add_notes():
                 note_text = generate_ai_note(transcript_chunk)
 
             cur.execute(
-                "INSERT INTO notes (video_timestamp, note, video_id, note_source) VALUES (%s, %s, %s, %s)",
-                (data["currentTimeStamp"], note_text, video_yt_id, note_source)
+                "INSERT INTO notes (video_timestamp, note, video_id, note_source, user_id) VALUES (%s, %s, %s, %s, %s)",
+                (data["currentTimeStamp"], note_text, video_yt_id, note_source, request.user)
             )
             conn.commit()
 
@@ -220,7 +313,7 @@ def get_all_labels():
 
     with psycopg.connect(SUPABASE_CONNECTION_STRING) as conn:
         with conn.cursor() as cur:
-            cur.execute("SELECT * FROM label")
+            cur.execute("SELECT * FROM label WHERE user_id = %s", (request.user,))
             labels = cur.fetchall()
         
         for label in labels:
@@ -240,8 +333,8 @@ def add_new_label():
 
     with psycopg.connect(SUPABASE_CONNECTION_STRING) as conn:
         with conn.cursor() as cur:
-            cur.execute("INSERT INTO label (label_name) VALUES (%s)",
-            (label_name,))
+            cur.execute("INSERT INTO label (label_name, user_id) VALUES (%s, %s)",
+            (label_name, request.user))
         
     return jsonify({"message":"Label added successfully"}), 201
 
@@ -254,7 +347,7 @@ def update_label():
 
     with psycopg.connect(SUPABASE_CONNECTION_STRING) as conn:
         with conn.cursor() as cur:
-            cur.execute("UPDATE label SET label_name = %s WHERE id = %s", (new_name, label_id))
+            cur.execute("UPDATE label SET label_name = %s WHERE id = %s AND user_id = %s", (new_name, label_id, request.user))
         conn.commit()
     
     return jsonify({"message": "Label updated successfully"}), 200
@@ -267,10 +360,8 @@ def delete_label():
 
     with psycopg.connect(SUPABASE_CONNECTION_STRING) as conn:
         with conn.cursor() as cur:
-            # First delete all associations in video_label
             cur.execute("DELETE FROM video_label WHERE label_id = %s", (label_id,))
-            # Then delete the label itself
-            cur.execute("DELETE FROM label WHERE id = %s", (label_id,))
+            cur.execute("DELETE FROM label WHERE id = %s AND user_id = %s", (label_id, request.user))
         conn.commit()
     
     return jsonify({"message": "Label deleted successfully"}), 200
@@ -282,7 +373,7 @@ def filter_note_by_label(label):
 
     with psycopg.connect(SUPABASE_CONNECTION_STRING) as conn:
         with conn.cursor() as cur:
-            cur.execute("SELECT id FROM label WHERE label_name = %s", (label,))
+            cur.execute("SELECT id FROM label WHERE label_name = %s AND user_id = %s", (label, request.user))
             label_row = cur.fetchone()
 
             if not label_row:
@@ -369,8 +460,8 @@ def update_note(video_yt_id):
                 cur.execute("""
                     UPDATE notes
                     SET note = %s
-                    WHERE video_id = %s AND video_timestamp = %s
-                """, (note_text, video_yt_id, timestamp))
+                    WHERE video_id = %s AND video_timestamp = %s AND user_id = %s
+                """, (note_text, video_yt_id, timestamp, request.user))
                 conn.commit()
 
     return jsonify({"status": "success"}), 200
@@ -386,8 +477,8 @@ def delete_note(video_yt_id):
             with conn.cursor() as cur:
                 cur.execute("""
                     DELETE FROM notes
-                    WHERE video_id = %s AND video_timestamp = %s
-                """, (video_yt_id, timestamp))
+                    WHERE video_id = %s AND video_timestamp = %s AND user_id = %s
+                """, (video_yt_id, timestamp, request.user))
                 conn.commit()
 
     return jsonify({"status": "success"}), 200

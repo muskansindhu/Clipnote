@@ -8,6 +8,8 @@
   <link rel="icon" type="image/png" href="/static/assets/clipnote-logo-64x64.png" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
   <link href="static/css/style.css" rel="stylesheet" />
+
+
   <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 
@@ -23,8 +25,21 @@
       <button id="dashboard-btn" class="dashboard-btn" style="display: none" title="Dashboard">
         <i data-lucide="layout-grid"></i>
       </button>
-      <div id="profile-icon-placeholder" class="profile-btn" style="display: none" title="Profile">
-        <i data-lucide="user" style="width: 18px; height: 18px;"></i>
+      <div class="profile-wrapper">
+        <div id="profile-icon-placeholder" class="profile-btn" style="display: none" title="Profile">
+          <i data-lucide="user" style="width: 18px; height: 18px;"></i>
+        </div>
+        <div class="profile-dropdown" id="profile-dropdown">
+          <div id="dropdown-guest-info" class="dropdown-guest-info" style="display:none;">
+            Guest Trial: Loading...
+          </div>
+          <button class="dropdown-item" id="manage-profile-btn">
+            <i data-lucide="settings"></i> Manage Profile
+          </button>
+          <button class="dropdown-item" id="logout-trigger-btn">
+            <i data-lucide="log-out"></i> Log Out
+          </button>
+        </div>
       </div>
       <button id="theme-toggle-btn" class="theme-toggle-btn" title="Toggle Theme">
         <i data-lucide="sun" style="width: 20px; height: 20px;"></i>
@@ -32,7 +47,7 @@
     </div>
   </div>
 
-  <div class="container">
+  <div class="container" style="position: relative;">
     <div class="search-box">
       <div class="search-wrapper">
         <input type="text" id="search" placeholder="Search notes..." />
@@ -41,9 +56,17 @@
         </button>
       </div>
     </div>
-    <div id="labels"></div>
+    <div id="labels" class="labels-container"></div>
     <br />
     <div class="cards" id="notes-container"></div>
+    <div id="empty-state" class="empty-state" style="display: none;">
+      <div class="empty-icon">
+        <i data-lucide="compass" style="width: 48px; height: 48px; opacity: 0.5;"></i>
+      </div>
+      <h3>No video notes yet?</h3>
+      <p>Go explore <a href="https://www.youtube.com" target="_blank" class="yt-link">YouTube</a> and start clipping!
+      </p>
+    </div>
     <div id="pagination-controls" class="pagination-controls" style="display: none;">
       <button id="prev-page" class="pagination-btn">Previous</button>
       <span id="page-indicator">Page 1</span>
@@ -58,6 +81,32 @@
         <input type="text" id="new-label-input" placeholder="Enter label name" required style="width: 100%" />
         <button type="submit">Add</button>
       </form>
+    </div>
+  </div>
+
+  <div id="limit-modal" class="modal" style="display: none">
+    <div class="modal-content" style="text-align: center; max-width: 400px;">
+      <span class="close-button" id="close-limit-modal">&times;</span>
+      <h3 style="color: #eab308; margin-bottom: 10px;">Guest Limit Reached</h3>
+      <p style="margin-bottom: 20px; line-height: 1.5;">You have reached the 3-note limit for Guest users.</p>
+      <p style="margin-bottom: 25px; font-size: 0.9em; opacity: 0.8;">The paid offering will be available soon! To
+        continue enjoying Clipnote, you can self-host the project.</p>
+      <div style="display: flex; gap: 10px; justify-content: center;">
+        <a href="https://github.com/muskansindhu/Clipnote" target="_blank" class="secondary-btn"
+          style="text-decoration: none; background: #333; color: white; padding: 10px 20px; border-radius: 6px;">Self
+          Host</a>
+      </div>
+    </div>
+  </div>
+
+  <div id="logout-modal" class="modal-overlay">
+    <div class="modal-confirm">
+      <h3>Log Out</h3>
+      <p>Are you sure you want to sign out?</p>
+      <div class="btn-group">
+        <button class="btn btn-cancel" id="cancel-logout">Cancel</button>
+        <button class="btn btn-danger" id="confirm-logout">Log Out</button>
+      </div>
     </div>
   </div>
 

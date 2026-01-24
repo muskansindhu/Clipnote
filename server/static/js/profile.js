@@ -4,6 +4,7 @@ document.addEventListener("DOMContentLoaded", function () {
     loadProfileInfo();
     loadLabels();
     setupTokenControls();
+    checkGuestProfileStatus();
 });
 
 const token = localStorage.getItem("clipnote_token");
@@ -13,16 +14,16 @@ if (!token) {
 }
 
 function loadProfileInfo() {
-    // Decode JWT to get username
+
     try {
         const payload = JSON.parse(atob(token.split('.')[1]));
-        document.getElementById('profile-username-display').textContent = payload.sub || 'User';
+        document.getElementById('profile-username-display').textContent = payload.username || payload.sub || 'User';
     } catch (e) {
         console.error("Invalid token", e);
         document.getElementById('profile-username-display').textContent = 'Unknown User';
     }
 
-    // Set token value
+
     document.getElementById('jwt-token').value = token;
 }
 
@@ -35,9 +36,9 @@ function setupTokenControls() {
         const type = tokenInput.getAttribute('type') === 'password' ? 'text' : 'password';
         tokenInput.setAttribute('type', type);
 
-        // Update icon
+
         const iconName = type === 'password' ? 'eye' : 'eye-off';
-        // Re-render lucide icon
+
         toggleBtn.innerHTML = `<i data-lucide="${iconName}"></i>`;
         lucide.createIcons();
     });
@@ -161,14 +162,71 @@ function insertDashboardIconIfLoggedIn() {
         if (window.lucide) lucide.createIcons();
     }
 
-    // Profile Icon
+    // Profile Icon & Dropdown
     const profilePlaceholder = document.getElementById("profile-icon-placeholder");
+    const dropdown = document.getElementById("profile-dropdown");
+    const manageBtn = document.getElementById("manage-profile-btn");
+    const logoutTrigger = document.getElementById("logout-trigger-btn");
+
+    // Modal Elements
+    const logoutModal = document.getElementById("logout-modal");
+    const cancelLogout = document.getElementById("cancel-logout");
+    const confirmLogout = document.getElementById("confirm-logout");
+
     if (profilePlaceholder) {
         profilePlaceholder.style.display = "flex";
-        profilePlaceholder.addEventListener("click", () => {
-            window.location.href = "/profile";
+
+        // Toggle Dropdown
+        profilePlaceholder.addEventListener("click", (e) => {
+            e.stopPropagation();
+            dropdown.classList.toggle("show");
         });
+
+        // Close dropdown on outside click
+        document.addEventListener("click", (e) => {
+            if (!profilePlaceholder.contains(e.target) && !dropdown.contains(e.target)) {
+                dropdown.classList.remove("show");
+            }
+        });
+
+        // Dropdown Actions
+        if (manageBtn) {
+            manageBtn.addEventListener("click", () => {
+                window.location.href = "/profile";
+            });
+        }
+
+        if (logoutTrigger) {
+            logoutTrigger.addEventListener("click", () => {
+                dropdown.classList.remove("show");
+                logoutModal.style.display = "flex";
+            });
+        }
+
         if (window.lucide) lucide.createIcons();
+    }
+
+    // Modal Logic
+    if (logoutModal) {
+        if (cancelLogout) {
+            cancelLogout.addEventListener("click", () => {
+                logoutModal.style.display = "none";
+            });
+        }
+
+        if (confirmLogout) {
+            confirmLogout.addEventListener("click", () => {
+                localStorage.removeItem("clipnote_token");
+                window.location.href = "/";
+            });
+        }
+
+        // Close modal on outside click
+        logoutModal.addEventListener("click", (e) => {
+            if (e.target === logoutModal) {
+                logoutModal.style.display = "none";
+            }
+        });
     }
 }
 
@@ -207,4 +265,44 @@ function setupThemeToggle() {
         const isLight = body.classList.contains("light-mode");
         applyTheme(!isLight);
     });
+}
+
+function checkGuestProfileStatus() {
+    const token = localStorage.getItem("clipnote_token");
+    if (!token) return;
+
+    fetch("/user-status", {
+        headers: { Authorization: "Bearer " + token },
+    })
+        .then(res => res.json())
+        .then(data => {
+            if (data.is_guest) {
+                const display = document.getElementById('profile-username-display');
+                if (display) display.textContent = "Guest User";
+
+                const info = document.getElementById('guest-profile-info');
+                if (info) {
+                    const days = data.days_remaining;
+                    const hours = data.hours_remaining;
+                    let timeText = "";
+                    if (days > 0) {
+                        timeText = `${days} days, ${hours} hours`;
+                    } else {
+                        timeText = `${hours} hours`;
+                    }
+
+                    info.innerText = `Guest Account: Trial ends in ${timeText}`;
+                    info.style.display = "block";
+
+                    // Update Dropdown Info as well
+                    const dropdownBadge = document.getElementById("dropdown-guest-info");
+                    if (dropdownBadge) {
+                        let shortText = (days > 0) ? `${days}d ${hours}h left` : `${hours}h left`;
+                        dropdownBadge.innerHTML = `<span style="display:block; font-size:0.75rem; opacity:0.8;">Trial Expires In:</span> ${shortText}`;
+                        dropdownBadge.style.display = "block";
+                    }
+                }
+            }
+        })
+        .catch(err => console.error("Error checking guest status:", err));
 }

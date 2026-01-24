@@ -22,8 +22,18 @@
       <button id="dashboard-btn" class="dashboard-btn" style="display: none" title="Dashboard">
         <i data-lucide="layout-grid"></i>
       </button>
-      <div id="profile-icon-placeholder" class="profile-btn" style="display: none" title="Profile">
-        <i data-lucide="user" style="width: 18px; height: 18px;"></i>
+      <div class="profile-wrapper">
+        <div id="profile-icon-placeholder" class="profile-btn" style="display: none" title="Profile">
+          <i data-lucide="user" style="width: 18px; height: 18px;"></i>
+        </div>
+        <div class="profile-dropdown" id="profile-dropdown">
+          <button class="dropdown-item" id="manage-profile-btn">
+            <i data-lucide="settings"></i> Manage Profile
+          </button>
+          <button class="dropdown-item" id="logout-trigger-btn">
+            <i data-lucide="log-out"></i> Log Out
+          </button>
+        </div>
       </div>
       <button id="theme-toggle-btn" class="theme-toggle-btn" title="Toggle Theme">
         <i data-lucide="sun" style="width: 20px; height: 20px;"></i>
@@ -52,9 +62,8 @@
         </p>
 
         <div class="hero-actions">
-          <a href="https://github.com/muskansindhu/Clipnote/blob/main/README.md" class="btn btn-primary" target="_blank"
-            rel="noopener noreferrer">
-            Setup Guide
+          <a href="/login" class="btn btn-primary">
+            Get Started
           </a>
           <a href="https://www.youtube.com/watch?v=jLILbQJOhv8" class="btn btn-secondary" target="_blank"
             rel="noopener noreferrer">
@@ -66,7 +75,7 @@
 
       <div class="hero-visual">
         <div class="demo-card">
-          <!-- Browser Header -->
+
           <div class="demo-header">
             <div class="demo-dots">
               <span class="dot red"></span>
@@ -78,9 +87,9 @@
             </div>
           </div>
 
-          <!-- App Mockup Content -->
+
           <div class="demo-content">
-            <!-- Sidebar Mock -->
+
             <div class="demo-sidebar">
               <div class="sidebar-line primary" style="width: 80%;"></div>
               <div class="sidebar-line" style="width: 60%;"></div>
@@ -88,7 +97,7 @@
               <div class="sidebar-line" style="width: 50%;"></div>
             </div>
 
-            <!-- Notes Area -->
+
             <div class="demo-main">
               <div class="note-item" style="opacity: 0.8; transform: scale(0.98);">
                 <span class="timestamp">02:34</span>
@@ -152,7 +161,7 @@
       </div>
     </section>
 
-    <!-- How It Works Section -->
+
     <section class="how-it-works">
       <div class="section-header">
         <h2>How It <span class="gradient-text">Works</span></h2>
@@ -190,7 +199,7 @@
     </section>
 
 
-    <!-- FAQ Section -->
+
     <section class="faq-section">
       <div class="section-header">
         <h2>Frequently Asked <span class="gradient-text">Questions</span></h2>
@@ -227,13 +236,23 @@
         <h2>Ready to enhance your learning?</h2>
 
         <p>Start taking smarter notes from YouTube videos today.</p>
-        <a href="https://github.com/muskansindhu/Clipnote/blob/main/README.md" class="btn btn-primary" target="_blank"
-          rel="noopener noreferrer">
+        <a href="/login" class="btn btn-primary">
           Get Started Now
         </a>
       </div>
     </section>
   </main>
+
+  <div id="logout-modal" class="modal-overlay">
+    <div class="modal-confirm">
+      <h3>Log Out</h3>
+      <p>Are you sure you want to sign out?</p>
+      <div class="btn-group">
+        <button class="btn btn-cancel" id="cancel-logout">Cancel</button>
+        <button class="btn btn-danger" id="confirm-logout">Log Out</button>
+      </div>
+    </div>
+  </div>
 
   <footer class="footer">
     <div class="footer-content">

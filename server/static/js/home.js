@@ -54,13 +54,70 @@ function insertDashboardIconIfLoggedIn() {
     if (window.lucide) lucide.createIcons();
   }
 
-  // Profile Icon
+  // Profile Icon & Dropdown
   const profilePlaceholder = document.getElementById("profile-icon-placeholder");
+  const dropdown = document.getElementById("profile-dropdown");
+  const manageBtn = document.getElementById("manage-profile-btn");
+  const logoutTrigger = document.getElementById("logout-trigger-btn");
+
+  // Modal Elements
+  const logoutModal = document.getElementById("logout-modal");
+  const cancelLogout = document.getElementById("cancel-logout");
+  const confirmLogout = document.getElementById("confirm-logout");
+
   if (profilePlaceholder) {
     profilePlaceholder.style.display = "flex";
-    profilePlaceholder.addEventListener("click", () => {
-      window.location.href = "/profile";
+
+    // Toggle Dropdown
+    profilePlaceholder.addEventListener("click", (e) => {
+      e.stopPropagation();
+      dropdown.classList.toggle("show");
     });
-    if (window.lucide) lucide.createIcons();
+
+    // Close dropdown on outside click
+    document.addEventListener("click", (e) => {
+      if (!profilePlaceholder.contains(e.target) && !dropdown.contains(e.target)) {
+        dropdown.classList.remove("show");
+      }
+    });
+
+    // Dropdown Actions
+    if (manageBtn) {
+      manageBtn.addEventListener("click", () => {
+        window.location.href = "/profile";
+      });
+    }
+
+    if (logoutTrigger) {
+      logoutTrigger.addEventListener("click", () => {
+        dropdown.classList.remove("show");
+        logoutModal.style.display = "flex";
+      });
+    }
+
+    if (window.lucide && window.lucide.createIcons) window.lucide.createIcons();
+  }
+
+  // Modal Logic
+  if (logoutModal) {
+    if (cancelLogout) {
+      cancelLogout.addEventListener("click", () => {
+        logoutModal.style.display = "none";
+      });
+    }
+
+    if (confirmLogout) {
+      confirmLogout.addEventListener("click", () => {
+        localStorage.removeItem("clipnote_token");
+        window.location.href = "/";
+      });
+    }
+
+    // Close modal on outside click
+    logoutModal.addEventListener("click", (e) => {
+      if (e.target === logoutModal) {
+        logoutModal.style.display = "none";
+      }
+    });
   }
 }

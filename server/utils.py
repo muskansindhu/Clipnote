@@ -155,6 +155,7 @@ def require_auth(f):
         try:
             payload = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
             request.user = payload["sub"]
+            request.auth_payload = payload
         except jwt.ExpiredSignatureError:
             return jsonify({"message": "Token expired"}), 401
         except jwt.InvalidTokenError:
