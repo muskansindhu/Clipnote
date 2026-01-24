@@ -144,6 +144,12 @@ h6 {
   margin: 0 auto;
 }
 
+.dashboard-container {
+  padding-bottom: 10px;
+  display: flex;
+  flex-direction: column;
+}
+
 .search-box {
   display: flex;
   justify-content: center;
@@ -1148,8 +1154,9 @@ h6 {
   justify-content: center;
   align-items: center;
   gap: 16px;
-  margin-top: 40px;
-  margin-bottom: 60px;
+  margin-top: auto;
+  margin-bottom: 10px;
+  padding-top: 32px;
 }
 
 .pagination-btn {
