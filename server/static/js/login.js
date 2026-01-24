@@ -2,7 +2,12 @@ document.addEventListener("DOMContentLoaded", function () {
   setupThemeToggle();
   setupPasswordToggle();
 
-  const EXT_ID = "bdolajikajidpcodloegllkneeochbaf";
+  let EXT_ID = document.documentElement.getAttribute("data-clipnote-extension-id");
+
+  window.addEventListener("clipnote-extension-ready", (e) => {
+    EXT_ID = e.detail.extensionId;
+    console.log("Extension ID discovered:", EXT_ID);
+  });
 
   const token = localStorage.getItem("clipnote_token");
   if (token) {

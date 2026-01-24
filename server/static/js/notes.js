@@ -301,6 +301,37 @@ function insertDashboardIconIfLoggedIn() {
       }
     });
   }
+
+  checkGuestStatus();
+}
+
+function checkGuestStatus() {
+  const token = localStorage.getItem("clipnote_token");
+  if (!token) return;
+
+  fetch("/user-status", {
+    headers: { Authorization: "Bearer " + token },
+  })
+    .then(res => res.json())
+    .then(data => {
+      if (data.is_guest) {
+        const badge = document.getElementById("dropdown-guest-info");
+        if (badge) {
+          const days = data.days_remaining;
+          const hours = data.hours_remaining;
+          let timeText = "";
+          if (days > 0) {
+            timeText = `${days}d ${hours}h left`;
+          } else {
+            timeText = `${hours}h left`;
+          }
+
+          badge.innerHTML = `<span style="display:block; font-size:0.75rem; opacity:0.8;">Trial Expires In:</span> ${timeText}`;
+          badge.style.display = "block";
+        }
+      }
+    })
+    .catch(err => console.error("Error checking status:", err));
 }
 
 function applyThemeToIconImages() {
