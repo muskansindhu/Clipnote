@@ -5,23 +5,25 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Clipnote - Smart YouTube Note Taking</title>
-  <link rel="icon" type="image/png" href="/static/assets/clipnote-logo-64x64.png" />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
+  <link rel="icon" type="image/svg+xml" href="/static/assets/clipnote-logo-dark.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+    rel="stylesheet" />
   <link href="static/css/style.css" rel="stylesheet" />
-
-
   <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 
 <body>
   <div class="navbar">
-    <a href="/" style="display: flex; align-items: center; gap: 10px">
-      <img src="/static/assets/clipnote-logo-64x64.png" data-dark="/static/assets/clipnote-logo-64x64.png"
-        data-light="/static/assets/clipnote-logo-light-64x64.png" alt="Clipnote Logo" class="logo" id="clipnote-logo"
+    <a href="/" class="navbar-brand">
+      <img src="/static/assets/clipnote-logo-dark.svg" data-dark="/static/assets/clipnote-logo-dark.svg"
+        data-light="/static/assets/clipnote-logo-light.svg" alt="Clipnote Logo" class="logo" id="clipnote-logo"
         data-theme-switchable="true" />
       <h1>Clipnote</h1>
     </a>
-    <div style="display: flex; align-items: center; gap: 12px;">
+    <div class="navbar-actions">
       <button id="dashboard-btn" class="dashboard-btn" style="display: none" title="Dashboard">
         <i data-lucide="layout-grid"></i>
       </button>
@@ -47,57 +49,72 @@
     </div>
   </div>
 
-  <div class="container dashboard-container" style="position: relative;">
-    <div class="search-box">
-      <div class="search-wrapper">
-        <input type="text" id="search" placeholder="Search notes..." />
-        <button id="search-btn" class="search-btn">
-          <i data-lucide="search"></i>
-        </button>
+  <main class="main-content dashboard-main">
+    <header class="page-header">
+      <div class="page-title-group">
+        <span class="section-eyebrow">Workspace</span>
+        <h2>Dashboard</h2>
+        <p class="page-subtitle">Search, filter, and manage your video notes in one place.</p>
       </div>
-    </div>
-    <div id="labels" class="labels-container"></div>
-    <br />
-    <div class="cards" id="notes-container"></div>
-    <div id="empty-state" class="empty-state" style="display: none;">
-      <div class="empty-icon">
-        <i data-lucide="compass" style="width: 48px; height: 48px; opacity: 0.5;"></i>
+    </header>
+
+    <section class="panel">
+      <div class="search-box">
+        <div class="search-wrapper">
+          <input type="text" id="search" placeholder="Search notes..." />
+          <button id="search-btn" class="search-btn">
+            <i data-lucide="search"></i>
+          </button>
+        </div>
       </div>
-      <h3>No video notes yet?</h3>
-      <p>Go explore <a href="https://www.youtube.com" target="_blank" class="yt-link">YouTube</a> and start clipping!
-      </p>
-    </div>
-    <div id="pagination-controls" class="pagination-controls" style="display: none;">
-      <button id="prev-page" class="pagination-btn">Previous</button>
-      <span id="page-indicator">Page 1</span>
-      <button id="next-page" class="pagination-btn">Next</button>
-    </div>
-  </div>
+    </section>
+
+    <section class="panel">
+      <div id="labels" class="labels-container"></div>
+    </section>
+
+    <section class="panel">
+      <div class="cards" id="notes-container"></div>
+      <div id="empty-state" class="empty-state" style="display: none;">
+        <div class="empty-icon">
+          <i data-lucide="compass" style="width: 48px; height: 48px; opacity: 0.5;"></i>
+        </div>
+        <h3>No video notes yet?</h3>
+        <p>Go explore <a href="https://www.youtube.com" target="_blank" class="yt-link">YouTube</a> and start clipping!
+        </p>
+      </div>
+      <div id="pagination-controls" class="pagination-controls" style="display: none;">
+        <button id="prev-page" class="pagination-btn">Previous</button>
+        <span id="page-indicator">Page 1</span>
+        <button id="next-page" class="pagination-btn">Next</button>
+      </div>
+    </section>
+  </main>
+
   <div id="label-modal" class="modal-overlay">
     <div class="modal-confirm">
       <h3>Add New Label</h3>
       <form id="label-form" style="width: 100%; margin-top: 0;">
         <input type="text" id="new-label-input" placeholder="Enter label name" required
-          style="width: 100%; padding: 12px; border-radius: 12px; border: 1px solid var(--border-subtle); background: rgba(255, 255, 255, 0.05); color: inherit; margin-bottom: 0; box-sizing: border-box; font-size: 16px;" />
+          style="width: 100%; padding: 12px; border-radius: 12px; border: 1px solid var(--border-subtle); background: var(--surface-2); color: inherit; margin-bottom: 0; box-sizing: border-box; font-size: 16px;" />
         <div class="btn-group">
           <button type="button" class="btn btn-cancel" id="close-label-modal">Cancel</button>
-          <button type="submit" class="btn btn-danger">Add</button>
+          <button type="submit" class="btn btn-primary">Add</button>
         </div>
       </form>
     </div>
   </div>
 
   <div id="limit-modal" class="modal" style="display: none">
-    <div class="modal-content" style="text-align: center; max-width: 400px;">
+    <div class="modal-content" style="text-align: center; max-width: 400px; position: relative;">
       <span class="close-button" id="close-limit-modal">&times;</span>
-      <h3 style="color: #eab308; margin-bottom: 10px;">Guest Limit Reached</h3>
+      <h3 style="color: var(--accent-secondary); margin-bottom: 10px;">Guest Limit Reached</h3>
       <p style="margin-bottom: 20px; line-height: 1.5;">You have reached the 3-note limit for Guest users.</p>
       <p style="margin-bottom: 25px; font-size: 0.9em; opacity: 0.8;">The paid offering will be available soon! To
         continue enjoying Clipnote, you can self-host the project.</p>
       <div style="display: flex; gap: 10px; justify-content: center;">
         <a href="https://github.com/muskansindhu/Clipnote" target="_blank" class="secondary-btn"
-          style="text-decoration: none; background: #333; color: white; padding: 10px 20px; border-radius: 6px;">Self
-          Host</a>
+          style="text-decoration: none;">Self Host</a>
       </div>
     </div>
   </div>

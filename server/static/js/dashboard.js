@@ -42,15 +42,10 @@ document.addEventListener("DOMContentLoaded", function () {
         const hasNext = data.has_next || false;
 
         videos.forEach((video) => {
-          const isFavourited = video.fav === true;
 
           const card = document.createElement("div");
           card.className = "card";
           card.id = video.id;
-
-          const iconSrc = isFavourited
-            ? "static/assets/fav_filled.png"
-            : "static/assets/fav_unfilled.png";
 
           const videoId = video.video_url.split('v=')[1]?.split('&')[0] || '';
           card.innerHTML = `
@@ -58,9 +53,13 @@ document.addEventListener("DOMContentLoaded", function () {
               <div class="card-thumbnail">
                 <img src="https://img.youtube.com/vi/${videoId}/hqdefault.jpg" alt="${video.video_title}" />
               </div>
-              <div class="card-header">
-                <h3 id="video-title">${video.video_title}</h3>
-                <img src="${iconSrc}" alt="fav" class="fav-icon"/>
+              <div class="card-main">
+                <div class="card-header">
+                  <h3 id="video-title">${video.video_title}</h3>
+                </div>
+              </div>
+              <div class="card-actions">
+                <button type="button" class="btn btn-primary btn-small view-note-btn">View Note</button>
               </div>
             </div>
           `;
@@ -185,20 +184,22 @@ document.addEventListener("DOMContentLoaded", function () {
                     return;
                   }
                   videos.forEach((video) => {
-                    const isFavourited = video.fav === true;
                     const card = document.createElement("div");
                     card.className = "card";
                     card.id = video.video_id;
-                    const iconSrc = isFavourited ? "static/assets/fav_filled.png" : "static/assets/fav_unfilled.png";
                     const videoId = video.video_url.split('v=')[1]?.split('&')[0] || '';
                     card.innerHTML = `
                             <div class="card-content-wrapper">
                               <div class="card-thumbnail">
                                 <img src="https://img.youtube.com/vi/${videoId}/hqdefault.jpg" alt="${video.video_title}" />
                               </div>
-                              <div class="card-header">
-                                <h3 id="video-title">${video.video_title}</h3>
-                                <img src="${iconSrc}" alt="fav" class="fav-icon"/>
+                              <div class="card-main">
+                                <div class="card-header">
+                                  <h3 id="video-title">${video.video_title}</h3>
+                                </div>
+                              </div>
+                              <div class="card-actions">
+                                <button type="button" class="btn btn-primary btn-small view-note-btn">View Note</button>
                               </div>
                             </div>`;
                     notesContainer.appendChild(card);
@@ -263,52 +264,13 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 document.addEventListener("click", function (event) {
-  if (event.target.classList.contains("fav-icon")) {
-    const token = localStorage.getItem("clipnote_token");
-    if (!token) {
-      window.location.href = "/login";
-      return;
-    }
-
-    const videoTitle = event.target
-      .closest(".card")
-      .querySelector("h3").textContent;
-
-    const isFavourited = event.target
-      .getAttribute("src")
-      .includes("fav_filled");
-
-    const endpoint = isFavourited ? "/unfav-note" : "/fav-note";
-    const newIcon = isFavourited
-      ? "static/assets/fav_unfilled.png"
-      : "static/assets/fav_filled.png";
-
-    fetch(endpoint, {
-      method: "POST",
-      headers: {
-        Authorization: "Bearer " + token,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ video_title: videoTitle }),
-    })
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error("Network response was not ok");
-        }
-        event.target.setAttribute("src", newIcon);
-      })
-      .catch((err) => console.error(err));
-  }
-});
-
-document.addEventListener("click", function (event) {
-  if (event.target.classList.contains("fav-icon")) return;
-  const card = event.target.closest(".card");
-  if (card) {
-    const videoId = card.id;
-    if (videoId) {
-      window.location.href = `/${videoId}`;
-    }
+  const viewBtn = event.target.closest(".view-note-btn");
+  if (!viewBtn) return;
+  const card = viewBtn.closest(".card");
+  if (!card) return;
+  const videoId = card.id;
+  if (videoId) {
+    window.location.href = `/${videoId}`;
   }
 });
 
@@ -325,7 +287,7 @@ function performSearch() {
     if (titleEl) {
       const title = titleEl.textContent.toLowerCase();
       const matches = title.includes(searchTerm);
-      card.style.display = matches ? "block" : "none";
+      card.style.display = matches ? "flex" : "none";
     }
   });
 }

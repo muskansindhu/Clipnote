@@ -1,25 +1,29 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Clipnote - Smart YouTube Note Taking</title>
-  <link rel="icon" type="image/png" href="/static/assets/clipnote-logo-64x64.png" />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
+  <link rel="icon" type="image/svg+xml" href="/static/assets/clipnote-logo-dark.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+    rel="stylesheet" />
   <link href="static/css/style.css" rel="stylesheet" />
   <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 
 <body>
   <div class="navbar">
-    <a href="/" style="display: flex; align-items: center; gap: 10px">
-      <img src="/static/assets/clipnote-logo-64x64.png" data-dark="/static/assets/clipnote-logo-64x64.png"
-        data-light="/static/assets/clipnote-logo-light-64x64.png" alt="Clipnote Logo" class="logo" id="clipnote-logo"
+    <a href="/" class="navbar-brand">
+      <img src="/static/assets/clipnote-logo-dark.svg" data-dark="/static/assets/clipnote-logo-dark.svg"
+        data-light="/static/assets/clipnote-logo-light.svg" alt="Clipnote Logo" class="logo" id="clipnote-logo"
         data-theme-switchable="true" />
       <h1>Clipnote</h1>
     </a>
-    <div style="display: flex; align-items: center; gap: 12px;">
+    <div class="navbar-actions">
       <button id="dashboard-btn" class="dashboard-btn" style="display: none" title="Dashboard">
         <i data-lucide="layout-grid"></i>
       </button>
@@ -42,9 +46,19 @@
       </button>
     </div>
   </div>
-  <div class="container main-content">
+
+  <main class="main-content dashboard-main">
+    <header class="page-header">
+      <div class="page-title-group">
+        <span class="section-eyebrow">Video Notes</span>
+        <h2>Note Details</h2>
+        <p class="page-subtitle">Review, edit, and organize your takeaways.</p>
+      </div>
+      <a href="/dashboard" class="btn btn-secondary btn-small">Back to Dashboard</a>
+    </header>
+
     <div class="cards" id="notes-content-container"></div>
-  </div>
+  </main>
 
   <div id="logout-modal" class="modal-overlay">
     <div class="modal-confirm">
@@ -53,6 +67,17 @@
       <div class="btn-group">
         <button class="btn btn-cancel" id="cancel-logout">Cancel</button>
         <button class="btn btn-danger" id="confirm-logout">Log Out</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="delete-note-modal" class="modal-overlay">
+    <div class="modal-confirm">
+      <h3>Delete Note</h3>
+      <p>Are you sure you want to delete this note? This action can’t be undone.</p>
+      <div class="btn-group">
+        <button class="btn btn-cancel" id="cancel-delete-note">Cancel</button>
+        <button class="btn btn-danger" id="confirm-delete-note">Delete</button>
       </div>
     </div>
   </div>

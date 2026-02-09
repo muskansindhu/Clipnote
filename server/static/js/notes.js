@@ -34,16 +34,11 @@ document.addEventListener("DOMContentLoaded", function () {
         <h2><a href="${note.video_url}" target="_blank" class="video-title">${note.video_title
         }</a></h2>
       <div class="video-tag">
-       <img src="static/assets/tag.png" 
-       class="action-item-icon tag-icon"
-       data-light="static/assets/tag-light.png" 
-       data-dark="static/assets/tag.png" 
-       data-theme-switchable='true'
-       />
+       <i data-lucide="tag" class="tag-icon"></i>
       </div>
           <div class="note-list">
             ${data
-          .map((item) => {
+          .map((item, index) => {
             const parts = item.video_timestamp.split(":").map(Number);
             const seconds =
               parts.length === 3
@@ -56,21 +51,25 @@ document.addEventListener("DOMContentLoaded", function () {
                   <div class="note-entry ${item.note_source?.toLowerCase() === "ai"
                 ? "ai-note"
                 : "user-note"
-              }">
-                    <div class="note-text">
+              }" data-index="${index}" data-seconds="${seconds}" data-timestamp="${item.video_timestamp}">
+                    <div class="note-meta">
                       <div class="note-source-indicator ${item.note_source?.toLowerCase() === "ai" ? "ai" : "user"}" 
                            title="${item.note_source?.toLowerCase() === "ai" ? "AI Generated" : "User Note"}">
                         <i data-lucide="${item.note_source?.toLowerCase() === "ai" ? "bot" : "user"}" 
                            class="source-icon"></i>
                       </div>
-                      <a href="${note.video_url}&t=${seconds}s" target="_blank">
-                        <strong class="timestamp">${item.video_timestamp
-              }</strong>
-                      </a> - ${item.note || "(No note)"}
+                      <a href="${note.video_url}&t=${seconds}s" target="_blank" class="note-timestamp">
+                        <strong class="timestamp">${item.video_timestamp}</strong>
+                      </a>
                     </div>
+                    <p class="note-copy">${item.note || "(No note)"}</p>
                     <div class="action-items">
-                      <img src="static/assets/edit.png" class="action-item-icon edit-icon" />
-                      <img src="static/assets/trash.png" class="action-item-icon trash-icon" />
+                      <button type="button" class="action-btn action-item-icon edit-btn" aria-label="Edit note">
+                        <i data-lucide="pencil"></i>
+                      </button>
+                      <button type="button" class="action-btn action-item-icon trash-btn" aria-label="Delete note">
+                        <i data-lucide="trash-2"></i>
+                      </button>
                     </div>
                   </div>
                 `;
@@ -90,72 +89,163 @@ document.addEventListener("DOMContentLoaded", function () {
       applyThemeToIconImages();
       getVideoLabel(videoId, token);
 
-      document.querySelectorAll(".trash-icon").forEach((icon, index) => {
-        icon.addEventListener("click", () => {
-          const timestamp = data[index].video_timestamp;
+      const deleteModal = document.getElementById("delete-note-modal");
+      const cancelDeleteBtn = document.getElementById("cancel-delete-note");
+      const confirmDeleteBtn = document.getElementById("confirm-delete-note");
+      let pendingDeleteTimestamp = null;
 
-          fetch(`/${videoId}`, {
-            method: "DELETE",
-            headers: {
-              Authorization: "Bearer " + token,
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ timestamp }),
-          })
-            .then((res) => {
-              if (!res.ok) throw new Error("Failed to delete note.");
-              location.reload();
+      const closeDeleteModal = () => {
+        if (!deleteModal) return;
+        deleteModal.style.display = "none";
+        pendingDeleteTimestamp = null;
+      };
+
+      if (deleteModal) {
+        if (cancelDeleteBtn) {
+          cancelDeleteBtn.addEventListener("click", closeDeleteModal);
+        }
+
+        if (confirmDeleteBtn) {
+          confirmDeleteBtn.addEventListener("click", () => {
+            if (!pendingDeleteTimestamp) return;
+
+            fetch(`/${videoId}`, {
+              method: "DELETE",
+              headers: {
+                Authorization: "Bearer " + token,
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ timestamp: pendingDeleteTimestamp }),
             })
-            .catch((err) => {
-              console.error("Delete failed:", err);
-            });
-        });
-      });
-
-      document.querySelectorAll(".edit-icon").forEach((icon, index) => {
-        icon.addEventListener("click", () => {
-          const noteCard = icon.closest(".note-entry");
-          const noteText = noteCard.querySelector(".note-text");
-          const actionContainer = icon.parentElement;
-
-          const originalNote = data[index].note;
-          const timestamp = data[index].video_timestamp;
-
-          const textarea = document.createElement("textarea");
-          textarea.value = originalNote;
-          textarea.className = "edit-textarea";
-
-          noteText.replaceWith(textarea);
-          textarea.focus();
-
-          const saveImg = document.createElement("img");
-          saveImg.src = "/static/assets/save.png";
-          saveImg.alt = "Save";
-          saveImg.className = "action-item-icon";
-
-          const cancelImg = document.createElement("img");
-          cancelImg.src = "/static/assets/cancel.png";
-          cancelImg.alt = "Cancel";
-          cancelImg.className = "action-item-icon";
-
-          const trashIcon = actionContainer.querySelector(".trash-icon");
-
-          actionContainer.insertBefore(saveImg, trashIcon);
-          actionContainer.insertBefore(cancelImg, trashIcon);
-
-          icon.remove();
-
-          cancelImg.addEventListener("click", () => {
-            textarea.replaceWith(noteText);
-
-            actionContainer.insertBefore(icon, saveImg);
-            saveImg.remove();
-            cancelImg.remove();
+              .then((res) => {
+                if (!res.ok) throw new Error("Failed to delete note.");
+                location.reload();
+              })
+              .catch((err) => {
+                console.error("Delete failed:", err);
+              });
           });
+        }
 
-          saveImg.addEventListener("click", () => {
+        deleteModal.addEventListener("click", (event) => {
+          if (event.target === deleteModal) {
+            closeDeleteModal();
+          }
+        });
+      }
+
+      const noteList = container.querySelector(".note-list");
+      if (noteList) {
+        noteList.addEventListener("click", (event) => {
+          const button = event.target.closest("button");
+          if (!button) return;
+
+          const noteEntry = button.closest(".note-entry");
+          if (!noteEntry) return;
+
+          const index = Number(noteEntry.dataset.index);
+          const item = data[index];
+          if (!item) return;
+
+          if (button.classList.contains("trash-btn")) {
+            const timestamp = noteEntry.dataset.timestamp || item.video_timestamp;
+            if (deleteModal) {
+              pendingDeleteTimestamp = timestamp;
+              deleteModal.style.display = "flex";
+            } else {
+              fetch(`/${videoId}`, {
+                method: "DELETE",
+                headers: {
+                  Authorization: "Bearer " + token,
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ timestamp }),
+              })
+                .then((res) => {
+                  if (!res.ok) throw new Error("Failed to delete note.");
+                  location.reload();
+                })
+                .catch((err) => {
+                  console.error("Delete failed:", err);
+                });
+            }
+            return;
+          }
+
+          if (button.classList.contains("edit-btn")) {
+            if (noteEntry.classList.contains("is-editing")) return;
+
+            const noteCopy = noteEntry.querySelector(".note-copy");
+            const actionContainer = noteEntry.querySelector(".action-items");
+            if (!noteCopy || !actionContainer) return;
+
+            noteEntry._originalNoteCopy = noteCopy;
+
+            const textarea = document.createElement("textarea");
+            textarea.value = item.note || "";
+            textarea.className = "edit-textarea";
+            noteCopy.replaceWith(textarea);
+            textarea.focus();
+
+            const trashBtn = actionContainer.querySelector(".trash-btn");
+            const editBtn = actionContainer.querySelector(".edit-btn");
+
+            if (!actionContainer.querySelector(".save-btn")) {
+              const saveBtn = document.createElement("button");
+              saveBtn.type = "button";
+              saveBtn.className = "action-btn action-item-icon save-btn";
+              saveBtn.innerHTML = `<i data-lucide="save"></i>`;
+              actionContainer.insertBefore(saveBtn, trashBtn);
+            }
+
+            if (!actionContainer.querySelector(".cancel-btn")) {
+              const cancelBtn = document.createElement("button");
+              cancelBtn.type = "button";
+              cancelBtn.className = "action-btn action-item-icon cancel-btn";
+              cancelBtn.innerHTML = `<i data-lucide="x"></i>`;
+              actionContainer.insertBefore(cancelBtn, trashBtn);
+            }
+
+            if (editBtn) editBtn.classList.add("is-hidden");
+            noteEntry.classList.add("is-editing");
+            if (window.lucide) lucide.createIcons();
+            return;
+          }
+
+          if (button.classList.contains("cancel-btn")) {
+            const actionContainer = noteEntry.querySelector(".action-items");
+            const textarea = noteEntry.querySelector(".edit-textarea");
+            const originalNoteCopy = noteEntry._originalNoteCopy;
+
+            if (textarea && originalNoteCopy) {
+              textarea.replaceWith(originalNoteCopy);
+            }
+
+            noteEntry.classList.remove("is-editing");
+
+            const saveBtn = actionContainer?.querySelector(".save-btn");
+            const cancelBtn = actionContainer?.querySelector(".cancel-btn");
+            if (saveBtn) saveBtn.remove();
+            if (cancelBtn) cancelBtn.remove();
+
+            const editBtn = actionContainer?.querySelector(".edit-btn");
+            if (editBtn) {
+              editBtn.classList.remove("is-hidden");
+              if (!editBtn.querySelector("svg") && !editBtn.querySelector("i[data-lucide]")) {
+                editBtn.innerHTML = `<i data-lucide="pencil"></i>`;
+              }
+            }
+            if (window.lucide) lucide.createIcons();
+            return;
+          }
+
+          if (button.classList.contains("save-btn")) {
+            const textarea = noteEntry.querySelector(".edit-textarea");
+            if (!textarea) return;
             const updatedNote = textarea.value.trim();
             if (updatedNote === "") return;
+
+            const timestamp = item.video_timestamp;
 
             fetch(`/${videoId}`, {
               method: "PATCH",
@@ -175,9 +265,9 @@ document.addEventListener("DOMContentLoaded", function () {
               .catch((err) => {
                 console.error("Update failed:", err);
               });
-          });
+          }
         });
-      });
+      }
     })
     .catch((err) => {
       console.error("Error fetching video note:", err);

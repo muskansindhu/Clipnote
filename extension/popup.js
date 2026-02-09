@@ -1,3 +1,5 @@
+let cachedVideoTitle = "";
+
 document.addEventListener("DOMContentLoaded", async function () {
   const hasToken = await checkAuthToken();
 
@@ -16,6 +18,7 @@ document.addEventListener("DOMContentLoaded", async function () {
   const videoTitle = await execute(getVideoTitle, tabDetails.id);
   const currentTimestamp = await execute(getTimestamp, tabDetails.id);
 
+  cachedVideoTitle = videoTitle || "";
   populateFormDetails(tabDetails.videoURL, videoTitle, currentTimestamp);
 
   const videoDetails = {
@@ -81,12 +84,13 @@ async function execute(func, id) {
 
 function populateFormDetails(videoURL, videoTitle, currentTimestamp) {
   const urlField = document.getElementById("video-url");
-  const titleField = document.getElementById("video-title");
-  const timestampField = document.getElementById("timestamp");
+  const timestampLabel = document.getElementById("timestamp-display");
 
   urlField.value = videoURL;
-  titleField.value = videoTitle;
-  timestampField.value = currentTimestamp;
+  cachedVideoTitle = videoTitle || cachedVideoTitle;
+  if (timestampLabel) {
+    timestampLabel.textContent = currentTimestamp || "--:--";
+  }
 }
 
 document.getElementById("submit").addEventListener("click", function () {
@@ -101,14 +105,14 @@ document.getElementById("submit").addEventListener("click", function () {
       return;
     }
 
-    const videoTitle = document.getElementById("video-title").value;
-    const currentTimeStamp = document.getElementById("timestamp").value;
+    const currentTimeStamp =
+      document.getElementById("timestamp-display")?.textContent || "";
     const videoUrl = document.getElementById("video-url").value;
     const notes = document.getElementById("notes").value;
 
     const data = {
       videoUrl,
-      videoTitle,
+      videoTitle: cachedVideoTitle,
       currentTimeStamp,
       notes,
     };
@@ -139,74 +143,26 @@ document.getElementById("submit").addEventListener("click", function () {
   });
 });
 
-document.getElementById("summarize").addEventListener("click", function () {
-  showLoader("Summarizing video...");
-
-  chrome.storage.local.get("clipnote_token", function (result) {
-    const token = result.clipnote_token;
-
-    if (!token) {
-      console.error("No token found in storage");
-      hideLoader();
-      return;
-    }
-
-    const videoUrl = document.getElementById("video-url").value;
-    console.log(videoUrl);
-
-    const data = {
-      video_url: videoUrl,
-    };
-
-    fetch(`${CONFIG.BASE_URL}/summarize`, {
-      method: "POST",
-      headers: {
-        Authorization: "Bearer " + token,
-        "Content-Type": "text/plain",
-      },
-      body: JSON.stringify(data),
-    })
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error("Network response was not ok");
-        }
-        return response.json();
-      })
-      .then((data) => {
-        console.log("Success:", data);
-        const summary = data.message;
-        const summaryList = document.getElementById("summary-list");
-        const summarySection = document.getElementById("summary-section");
-
-        summaryList.innerHTML = "";
-
-        summary.split("\n").forEach((line) => {
-          if (line.trim()) {
-            const li = document.createElement("li");
-            li.textContent = line.trim();
-            summaryList.appendChild(li);
-          }
-        });
-
-        summarySection.style.display = "block";
-      })
-      .catch((error) => {
-        console.error("Error:", error);
-      })
-      .finally(() => {
-        hideLoader();
-      });
-  });
-});
-
 function showLoader(message = "") {
-  document.getElementById("loader-wrapper").style.display = "block";
-  document.getElementById("loader-message").textContent = message;
+  const loader = document.getElementById("loader-wrapper");
+  if (loader) {
+    loader.classList.add("is-visible");
+  }
+  const messageEl = document.getElementById("loader-message");
+  if (messageEl) {
+    messageEl.textContent = message;
+  }
 }
 
 function hideLoader() {
-  document.getElementById("loader-wrapper").style.display = "none";
-  document.getElementById("loader-message").textContent = "";
+  const loader = document.getElementById("loader-wrapper");
+  if (loader) {
+    loader.classList.remove("is-visible");
+  }
+  const messageEl = document.getElementById("loader-message");
+  if (messageEl) {
+    messageEl.textContent = "";
+  }
 }
 
 async function checkAuthToken() {

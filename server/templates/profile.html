@@ -2,110 +2,108 @@
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Profile - Clipnote</title>
-    <link rel="icon" type="image/png" href="/static/assets/clipnote-logo-64x64.png">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-    <link href="static/css/style.css" rel="stylesheet">
-
-    <script src="https://unpkg.com/lucide@latest"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Profile - Clipnote</title>
+  <link rel="icon" type="image/svg+xml" href="/static/assets/clipnote-logo-dark.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+    rel="stylesheet" />
+  <link href="static/css/style.css" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 
 <body>
-    <div class="navbar">
-        <a href="/" style="display: flex; align-items: center; gap: 10px">
-            <img src="/static/assets/clipnote-logo-64x64.png" data-dark="/static/assets/clipnote-logo-64x64.png"
-                data-light="/static/assets/clipnote-logo-light-64x64.png" alt="Clipnote Logo" class="logo"
-                id="clipnote-logo" data-theme-switchable="true" />
-            <h1>Clipnote</h1>
-        </a>
-        <div style="display: flex; align-items: center; gap: 12px;">
-            <button id="dashboard-btn" class="dashboard-btn" style="display: none" title="Dashboard">
-                <i data-lucide="layout-grid"></i>
-            </button>
-            <div class="profile-wrapper">
-                <div id="profile-icon-placeholder" class="profile-btn" style="display: none" title="Profile">
-                    <i data-lucide="user" style="width: 18px; height: 18px;"></i>
-                </div>
-                <div class="profile-dropdown" id="profile-dropdown">
-                    <div id="dropdown-guest-info" class="dropdown-guest-info" style="display:none;">
-                        Guest Trial: Loading...
-                    </div>
-                    <button class="dropdown-item" id="manage-profile-btn">
-                        <i data-lucide="settings"></i> Manage Profile
-                    </button>
-                    <button class="dropdown-item" id="logout-trigger-btn">
-                        <i data-lucide="log-out"></i> Log Out
-                    </button>
-                </div>
-            </div>
-            <button id="theme-toggle-btn" class="theme-toggle-btn" title="Toggle Theme">
-                <i data-lucide="sun" style="width: 20px; height: 20px;"></i>
-            </button>
+  <div class="navbar">
+    <a href="/" class="navbar-brand">
+      <img src="/static/assets/clipnote-logo-dark.svg" data-dark="/static/assets/clipnote-logo-dark.svg"
+        data-light="/static/assets/clipnote-logo-light.svg" alt="Clipnote Logo" class="logo" id="clipnote-logo"
+        data-theme-switchable="true" />
+      <h1>Clipnote</h1>
+    </a>
+    <div class="navbar-actions">
+      <button id="dashboard-btn" class="dashboard-btn" style="display: none" title="Dashboard">
+        <i data-lucide="layout-grid"></i>
+      </button>
+      <div class="profile-wrapper">
+        <div id="profile-icon-placeholder" class="profile-btn" style="display: none" title="Profile">
+          <i data-lucide="user" style="width: 18px; height: 18px;"></i>
         </div>
+        <div class="profile-dropdown" id="profile-dropdown">
+          <div id="dropdown-guest-info" class="dropdown-guest-info" style="display:none;">
+            Guest Trial: Loading...
+          </div>
+          <button class="dropdown-item" id="manage-profile-btn">
+            <i data-lucide="settings"></i> Manage Profile
+          </button>
+          <button class="dropdown-item" id="logout-trigger-btn">
+            <i data-lucide="log-out"></i> Log Out
+          </button>
+        </div>
+      </div>
+      <button id="theme-toggle-btn" class="theme-toggle-btn" title="Toggle Theme">
+        <i data-lucide="sun" style="width: 20px; height: 20px;"></i>
+      </button>
+    </div>
+  </div>
+
+  <div class="container profile-container">
+    <div class="profile-header-center">
+      <div class="profile-avatar">
+        <i data-lucide="user"></i>
+      </div>
+      <h2 id="profile-username-display">User</h2>
+      <div id="guest-profile-info" style="display:none; color: var(--accent-secondary); margin-top: 5px; font-weight: 600;">Guest
+        Account: 0/3</div>
+      <p style="margin-top: 4px;">Manage your account settings</p>
     </div>
 
-    <div class="container profile-container">
-
-        <div class="profile-header-center">
-            <div class="profile-avatar">
-                <i data-lucide="user"></i>
-            </div>
-            <h2 id="profile-username-display">User</h2>
-            <div id="guest-profile-info" style="display:none; color: #eab308; margin-top: 5px; font-weight: 600;">Guest
-                Account: 0/3</div>
-            <p style="margin-top: 4px;">Manage your account settings</p>
+    <div class="profile-section">
+      <h3>Control Center</h3>
+      <div class="info-group">
+        <label>API Token (JWT)</label>
+        <div class="token-input-group">
+          <input type="password" id="jwt-token" readonly value="">
+          <button class="icon-btn" id="toggle-token-btn" title="Show/Hide Token">
+            <i data-lucide="eye"></i>
+          </button>
+          <button class="icon-btn" id="copy-token-btn" title="Copy Token">
+            <i data-lucide="copy"></i>
+          </button>
         </div>
-
-        <div class="profile-section">
-            <h3>Control Center</h3>
-
-
-
-            <div class="info-group">
-                <label>API Token (JWT)</label>
-                <div class="token-input-group">
-                    <input type="password" id="jwt-token" readonly value="">
-                    <button class="icon-btn" id="toggle-token-btn" title="Show/Hide Token">
-                        <i data-lucide="eye"></i>
-                    </button>
-                    <button class="icon-btn" id="copy-token-btn" title="Copy Token">
-                        <i data-lucide="copy"></i>
-                    </button>
-                </div>
-                <small class="hint-text">Keep this token secret. It gives full access to your account.</small>
-            </div>
-        </div>
-
-        <div class="profile-section">
-            <h3>Label Management</h3>
-            <p class="section-desc">Manage your custom labels for organizing notes.</p>
-
-            <div id="labels-list" class="labels-list">
-                <div class="loading-spinner">Loading labels...</div>
-            </div>
-        </div>
-
+        <small class="hint-text">Keep this token secret. It gives full access to your account.</small>
+      </div>
     </div>
 
-    <div id="logout-modal" class="modal-overlay">
-        <div class="modal-confirm">
-            <h3>Log Out</h3>
-            <p>Are you sure you want to sign out?</p>
-            <div class="btn-group">
-                <button class="btn btn-cancel" id="cancel-logout">Cancel</button>
-                <button class="btn btn-danger" id="confirm-logout">Log Out</button>
-            </div>
-        </div>
-    </div>
+    <div class="profile-section">
+      <h3>Label Management</h3>
+      <p class="section-desc">Manage your custom labels for organizing notes.</p>
 
-    <footer class="footer">
-        <div class="footer-content">
-            <p>&copy; 2026 Clipnote. Built for better learning.</p>
-        </div>
-    </footer>
-    <script src="static/js/profile.js"></script>
+      <div id="labels-list" class="labels-list">
+        <div class="loading-spinner">Loading labels...</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="logout-modal" class="modal-overlay">
+    <div class="modal-confirm">
+      <h3>Log Out</h3>
+      <p>Are you sure you want to sign out?</p>
+      <div class="btn-group">
+        <button class="btn btn-cancel" id="cancel-logout">Cancel</button>
+        <button class="btn btn-danger" id="confirm-logout">Log Out</button>
+      </div>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <div class="footer-content">
+      <p>&copy; 2026 Clipnote. Built for better learning.</p>
+    </div>
+  </footer>
+  <script src="static/js/profile.js"></script>
 </body>
 
 </html>

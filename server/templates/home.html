@@ -1,24 +1,29 @@
+<!DOCTYPE html>
 <html lang="en">
 
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Clipnote - Smart YouTube Note Taking</title>
-  <link rel="icon" type="image/png" href="/static/assets/clipnote-logo-64x64.png" />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="icon" type="image/svg+xml" href="/static/assets/clipnote-logo-dark.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+    rel="stylesheet" />
   <link href="static/css/style.css" rel="stylesheet" />
   <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 
 <body>
   <div class="navbar">
-    <a href="/" style="display: flex; align-items: center; gap: 10px">
-      <img src="/static/assets/clipnote-logo-64x64.png" data-dark="/static/assets/clipnote-logo-64x64.png"
-        data-light="/static/assets/clipnote-logo-light-64x64.png" alt="Clipnote Logo" class="logo" id="clipnote-logo"
+    <a href="/" class="navbar-brand">
+      <img src="/static/assets/clipnote-logo-dark.svg" data-dark="/static/assets/clipnote-logo-dark.svg"
+        data-light="/static/assets/clipnote-logo-light.svg" alt="Clipnote Logo" class="logo" id="clipnote-logo"
         data-theme-switchable="true" />
       <h1>Clipnote</h1>
     </a>
-    <div style="display: flex; align-items: center; gap: 12px;">
+    <div class="navbar-actions">
       <button id="dashboard-btn" class="dashboard-btn" style="display: none" title="Dashboard">
         <i data-lucide="layout-grid"></i>
       </button>
@@ -44,8 +49,8 @@
 
   <main class="main-content">
     <section class="hero">
-      <div class="hero-content">
-        <div style="margin-bottom: 24px;">
+      <div class="hero-content reveal">
+        <div style="margin-bottom: 20px;">
           <div class="badge-pill">
             <span class="badge-dot"></span>
             New: Enhanced AI Summaries
@@ -58,25 +63,39 @@
         </h1>
 
         <p class="hero-description">
-          Transform your learning experience with intelligent note-taking. Extract key insights, generate summaries, and
-          organize your knowledge effortlessly.
+          Turn long videos into structured notes, instant summaries, and searchable insights. Clipnote keeps everything
+          organized so you can focus on learning, not scrubbing.
         </p>
 
         <div class="hero-actions">
           <a href="/login" class="btn btn-primary">
             Get Started
           </a>
-          <a href="https://www.youtube.com/watch?v=jLILbQJOhv8" class="btn btn-secondary" target="_blank"
+          <a href="https://github.com/muskansindhu/Clipnote" class="btn btn-secondary" target="_blank"
             rel="noopener noreferrer">
-            <i data-lucide="play-circle" style="width: 18px; height: 18px; margin-right: 8px;"></i>
-            Watch Demo
+            <i data-lucide="star" style="width: 18px; height: 18px;"></i>
+            Star on GitHub
           </a>
+        </div>
+
+        <div class="hero-metrics">
+          <div class="metric">
+            <span class="metric-value">3x</span>
+            <span class="metric-label">faster review sessions</span>
+          </div>
+          <div class="metric">
+            <span class="metric-value">1 hub</span>
+            <span class="metric-label">for every clip & note</span>
+          </div>
+          <div class="metric">
+            <span class="metric-value">0 clutter</span>
+            <span class="metric-label">clean, focused workspace</span>
+          </div>
         </div>
       </div>
 
-      <div class="hero-visual">
+      <div class="hero-visual reveal" data-delay="120">
         <div class="demo-card">
-
           <div class="demo-header">
             <div class="demo-dots">
               <span class="dot red"></span>
@@ -88,9 +107,7 @@
             </div>
           </div>
 
-
           <div class="demo-content">
-
             <div class="demo-sidebar">
               <div class="sidebar-line primary" style="width: 80%;"></div>
               <div class="sidebar-line" style="width: 60%;"></div>
@@ -98,14 +115,13 @@
               <div class="sidebar-line" style="width: 50%;"></div>
             </div>
 
-
             <div class="demo-main">
               <div class="note-item" style="opacity: 0.8; transform: scale(0.98);">
                 <span class="timestamp">02:34</span>
                 <p>Key concept: Machine learning fundamentals</p>
               </div>
               <div class="note-item"
-                style="transform: scale(1.02); box-shadow: 0 10px 30px rgba(0,0,0,0.5); z-index: 10; border-color: var(--accent-primary);">
+                style="transform: scale(1.02); box-shadow: 0 10px 30px rgba(0,0,0,0.5); border-color: var(--accent-primary);">
                 <span class="timestamp">05:12</span>
                 <p>Important: Neural network architecture explained</p>
               </div>
@@ -119,127 +135,118 @@
       </div>
     </section>
 
-    <section class="features">
-      <div class="features-grid">
-        <div class="feature-card">
-          <div class="feature-icon">
-            <i data-lucide="brain-circuit"></i>
-          </div>
-
-          <h3>Smart Extraction</h3>
-
-          <p>
-            AI automatically identifies and extracts key points, definitions,
-            and important concepts from video content.
-          </p>
+    <section class="highlights">
+      <div class="section-header reveal">
+        <span class="section-eyebrow">Why Clipnote</span>
+        <h2>Everything you need to capture YouTube knowledge</h2>
+        <p>Clipnote distills videos into a clean workspace—notes, summaries, and labels that stay organized across your
+          learning.
+        </p>
+      </div>
+      <div class="highlight-grid">
+        <div class="highlight-copy reveal" data-delay="60">
+          <h3>Stay in flow while you learn</h3>
+          <p>Clip notes while you watch and return later with a focused, searchable workspace.</p>
+          <ul class="checklist">
+            <li><i data-lucide="check-circle"></i> AI summaries for fast recall</li>
+            <li><i data-lucide="check-circle"></i> Timestamped notes you can jump to</li>
+            <li><i data-lucide="check-circle"></i> Labels to keep topics organized</li>
+          </ul>
         </div>
-
-        <div class="feature-card">
-          <div class="feature-icon">
-            <i data-lucide="library"></i>
+        <div class="highlight-panel reveal" data-delay="120">
+          <div class="panel-heading">
+            <h4>What you get</h4>
+            <span class="pill">Extension + Web</span>
           </div>
-
-          <h3>Organized Knowledge</h3>
-
-          <p>
-            Notes are automatically organized with timestamps, categories, and
-            searchable tags for easy retrieval.
-          </p>
-        </div>
-
-        <div class="feature-card">
-          <div class="feature-icon">
-            <i data-lucide="zap"></i>
+          <div class="panel-list">
+            <div>
+              <strong>Quick capture</strong>
+              <span>Clip insights without pausing the video.</span>
+            </div>
+            <div>
+              <strong>Clean dashboard</strong>
+              <span>Browse notes by video, label, or search.</span>
+            </div>
+            <div>
+              <strong>Review mode</strong>
+              <span>Return to key moments in one click.</span>
+            </div>
           </div>
-
-          <h3>Instant Summaries</h3>
-
-          <p>
-            Generate concise summaries of long videos to quickly understand
-            the main topics and key takeaways.
-          </p>
         </div>
       </div>
     </section>
 
-
-    <section class="how-it-works">
-      <div class="section-header">
-        <h2>How It <span class="gradient-text">Works</span></h2>
-        <p>Get started with Clipnote in three simple steps</p>
+    <section class="workflow">
+      <div class="section-header reveal">
+        <span class="section-eyebrow">Workflow</span>
+        <h2>A streamlined 3-step process</h2>
+        <p>From watching to retention in minutes—no clutter, no extra tools.</p>
       </div>
-
-      <div class="steps-grid">
-        <div class="step-card">
-          <div class="step-number">1</div>
-          <div class="step-icon">
-            <i data-lucide="chrome"></i>
-          </div>
-          <h3>Install Extension</h3>
-          <p>Add Clipnote to your browser with a single click and activate it on YouTube</p>
+      <div class="workflow-steps">
+        <div class="workflow-step reveal" data-delay="0">
+          <span class="step-count">01</span>
+          <h3>Capture</h3>
+          <p>Use the extension to take notes and capture key timestamps as you watch.</p>
         </div>
-
-        <div class="step-card">
-          <div class="step-number">2</div>
-          <div class="step-icon">
-            <i data-lucide="monitor-play"></i>
-          </div>
-          <h3>Watch & Take Notes</h3>
-          <p>AI captures key moments and insights as you watch, or add your own custom notes</p>
+        <div class="workflow-step reveal" data-delay="80">
+          <span class="step-count">02</span>
+          <h3>Summarize</h3>
+          <p>Let AI extract the highlights and generate a clean summary for review.</p>
         </div>
-
-        <div class="step-card">
-          <div class="step-number">3</div>
-          <div class="step-icon">
-            <i data-lucide="layout-dashboard"></i>
-          </div>
-          <h3>Review & Organize</h3>
-          <p>Access all your notes in one organized dashboard with search and categorization</p>
+        <div class="workflow-step reveal" data-delay="160">
+          <span class="step-count">03</span>
+          <h3>Review</h3>
+          <p>Return to your dashboard to search, label, and revisit the exact moments.</p>
         </div>
       </div>
     </section>
 
-
-
-    <section class="faq-section">
-      <div class="section-header">
-        <h2>Frequently Asked <span class="gradient-text">Questions</span></h2>
-        <p>Everything you need to know about Clipnote</p>
+    <section class="trust">
+      <div class="section-header reveal">
+        <span class="section-eyebrow">Trusted Workflow</span>
+        <h2>Built for focused learning</h2>
+        <p>Clipnote is designed around clarity, speed, and your ownership of notes.</p>
       </div>
-
-      <div class="faq-grid">
-        <div class="faq-item">
-          <h3>Is Clipnote free to use?</h3>
-          <p>Yes! Clipnote is completely free and open-source. You can use all features without any cost.</p>
+      <div class="logo-row reveal" data-delay="60">
+        <span>Learning Teams</span>
+        <span>Independent Researchers</span>
+        <span>Bootcamp Students</span>
+        <span>Creator Educators</span>
+      </div>
+      <div class="trust-list">
+        <div class="trust-item reveal" data-delay="120">
+          <i data-lucide="shield"></i>
+          <div>
+            <h4>Privacy-first</h4>
+            <p>Your notes stay in your account. No noisy social feed.</p>
+          </div>
         </div>
-
-        <div class="faq-item">
-          <h3>Which browsers are supported?</h3>
-          <p>Clipnote currently supports Google Chrome. Support for other browsers is coming soon.</p>
+        <div class="trust-item reveal" data-delay="180">
+          <i data-lucide="sparkles"></i>
+          <div>
+            <h4>Focused UI</h4>
+            <p>Minimal layout to keep attention on what matters.</p>
+          </div>
         </div>
-
-        <div class="faq-item">
-          <h3>How does AI note-taking work?</h3>
-          <p>Clipnote lets you take timestamped notes and uses the related transcript to generate precise AI notes
-            synced
-            to the video.</p>
-        </div>
-
-        <div class="faq-item">
-          <h3>Can I export my notes?</h3>
-          <p>We’re currently working on note export. You’ll be able to download and share your notes soon.</p>
+        <div class="trust-item reveal" data-delay="240">
+          <i data-lucide="folder"></i>
+          <div>
+            <h4>Organized by default</h4>
+            <p>Labels and search keep every video note easy to find.</p>
+          </div>
         </div>
       </div>
     </section>
 
     <section class="cta">
-      <div class="cta-content">
-        <h2>Ready to enhance your learning?</h2>
-
-        <p>Start taking smarter notes from YouTube videos today.</p>
-        <a href="/login" class="btn btn-primary">
-          Get Started Now
-        </a>
+      <div class="cta-card reveal">
+        <div class="cta-content">
+          <h2>Ready to enhance your learning?</h2>
+          <p>Start taking smarter notes from YouTube videos today.</p>
+          <a href="/login" class="btn btn-primary">
+            Get Started Now
+          </a>
+        </div>
       </div>
     </section>
   </main>

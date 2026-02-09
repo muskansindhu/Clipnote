@@ -1,93 +1,146 @@
+:root {
+  --bg: #0b0b0b;
+  --surface: #181818;
+  --surface-2: #1f1f1f;
+  --text: #dadada;
+  --muted: #bababa;
+  --accent: hsl(254 80% 68%);
+  --accent-2: hsl(254 80% 68%);
+  --border: #3f3f3f;
+  --shadow: 0 18px 40px rgba(0, 0, 0, 0.6);
+  --radius: 12px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
 body {
-  font-family: "Inter", sans-serif;
-  padding: 20px;
-  background: #141414;
-  color: #ffffff;
-  max-width: 500px;
+  font-family: "Inter", ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial,
+    "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Microsoft YaHei Light", sans-serif;
+  padding: 0;
+  background:
+    radial-gradient(120% 80% at 10% 0%, rgba(142, 106, 255, 0.18), transparent 60%),
+    radial-gradient(90% 70% at 90% 10%, rgba(142, 106, 255, 0.12), transparent 55%),
+    var(--bg);
+  color: var(--text);
+  max-width: 480px;
+  margin: 0;
+  position: relative;
 }
 
 #popup-container {
-  width: 350px;
-  height: auto;
-  border-radius: 12px;
+  width: 360px;
+  min-height: 100%;
   padding: 20px;
+  background: transparent;
+  border: none;
+  box-shadow: none;
 }
 
-h1 {
-  text-align: center;
-  color: #ff3b2f;
-  margin-bottom: 20px;
-  font-size: 1.8em;
-  font-weight: 700;
+#content-wrapper {
+  position: static;
+}
+
+h1,
+h2 {
+  font-family: inherit;
+  margin: 0 0 14px;
+  color: var(--text);
+  font-size: 1.2rem;
 }
 
 label {
   display: block;
   margin-top: 12px;
   font-weight: 600;
-  color: #cccccc;
+  color: var(--muted);
+  font-size: 0.85rem;
 }
 
-input[type="text"] {
+input[type="text"],
+.notes-input {
   width: 100%;
-  padding: 10px;
+  padding: 10px 12px;
   margin-top: 6px;
   margin-bottom: 12px;
-  background-color: #1f1f1f;
-  border: none;
-  border-radius: 6px;
-  color: #ffffff;
-  box-sizing: border-box;
+  background-color: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--text);
 }
 
-input[type="text"]::placeholder {
-  color: #888888;
+.timestamp-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  font-size: 0.78rem;
+  color: var(--text);
+  width: fit-content;
+}
+
+.timestamp-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent-2);
+}
+
+.timestamp-icon svg {
+  width: 14px;
+  height: 14px;
+}
+
+#timestamp-display {
+  font-weight: 600;
+  letter-spacing: 0.2px;
+}
+
+input[type="text"]::placeholder,
+.notes-input::placeholder {
+  color: #7b8588;
 }
 
 .button-container {
   display: flex;
-  justify-content: space-between;
-  margin-top: 15px;
+  gap: 10px;
+  margin-top: 10px;
 }
 
 button {
   flex: 1;
   padding: 10px 12px;
-  font-weight: bold;
-  border: none;
-  border-radius: 6px;
+  font-weight: 600;
+  border: 1px solid transparent;
+  border-radius: 10px;
   cursor: pointer;
-  transition: background 0.2s ease;
-  margin: 0 5px;
-  color: #ffffff;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  color: var(--text);
+  background: var(--accent);
+  box-shadow: none;
 }
 
-#submit {
-  background-color: #ff3b2f;
-}
-
-#submit:hover {
-  background-color: #e52a1f;
-}
-
-#summarize {
-  background-color: #ff3b2f;
-}
-
-#summarize:hover {
-  background-color: #e52a1f;
+button:hover {
+  transform: translateY(-1px);
+  background: var(--accent-2);
+  box-shadow: none;
 }
 
 #summary-section {
-  background-color: #181818;
-  border-radius: 10px;
-  padding: 15px;
-  margin-top: 20px;
-  color: #ffffff;
+  background-color: var(--surface-2);
+  border-radius: var(--radius);
+  padding: 14px;
+  margin-top: 16px;
+  color: var(--text);
+  border: 1px solid var(--border);
 }
 
 #summary-list {
-  padding-left: 20px;
+  padding-left: 18px;
   list-style-type: disc;
 }
 
@@ -97,24 +150,45 @@ ul li {
 
 .notes-input {
   height: 100px;
-  width: 100%;
-  margin-top: 6px;
-  padding: 10px;
-  background-color: #1f1f1f;
-  border: none;
-  border-radius: 6px;
-  color: #ffffff;
   resize: vertical;
-  /* font-family: inherit; */
-  box-sizing: border-box;
+}
+
+#loader-wrapper {
+  display: none;
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(8, 8, 10, 0.2);
+  backdrop-filter: blur(6px);
+  z-index: 999;
+  place-items: center;
+  text-align: center;
+}
+
+#loader-wrapper.is-visible {
+  display: grid;
+}
+
+.loader-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+#loader-message {
+  font-size: 0.9rem;
+  color: var(--text);
+  margin: 0;
 }
 
 .spinner {
   border: 4px solid rgba(255, 255, 255, 0.2);
-  border-top: 4px solid white;
+  border-top: 4px solid var(--accent-2);
   border-radius: 50%;
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   animation: spin 1s linear infinite;
   margin: auto;
 }
@@ -128,46 +202,59 @@ ul li {
   }
 }
 
+#error-message {
+  color: var(--accent-2) !important;
+}
+
 body.login-page {
-  font-family: "Inter", sans-serif;
+  font-family: "Inter", ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial,
+    "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Microsoft YaHei Light", sans-serif;
   margin: 0;
   padding: 20px;
-  width: 300px;
-  background-color: #141414;
-  color: #fff;
+  width: 320px;
+  background:
+    radial-gradient(120% 80% at 10% 0%, rgba(142, 106, 255, 0.18), transparent 60%),
+    radial-gradient(90% 70% at 90% 10%, rgba(142, 106, 255, 0.12), transparent 55%),
+    var(--bg);
+  color: var(--text);
 }
 
 .login-page .login-container {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 16px;
+  box-shadow: var(--shadow);
 }
 
 .login-page input {
-  padding: 10px;
-  border: none;
-  border-radius: 6px;
-  background-color: #1f1f1f;
-  color: #fff;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background-color: var(--surface-2);
+  color: var(--text);
 }
 
 .login-page button {
   padding: 10px;
-  background-color: #ff3b2f;
-  color: #fff;
+  background: var(--accent);
+  color: var(--text);
   border: none;
-  border-radius: 6px;
+  border-radius: 10px;
   cursor: pointer;
 }
 
 .login-page .error {
-  color: #ff4d4d;
+  color: var(--accent-2);
   font-size: 14px;
   display: none;
 }
 
 .login-link {
-  color: #ff3b2f;
+  color: var(--accent-2);
   text-decoration: underline;
   cursor: pointer;
 }

@@ -1,7 +1,32 @@
 document.addEventListener("DOMContentLoaded", function () {
   setupThemeToggle();
   insertDashboardIconIfLoggedIn();
+  setupRevealAnimations();
+  if (window.lucide) lucide.createIcons();
 });
+
+function setupRevealAnimations() {
+  const reveals = document.querySelectorAll(".reveal");
+  if (!("IntersectionObserver" in window)) {
+    reveals.forEach((el) => el.classList.add("is-visible"));
+    return;
+  }
+
+  const observer = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
+        const delay = entry.target.dataset.delay || 0;
+        entry.target.style.transitionDelay = `${delay}ms`;
+        entry.target.classList.add("is-visible");
+        observer.unobserve(entry.target);
+      });
+    },
+    { threshold: 0.12 }
+  );
+
+  reveals.forEach((el) => observer.observe(el));
+}
 
 function setupThemeToggle() {
   const toggleBtn = document.getElementById("theme-toggle-btn");
@@ -25,8 +50,6 @@ function setupThemeToggle() {
       .forEach((img) => {
         img.src = isLight ? img.dataset.light : img.dataset.dark;
       });
-
-    updateIcon(isLight);
 
     updateIcon(isLight);
   };
@@ -131,8 +154,8 @@ function checkGuestStatus() {
   fetch("/user-status", {
     headers: { Authorization: "Bearer " + token },
   })
-    .then(res => res.json())
-    .then(data => {
+    .then((res) => res.json())
+    .then((data) => {
       if (data.is_guest) {
         const badge = document.getElementById("dropdown-guest-info");
         if (badge) {
@@ -150,5 +173,5 @@ function checkGuestStatus() {
         }
       }
     })
-    .catch(err => console.error("Error checking status:", err));
+    .catch((err) => console.error("Error checking status:", err));
 }
