@@ -2267,8 +2267,10 @@ img.action-item-icon {
   }
 
   .login-logo-container {
-    position: static;
-    justify-content: center;
-    margin-bottom: 24px;
+    position: absolute;
+    top: 16px;
+    left: 16px;
+    justify-content: flex-start;
+    margin-bottom: 0;
   }
 }
