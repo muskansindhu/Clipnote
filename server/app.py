@@ -149,22 +149,76 @@ def get_all_notes():
     page = request.args.get("page", 1, type=int)
     limit = 10
     offset = (page - 1) * limit
+
+    search = request.args.get("search", "").strip()
+    labels_param = request.args.get("labels", "").strip()
+    labels = [label.strip() for label in labels_param.split(",") if label.strip()]
+    sort = request.args.get("sort", "recent")
+    start_date = request.args.get("start")
+    end_date = request.args.get("end")
     
     all_notes = []
     has_next = False
 
+    where_clauses = ["n.user_id = %s"]
+    params = [request.user]
+
+    if search:
+        where_clauses.append("v.video_title ILIKE %s")
+        params.append(f"%{search}%")
+
+    if start_date:
+        try:
+            start_dt = datetime.fromisoformat(start_date).replace(tzinfo=timezone.utc)
+            where_clauses.append("n.created_at >= %s")
+            params.append(start_dt)
+        except ValueError:
+            pass
+
+    if end_date:
+        try:
+            end_dt = datetime.fromisoformat(end_date).replace(tzinfo=timezone.utc) + timedelta(days=1)
+            where_clauses.append("n.created_at < %s")
+            params.append(end_dt)
+        except ValueError:
+            pass
+
+    if labels:
+        where_clauses.append(
+            """
+            EXISTS (
+                SELECT 1
+                FROM video_label vl
+                JOIN label l ON l.id = vl.label_id
+                WHERE vl.yt_video_id = v.id
+                  AND l.user_id = %s
+                  AND l.label_name = ANY(%s)
+            )
+            """
+        )
+        params.append(request.user)
+        params.append(labels)
+
+    order_by = "last_note_date DESC"
+    if sort == "title":
+        order_by = "LOWER(v.video_title) ASC"
+
     with psycopg.connect(SUPABASE_CONNECTION_STRING) as conn:
         with conn.cursor() as cur:
             query = """
-                SELECT DISTINCT v.id, v.video_url, v.video_title, v.fav, MAX(n.created_at) as last_note_date
+                SELECT v.id, v.video_url, v.video_title, v.fav, MAX(n.created_at) as last_note_date
                 FROM video v
                 JOIN notes n ON v.id = n.video_id
-                WHERE n.user_id = %s
+                WHERE {where_clause}
                 GROUP BY v.id, v.video_url, v.video_title, v.fav
-                ORDER BY last_note_date DESC
+                ORDER BY {order_by}
                 LIMIT %s OFFSET %s
             """
-            cur.execute(query, (request.user, limit + 1, offset))
+            formatted_query = query.format(
+                where_clause=" AND ".join(where_clauses),
+                order_by=order_by
+            )
+            cur.execute(formatted_query, (*params, limit + 1, offset))
             notes = cur.fetchall()
             
             if len(notes) > limit:

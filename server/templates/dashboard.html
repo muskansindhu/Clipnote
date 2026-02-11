@@ -66,10 +66,8 @@
             <i data-lucide="search"></i>
           </button>
         </div>
+        <div class="search-actions" id="search-actions"></div>
       </div>
-    </section>
-
-    <section class="panel">
       <div id="labels" class="labels-container"></div>
     </section>
 
@@ -100,6 +98,50 @@
         <div class="btn-group">
           <button type="button" class="btn btn-cancel" id="close-label-modal">Cancel</button>
           <button type="submit" class="btn btn-primary">Add</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="filter-modal" class="modal-overlay">
+    <div class="modal-confirm">
+      <h3>Filter & Sort</h3>
+      <form id="filter-form" class="filter-form">
+        <div class="filter-fields">
+          <div class="filter-section">
+            <div class="filter-section-title">Sorting</div>
+            <div class="filter-field">
+              <label for="filter-sort">Sort by</label>
+              <select id="filter-sort">
+                <option value="recent">Most recent</option>
+                <option value="title">Title A–Z</option>
+              </select>
+            </div>
+          </div>
+          <div class="filter-section">
+            <div class="filter-section-title">Labels</div>
+            <div class="filter-field">
+              <label>Select labels</label>
+              <div id="filter-labels" class="filter-labels"></div>
+            </div>
+          </div>
+          <div class="filter-section">
+            <div class="filter-section-title">Date Range</div>
+            <div class="filter-row">
+              <div class="filter-field">
+                <label for="filter-start">From</label>
+                <input type="date" id="filter-start" />
+              </div>
+              <div class="filter-field">
+                <label for="filter-end">To</label>
+                <input type="date" id="filter-end" />
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="btn-group">
+          <button type="button" class="btn btn-cancel" id="clear-filters">Clear</button>
+          <button type="submit" class="btn btn-primary">Apply</button>
         </div>
       </form>
     </div>

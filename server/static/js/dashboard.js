@@ -10,6 +10,22 @@ document.addEventListener("DOMContentLoaded", function () {
 
   let currentPage = 1;
 
+  const filterState = {
+    labels: new Set(),
+    search: "",
+    sort: "recent",
+    start: "",
+    end: ""
+  };
+
+  const filterModal = document.getElementById("filter-modal");
+  const filterForm = document.getElementById("filter-form");
+  const filterSort = document.getElementById("filter-sort");
+  const filterStart = document.getElementById("filter-start");
+  const filterEnd = document.getElementById("filter-end");
+  const clearFiltersBtn = document.getElementById("clear-filters");
+  const filterLabelsContainer = document.getElementById("filter-labels");
+
   function updatePaginationControls(hasNext) {
     const controls = document.getElementById("pagination-controls");
     const prevBtn = document.getElementById("prev-page");
@@ -26,8 +42,36 @@ document.addEventListener("DOMContentLoaded", function () {
 
   }
 
+  function buildQueryParams(page) {
+    const params = new URLSearchParams();
+    params.set("page", page);
+
+    if (filterState.search) {
+      params.set("search", filterState.search);
+    }
+
+    if (filterState.labels.size > 0) {
+      params.set("labels", Array.from(filterState.labels).join(","));
+    }
+
+    if (filterState.sort && filterState.sort !== "recent") {
+      params.set("sort", filterState.sort);
+    }
+
+    if (filterState.start) {
+      params.set("start", filterState.start);
+    }
+
+    if (filterState.end) {
+      params.set("end", filterState.end);
+    }
+
+    return params.toString();
+  }
+
   function loadAllVideos(page) {
-    fetch(`/all-video?page=${page}`, {
+    const queryString = buildQueryParams(page);
+    fetch(`/all-video?${queryString}`, {
       headers: { Authorization: "Bearer " + token },
     })
       .then((response) => {
@@ -91,7 +135,86 @@ document.addEventListener("DOMContentLoaded", function () {
       });
   }
 
+  function renderFilterChips() {
+    const container = document.getElementById("active-filters");
+    if (!container) return;
+
+    container.innerHTML = "";
+
+    const createChip = (label, type, value) => {
+      const chip = document.createElement("button");
+      chip.type = "button";
+      chip.className = "filter-chip";
+      chip.dataset.type = type;
+      if (value) chip.dataset.value = value;
+      chip.innerHTML = `${label} <span aria-hidden="true">×</span>`;
+      container.appendChild(chip);
+    };
+
+    if (filterState.search) {
+      createChip(`Search: ${filterState.search}`, "search");
+    }
+
+    filterState.labels.forEach((label) => {
+      createChip(label, "label", label);
+    });
+
+    if (filterState.sort && filterState.sort !== "recent") {
+      const label = filterState.sort === "title" ? "Sort: Title" : "Sort";
+      createChip(label, "sort");
+    }
+
+    if (filterState.start || filterState.end) {
+      const start = filterState.start || "Any";
+      const end = filterState.end || "Any";
+      createChip(`Date: ${start} → ${end}`, "date");
+    }
+  }
+
+  function applyFilters() {
+    currentPage = 1;
+    renderFilterChips();
+    loadAllVideos(currentPage);
+  }
+
   loadAllVideos(currentPage);
+
+  if (filterForm) {
+    filterForm.addEventListener("submit", (event) => {
+      event.preventDefault();
+      filterState.sort = filterSort?.value || "recent";
+      filterState.start = filterStart?.value || "";
+      filterState.end = filterEnd?.value || "";
+      if (filterModal) filterModal.style.display = "none";
+      applyFilters();
+    });
+  }
+
+  if (clearFiltersBtn) {
+    clearFiltersBtn.addEventListener("click", () => {
+      filterState.labels.clear();
+      filterState.search = "";
+      filterState.sort = "recent";
+      filterState.start = "";
+      filterState.end = "";
+
+      const searchInputEl = document.getElementById("search");
+      if (searchInputEl) searchInputEl.value = "";
+
+      if (filterLabelsContainer) {
+        filterLabelsContainer.querySelectorAll(".label").forEach((btn) => {
+          btn.classList.remove("active");
+        });
+      }
+
+      if (filterSort) filterSort.value = "recent";
+      if (filterStart) filterStart.value = "";
+      if (filterEnd) filterEnd.value = "";
+
+      if (filterModal) filterModal.style.display = "none";
+      applyFilters();
+    });
+  }
 
   document.getElementById("prev-page").addEventListener("click", () => {
     if (currentPage > 1) {
@@ -112,20 +235,30 @@ document.addEventListener("DOMContentLoaded", function () {
     })
     .then((data) => {
       const container = document.getElementById("labels");
+      const searchActions = document.getElementById("search-actions");
       container.innerHTML = "";
-
-      // 1. Toolbar (Top)
-      const toolbar = document.createElement("div");
-      toolbar.className = "labels-toolbar";
-
 
       const filterBtn = document.createElement("button");
       filterBtn.className = "filter-icon-btn";
       filterBtn.title = "Filter Options";
       filterBtn.innerHTML = `<i data-lucide="filter" style="width:18px; height:18px;" stroke-width="2"></i>`;
-      toolbar.appendChild(filterBtn);
-
-
+      filterBtn.addEventListener("click", () => {
+        if (!filterModal) return;
+        if (filterSort) filterSort.value = filterState.sort || "recent";
+        if (filterStart) filterStart.value = filterState.start || "";
+        if (filterEnd) filterEnd.value = filterState.end || "";
+        if (filterLabelsContainer) {
+          filterLabelsContainer.querySelectorAll(".label").forEach((btn) => {
+            const labelName = btn.dataset.label;
+            if (labelName && filterState.labels.has(labelName)) {
+              btn.classList.add("active");
+            } else {
+              btn.classList.remove("active");
+            }
+          });
+        }
+        filterModal.style.display = "flex";
+      });
       const plusBtn = document.createElement("button");
       plusBtn.className = "add-label-btn";
       plusBtn.innerHTML = `<i data-lucide="plus" style="width:18px; height:18px;" stroke-width="2"></i>`;
@@ -133,89 +266,50 @@ document.addEventListener("DOMContentLoaded", function () {
       plusBtn.addEventListener("click", () => {
         document.getElementById("label-modal").style.display = "flex";
       });
-      toolbar.appendChild(plusBtn);
+      
+      if (searchActions) {
+        searchActions.innerHTML = "";
+        searchActions.appendChild(filterBtn);
+        searchActions.appendChild(plusBtn);
+      }
 
-      container.appendChild(toolbar);
+
+      const activeFilters = document.createElement("div");
+      activeFilters.className = "active-filters";
+      activeFilters.id = "active-filters";
 
 
-      const scrollArea = document.createElement("div");
-      scrollArea.className = "labels-scroll-area";
-
-
-      const labelsData = [];
-      let activeLabel = null;
+      const labelsData = new Set();
 
       data.forEach((label) => {
-        if (!labelsData.includes(label)) {
+        if (!labelsData.has(label.label_name)) {
           const labelBtn = document.createElement("button");
           labelBtn.className = "label";
-          labelBtn.innerHTML = `${label.label_name}`;
+          labelBtn.dataset.label = label.label_name;
+          labelBtn.textContent = label.label_name;
 
           labelBtn.addEventListener("click", function () {
-            const notesContainer = document.getElementById("notes-container");
-            const paginationControls = document.getElementById("pagination-controls");
+            const labelName = this.dataset.label;
+            if (!labelName) return;
 
-            if (activeLabel === label.label_name) {
+            if (filterState.labels.has(labelName)) {
+              filterState.labels.delete(labelName);
               this.classList.remove("active");
-              activeLabel = null;
-              currentPage = 1;
-              loadAllVideos(currentPage);
             } else {
-              document.querySelectorAll(".label").forEach((btn) => {
-                btn.classList.remove("active");
-              });
-
+              filterState.labels.add(labelName);
               this.classList.add("active");
-              activeLabel = label.label_name;
-              paginationControls.style.display = "none";
-
-              fetch(`/${label.label_name}/note`, {
-                headers: { Authorization: "Bearer " + token },
-              })
-                .then((response) => {
-                  if (!response.ok) throw new Error("Failed to fetch label-specific notes.");
-                  return response.json();
-                })
-                .then((videos) => {
-
-                  notesContainer.innerHTML = "";
-                  if (videos.length === 0) {
-                    notesContainer.innerHTML = `<p class="no-videos-message" style="text-align:center; padding:20px; color:${localStorage.getItem("theme") === "light" ? "#444" : "#aaa"}; font-style:italic;">No videos found for this label.</p>`;
-                    return;
-                  }
-                  videos.forEach((video) => {
-                    const card = document.createElement("div");
-                    card.className = "card";
-                    card.id = video.video_id;
-                    const videoId = video.video_url.split('v=')[1]?.split('&')[0] || '';
-                    card.innerHTML = `
-                            <div class="card-content-wrapper">
-                              <div class="card-thumbnail">
-                                <img src="https://img.youtube.com/vi/${videoId}/hqdefault.jpg" alt="${video.video_title}" />
-                              </div>
-                              <div class="card-main">
-                                <div class="card-header">
-                                  <h3 id="video-title">${video.video_title}</h3>
-                                </div>
-                              </div>
-                              <div class="card-actions">
-                                <button type="button" class="btn btn-primary btn-small view-note-btn">View Note</button>
-                              </div>
-                            </div>`;
-                    notesContainer.appendChild(card);
-                  });
-                })
-                .catch((err) => console.error(err));
             }
           });
 
-          scrollArea.appendChild(labelBtn);
-          labelsData.push(label.label_name);
+          if (filterLabelsContainer) {
+            filterLabelsContainer.appendChild(labelBtn);
+          }
+          labelsData.add(label.label_name);
         }
       });
 
 
-      container.appendChild(scrollArea);
+      container.appendChild(activeFilters);
 
       if (window.lucide) lucide.createIcons();
 
@@ -230,6 +324,14 @@ document.addEventListener("DOMContentLoaded", function () {
           modal.style.display = "none";
         }
       });
+
+      if (filterModal) {
+        filterModal.addEventListener("click", (event) => {
+          if (event.target === filterModal) {
+            filterModal.style.display = "none";
+          }
+        });
+      }
 
       const form = document.getElementById("label-form");
 
@@ -260,6 +362,41 @@ document.addEventListener("DOMContentLoaded", function () {
             alert("Failed to add label.");
           });
       };
+
+      if (activeFilters) {
+        activeFilters.addEventListener("click", (event) => {
+          const chip = event.target.closest(".filter-chip");
+          if (!chip) return;
+
+          const type = chip.dataset.type;
+          const value = chip.dataset.value;
+
+          if (type === "label" && value) {
+            filterState.labels.delete(value);
+            const labelBtn = filterLabelsContainer?.querySelector(`.label[data-label="${value}"]`);
+            if (labelBtn) labelBtn.classList.remove("active");
+          }
+
+          if (type === "search") {
+            filterState.search = "";
+            const searchInputEl = document.getElementById("search");
+            if (searchInputEl) searchInputEl.value = "";
+          }
+
+          if (type === "sort") {
+            filterState.sort = "recent";
+          }
+
+          if (type === "date") {
+            filterState.start = "";
+            filterState.end = "";
+          }
+
+          applyFilters();
+        });
+      }
+
+      renderFilterChips();
     });
 });
 
@@ -274,23 +411,14 @@ document.addEventListener("click", function (event) {
   }
 });
 
-// Search Functionality
-function performSearch() {
-  const searchInput = document.getElementById("search");
-  if (!searchInput) return;
+  // Search Functionality
+  function performSearch() {
+    const searchInput = document.getElementById("search");
+    if (!searchInput) return;
 
-  const searchTerm = searchInput.value.toLowerCase();
-  const cards = document.getElementsByClassName("card");
-
-  Array.from(cards).forEach((card) => {
-    const titleEl = card.querySelector("h3");
-    if (titleEl) {
-      const title = titleEl.textContent.toLowerCase();
-      const matches = title.includes(searchTerm);
-      card.style.display = matches ? "flex" : "none";
-    }
-  });
-}
+    filterState.search = searchInput.value.trim();
+    applyFilters();
+  }
 
 const searchInput = document.getElementById("search");
 const searchBtn = document.getElementById("search-btn");
