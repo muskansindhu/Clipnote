@@ -8,7 +8,7 @@ from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
 from werkzeug.security import generate_password_hash, check_password_hash
 
-from config import SUPABASE_CONNECTION_STRING, S3_BUCKET, JWT_SECRET, ADMIN_USERNAME, ADMIN_PASSWORD
+from config import SUPABASE_CONNECTION_STRING, S3_BUCKET, JWT_SECRET, ADMIN_USERNAME, ADMIN_PASSWORD, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_DISCOVERY_URL
 from utils import (
     get_video_transcription_apify,
     summarize_video,
@@ -20,9 +20,23 @@ from utils import (
     hms_to_seconds,
     require_auth
 )
+from authlib.integrations.flask_client import OAuth
 
 app = Flask(__name__, template_folder='templates', static_folder='static')
 CORS(app)
+
+
+oauth = OAuth(app)
+app.secret_key = JWT_SECRET
+oauth.register(
+    name='google',
+    client_id=GOOGLE_CLIENT_ID,
+    client_secret=GOOGLE_CLIENT_SECRET,
+    server_metadata_url=GOOGLE_DISCOVERY_URL,
+    client_kwargs={
+        'scope': 'openid email profile'
+    }
+)
 
 @app.route("/", methods=["GET"])
 def home():
@@ -57,6 +71,51 @@ def login():
     }
     token = jwt.encode(payload, JWT_SECRET, algorithm="HS256")
     return jsonify(access_token=token), 200
+
+
+@app.route("/login/google")
+def login_google():
+    redirect_uri = request.url_root.rstrip('/') + '/auth/google/callback'
+    return oauth.google.authorize_redirect(redirect_uri)
+
+
+
+@app.route("/auth/google/callback")
+def auth_google_callback():
+    token = oauth.google.authorize_access_token()
+    user_info = token.get('userinfo') or oauth.google.parse_id_token(token)
+    if not user_info:
+        return jsonify({"message": "Google authentication failed"}), 401
+
+    email = user_info.get("email")
+    name = user_info.get("name")
+    sub = user_info.get("sub")
+    if not email or not sub:
+        return jsonify({"message": "Google account info missing"}), 400
+
+    with psycopg.connect(SUPABASE_CONNECTION_STRING) as conn:
+        with conn.cursor() as cur:
+            cur.execute("SELECT id FROM users WHERE username = %s", (email,))
+            user_row = cur.fetchone()
+            if not user_row:
+                cur.execute("INSERT INTO users (username, password) VALUES (%s, %s)", (email, 'GOOGLE_OAUTH'))
+                conn.commit()
+                cur.execute("SELECT id FROM users WHERE username = %s", (email,))
+                user_row = cur.fetchone()
+            user_id = user_row[0]
+
+    payload = {
+        "sub": str(user_id),
+        "username": email,
+        "exp": datetime.now(timezone.utc) + timedelta(days=15)
+    }
+    jwt_token = jwt.encode(payload, JWT_SECRET, algorithm="HS256")
+
+
+    if request.args.get("api") == "1":
+        return jsonify(access_token=jwt_token), 200
+    else:
+        return render_template("dashboard.html", access_token=jwt_token)
 
 @app.route("/signup", methods=["POST"])
 def signup():

@@ -2,7 +2,9 @@ document.addEventListener("DOMContentLoaded", function () {
   setupThemeToggle();
   setupPasswordToggle();
 
-  let EXT_ID = document.documentElement.getAttribute("data-clipnote-extension-id");
+  let EXT_ID = document.documentElement.getAttribute(
+    "data-clipnote-extension-id",
+  );
 
   window.addEventListener("clipnote-extension-ready", (e) => {
     EXT_ID = e.detail.extensionId;
@@ -31,7 +33,9 @@ document.addEventListener("DOMContentLoaded", function () {
       isSignup = !isSignup;
       loginTitle.textContent = isSignup ? "Sign Up" : "Login";
       submitBtn.textContent = isSignup ? "Sign Up" : "Login";
-      toggleText.textContent = isSignup ? "Already have an account?" : "Don't have an account?";
+      toggleText.textContent = isSignup
+        ? "Already have an account?"
+        : "Don't have an account?";
       toggleLink.textContent = isSignup ? "Login" : "Sign up";
       errorMsg.style.display = "none";
     });
@@ -53,7 +57,8 @@ document.addEventListener("DOMContentLoaded", function () {
     if (!res.ok) {
       const data = await res.json();
       errorMsg.style.display = "block";
-      errorMsg.textContent = data.message || (isSignup ? "Signup failed." : "Invalid credentials.");
+      errorMsg.textContent =
+        data.message || (isSignup ? "Signup failed." : "Invalid credentials.");
       return;
     }
 
@@ -69,9 +74,25 @@ document.addEventListener("DOMContentLoaded", function () {
             console.error("Extension error:", chrome.runtime.lastError);
           }
           window.location.href = "/dashboard";
-        }
+        },
       );
     } else {
+      window.location.href = "/dashboard";
+    }
+  });
+
+  document.addEventListener("DOMContentLoaded", function () {
+    const googleBtn = document.getElementById("google-login-btn");
+    if (googleBtn) {
+      googleBtn.addEventListener("click", function () {
+        window.location.href = "/login/google";
+      });
+    }
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const googleToken = urlParams.get("access_token");
+    if (googleToken) {
+      localStorage.setItem("clipnote_token", googleToken);
       window.location.href = "/dashboard";
     }
   });
@@ -93,14 +114,13 @@ document.addEventListener("DOMContentLoaded", function () {
       const { access_token } = await res.json();
       localStorage.setItem("clipnote_token", access_token);
 
-
       if (window.chrome?.runtime?.sendMessage) {
         chrome.runtime.sendMessage(
           EXT_ID,
           { type: "SET_TOKEN", jwt: access_token },
           (response) => {
             window.location.href = "/dashboard";
-          }
+          },
         );
       } else {
         window.location.href = "/dashboard";
@@ -148,9 +168,9 @@ function setupPasswordToggle() {
   if (!toggleBtn || !passwordInput) return;
 
   toggleBtn.addEventListener("click", () => {
-    const type = passwordInput.getAttribute("type") === "password" ? "text" : "password";
+    const type =
+      passwordInput.getAttribute("type") === "password" ? "text" : "password";
     passwordInput.setAttribute("type", type);
-
 
     const iconName = type === "password" ? "eye" : "eye-off";
     toggleBtn.innerHTML = `<i data-lucide="${iconName}" style="width: 18px; height: 18px;"></i>`;
