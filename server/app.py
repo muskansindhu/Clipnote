@@ -4,7 +4,7 @@ import psycopg
 import jwt
 from datetime import datetime, timedelta, timezone
 
-from flask import Flask, request, jsonify, render_template, url_for
+from flask import Flask, request, jsonify, render_template, url_for, make_response, redirect
 from flask_cors import CORS
 from werkzeug.security import generate_password_hash, check_password_hash
 
@@ -115,7 +115,9 @@ def auth_google_callback():
     if request.args.get("api") == "1":
         return jsonify(access_token=jwt_token), 200
     else:
-        return render_template("dashboard.html", access_token=jwt_token)
+        response = make_response(redirect("/dashboard"))
+        response.set_cookie('temp_access_token', jwt_token, max_age=60, path='/')
+        return response
 
 @app.route("/signup", methods=["POST"])
 def signup():

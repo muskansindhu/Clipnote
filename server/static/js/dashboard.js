@@ -1,4 +1,17 @@
 document.addEventListener("DOMContentLoaded", function () {
+  function getCookie(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(';').shift();
+    return null;
+  }
+
+  const tempToken = getCookie("temp_access_token");
+  if (tempToken) {
+    localStorage.setItem("clipnote_token", tempToken);
+    document.cookie = "temp_access_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+  }
+
   insertDashboardIconIfLoggedIn();
   setupThemeToggle();
   checkGuestStatus();
