@@ -4,7 +4,7 @@ import psycopg
 import jwt
 from datetime import datetime, timedelta, timezone
 
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify, render_template, url_for
 from flask_cors import CORS
 from werkzeug.security import generate_password_hash, check_password_hash
 
@@ -75,7 +75,7 @@ def login():
 
 @app.route("/login/google")
 def login_google():
-    redirect_uri = request.url_root.rstrip('/') + '/auth/google/callback'
+    redirect_uri = url_for("auth_google_callback", _external=True, _scheme="https")
     return oauth.google.authorize_redirect(redirect_uri)
 
 
