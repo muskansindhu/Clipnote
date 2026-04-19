@@ -81,22 +81,19 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   });
 
-  document.addEventListener("DOMContentLoaded", function () {
-    const googleBtn = document.getElementById("google-login-btn");
-    if (googleBtn) {
-      googleBtn.addEventListener("click", function () {
-        window.location.href = "/login/google";
-      });
-    }
+  const googleBtn = document.getElementById("google-login-btn");
+  if (googleBtn) {
+    googleBtn.addEventListener("click", function () {
+      window.location.href = "/login/google";
+    });
+  }
 
-    const urlParams = new URLSearchParams(window.location.search);
-    const googleToken = urlParams.get("access_token");
-    if (googleToken) {
-      localStorage.setItem("clipnote_token", googleToken);
-      window.location.href = "/dashboard";
-    }
-  });
-
+  const urlParams = new URLSearchParams(window.location.search);
+  const googleToken = urlParams.get("access_token");
+  if (googleToken) {
+    localStorage.setItem("clipnote_token", googleToken);
+    window.location.href = "/dashboard";
+  }
   const guestBtn = document.getElementById("guest-btn");
   if (guestBtn) {
     guestBtn.addEventListener("click", async () => {
