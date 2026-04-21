@@ -100,7 +100,6 @@ This generates a JWT token, automatically stored in both the dashboard’s and e
 ## ✅ Usage
 
 - While watching a YouTube video:
-
   - Open Clipnote popup.
 
   - Add a note → It captures the **timestamp + video title**.
@@ -118,23 +117,23 @@ This generates a JWT token, automatically stored in both the dashboard’s and e
 ### Extension Popup
 
 <p align="center">
-  <img src="./screenshots/clipnote-extension.png" alt="Extension Popup" width="40%">
+  <img src="../assets/clipnote-extension.png" alt="Extension Popup" width="40%">
 </p>
 
 ### Dashboard View
 
 <p align="center">
-  <img src="./screenshots/clipnote-dashboard.png" alt="Dashboard" width="40%">
+  <img src="../assets/clipnote-dashboard.png" alt="Dashboard" width="40%">
 </p>
 <p align="center">
-  <img src="./screenshots/clipnote-notepage.png" alt="Note Page" width="40%">
+  <img src="../assets/clipnote-notepage.png" alt="Note Page" width="40%">
 </p>
 
 ### Mobile View
 
 <p align="center">
-  <img src="./screenshots/clipnote-mobileview-dashboard-lightmode.png" alt="Mobile Dashboard" width="30%">
-  <img src="./screenshots/clipnote-mobileview-notepage-darkmode.png" alt="Mobile Note Page" width="30%">
+  <img src="../assets/clipnote-mobileview-dashboard-lightmode.png" alt="Mobile Dashboard" width="30%">
+  <img src="../assets/clipnote-mobileview-notepage-darkmode.png" alt="Mobile Note Page" width="30%">
 </p>
 
 ---
