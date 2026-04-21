@@ -2,12 +2,14 @@ import psycopg
 
 from config import SUPABASE_CONNECTION_STRING
 
+
 def create_video_table():
     query = """
         CREATE TABLE IF NOT EXISTS public.video(
         id TEXT PRIMARY KEY,
         video_url TEXT,
         video_title TEXT,
+        video_summary TEXT,
         fav BOOL DEFAULT false,
         user_id TEXT DEFAULT 'admin'
         );
@@ -19,6 +21,7 @@ def create_video_table():
         conn.commit()
 
     return
+
 
 def create_notes_table():
     query = """
@@ -40,6 +43,7 @@ def create_notes_table():
 
     return
 
+
 def create_label_table():
     query = """
         CREATE TABLE IF NOT EXISTS public.label(
@@ -55,6 +59,7 @@ def create_label_table():
         conn.commit()
 
     return
+
 
 def create_video_label_table():
     query = """
@@ -74,6 +79,7 @@ def create_video_label_table():
 
     return
 
+
 def delete_video_table():
     query = "DROP TABLE public.video;"
     with psycopg.connect(SUPABASE_CONNECTION_STRING) as conn:
@@ -82,6 +88,7 @@ def delete_video_table():
         conn.commit()
 
     return
+
 
 def delete_notes_table():
     query = "DROP TABLE public.notes;"
@@ -92,6 +99,7 @@ def delete_notes_table():
 
     return
 
+
 def delete_label_table():
     query = "DROP TABLE public.label;"
     with psycopg.connect(SUPABASE_CONNECTION_STRING) as conn:
@@ -101,6 +109,7 @@ def delete_label_table():
 
     return
 
+
 def delete_video_label_table():
     query = "DROP TABLE public.video_label;"
     with psycopg.connect(SUPABASE_CONNECTION_STRING) as conn:
@@ -109,6 +118,7 @@ def delete_video_label_table():
         conn.commit()
 
     return
+
 
 def create_users_table():
     query = """
@@ -126,6 +136,7 @@ def create_users_table():
         conn.commit()
 
     return
+
 
 def delete_users_table():
     query = "DROP TABLE public.users;"

@@ -36,6 +36,16 @@ document.addEventListener("DOMContentLoaded", function () {
       <div class="video-tag">
        <i data-lucide="tag" class="tag-icon"></i>
       </div>
+          ${note.video_summary ? `
+          <details class="video-summary-details">
+            <summary class="video-summary-title">
+              Video Summary
+            </summary>
+            <div class="video-summary-content">
+              <p>${note.video_summary.replace(/\n/g, "<br>")}</p>
+            </div>
+          </details>
+          ` : ""}
           <div class="note-list">
             ${data
           .map((item, index) => {

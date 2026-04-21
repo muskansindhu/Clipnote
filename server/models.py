@@ -7,6 +7,7 @@ class Video(SQLModel, table=True):
     id: str = Field(primary_key=True)
     video_url: Optional[str]
     video_title: Optional[str]
+    video_summary: Optional[str] = None
     fav: bool = Field(default=False)
 
     notes: List["Note"] = Relationship(back_populates="video")
