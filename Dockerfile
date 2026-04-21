@@ -11,6 +11,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY server/ .
 
+ENV FLASK_ENV=production
 EXPOSE 5001
 
 CMD ["python3", "app.py"]
