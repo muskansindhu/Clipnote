@@ -6,20 +6,35 @@ from functools import wraps
 import jwt
 import boto3
 from botocore.exceptions import ClientError
-from youtube_transcript_api import YouTubeTranscriptApi, TranscriptsDisabled, NoTranscriptFound, VideoUnavailable
+from youtube_transcript_api import (
+    YouTubeTranscriptApi,
+    TranscriptsDisabled,
+    NoTranscriptFound,
+    VideoUnavailable,
+)
 from apify_client import ApifyClient
-from google import genai
+from openai import OpenAI
 from flask import request, jsonify
 
-from config import GEMINI_API_KEY, APIFY_TOKEN, JWT_SECRET, ACCESS_KEY, SECRET_KEY, GEMINI_MODEL
+from config import (
+    OPENAI_API_KEY,
+    APIFY_TOKEN,
+    JWT_SECRET,
+    ACCESS_KEY,
+    SECRET_KEY,
+    OPENAI_MODEL,
+)
 
 ytt_api = YouTubeTranscriptApi()
 
-genai_client = genai.Client(api_key=GEMINI_API_KEY)
+openai_client = OpenAI(api_key=OPENAI_API_KEY)
 
 client = ApifyClient(token=APIFY_TOKEN)
 
-s3_client = boto3.client('s3', aws_access_key_id=ACCESS_KEY, aws_secret_access_key=SECRET_KEY)
+s3_client = boto3.client(
+    "s3", aws_access_key_id=ACCESS_KEY, aws_secret_access_key=SECRET_KEY
+)
+
 
 def put_object_to_s3(object_name, bucket, data):
     try:
@@ -27,12 +42,13 @@ def put_object_to_s3(object_name, bucket, data):
             Bucket=bucket,
             Key=object_name,
             Body=json.dumps(data),
-            ContentType='application/json'
+            ContentType="application/json",
         )
     except ClientError as e:
         logging.error(e)
         return False
     return True
+
 
 def delete_object_from_s3(object_name, bucket):
     try:
@@ -42,14 +58,15 @@ def delete_object_from_s3(object_name, bucket):
         return False
     return True
 
+
 def get_object_from_s3(object_name, bucket):
     try:
         response = s3_client.get_object(
             Bucket=bucket,
             Key=object_name,
         )
-        body = response['Body'].read()
-        transcript = json.loads(body.decode('utf-8'))
+        body = response["Body"].read()
+        transcript = json.loads(body.decode("utf-8"))
         return transcript
 
     except ClientError as e:
@@ -60,10 +77,15 @@ def get_object_from_s3(object_name, bucket):
         logging.error(f"Invalid JSON in S3 object {object_name}: {e}")
         return None
 
+
 def get_video_transcription_ytapi(video_id):
     try:
-        fetched_transcript = YouTubeTranscriptApi.get_transcript(video_id, languages=['en'])
-        compiled_transcript = " ".join(snippet['text'] for snippet in fetched_transcript)
+        fetched_transcript = YouTubeTranscriptApi.get_transcript(
+            video_id, languages=["en"]
+        )
+        compiled_transcript = " ".join(
+            snippet["text"] for snippet in fetched_transcript
+        )
         return compiled_transcript
     except (TranscriptsDisabled, NoTranscriptFound, VideoUnavailable) as e:
         print(f"[Transcript Error] {e}")
@@ -71,7 +93,8 @@ def get_video_transcription_ytapi(video_id):
     except Exception as e:
         print(f"[Unexpected Error] {e}")
         return "An unexpected error occurred while fetching the transcript."
-    
+
+
 def get_video_transcription_apify(video_id):
     try:
         run_input = {
@@ -83,13 +106,13 @@ def get_video_transcription_apify(video_id):
             logger=None,
             build="latest",
             timeout_secs=20,
-            max_items=1
+            max_items=1,
         )
 
         items = list(client.dataset(run["defaultDatasetId"]).iterate_items())
         if not items or "data" not in items[0]:
             return ""
-        
+
         transcript_with_timestamp = items[0]["data"]
         return transcript_with_timestamp
 
@@ -97,36 +120,56 @@ def get_video_transcription_apify(video_id):
         print(f"[Unexpected Error] {e}")
         return "An unexpected error occurred while fetching the transcript."
 
+
 def summarize_video(transcript):
     prompt = f"Please summarize the given text in 5 bullet points and do not add any extra line other than the summary content: {transcript}"
-    response = genai_client.models.generate_content(
-        model="gemini-2.0-flash", contents=prompt
+    response = openai_client.chat.completions.create(
+        model=OPENAI_MODEL,
+        messages=[{"role": "user", "content": prompt}]
     )
-    return response.text
+    return response.choices[0].message.content
+
+
+def generate_video_summary(transcript):
+    prompt = f"Please generate a short and concise summary of 100-150 words max for the following video transcript. Do not add any extra lines other than the summary content:\n{transcript}"
+    try:
+        response = openai_client.chat.completions.create(
+            model=OPENAI_MODEL,
+            messages=[{"role": "user", "content": prompt}]
+        )
+        return response.choices[0].message.content
+    except Exception as e:
+        logging.error(f"Failed to generate summary: {e}")
+        return None
+
 
 def extract_video_id(url: str) -> str | None:
     parsed = urlparse(url)
     query_params = parse_qs(parsed.query)
     return query_params.get("v", [None])[0]
 
+
 def extract_transcript_snippet(transcript, center_timestamp, window=15):
     start_window = center_timestamp - window
     end_window = center_timestamp + window
 
     snippet = [
-        entry['text']
+        entry["text"]
         for entry in transcript
-        if 'text' in entry and start_window <= float(entry['start']) <= end_window
+        if "text" in entry and start_window <= float(entry["start"]) <= end_window
     ]
 
     return " ".join(snippet)
 
+
 def generate_ai_note(transcript_chunk):
     prompt = f"Generate a 1 liner note for the given text and do not add any extra line other than the note content: {transcript_chunk}"
-    response = genai_client.models.generate_content(
-        model=GEMINI_MODEL, contents=prompt
+    response = openai_client.chat.completions.create(
+        model=OPENAI_MODEL,
+        messages=[{"role": "user", "content": prompt}]
     )
-    return response.text
+    return response.choices[0].message.content
+
 
 def hms_to_seconds(hms_str):
     parts = hms_str.split(":")
@@ -137,7 +180,8 @@ def hms_to_seconds(hms_str):
         return parts[0] * 60 + parts[1]
     else:
         return parts[0]
-    
+
+
 def require_auth(f):
     @wraps(f)
     def decorated(*args, **kwargs):
@@ -162,4 +206,5 @@ def require_auth(f):
             return jsonify({"message": "Invalid token"}), 401
 
         return f(*args, **kwargs)
+
     return decorated

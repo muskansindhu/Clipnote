@@ -4,43 +4,59 @@ import psycopg
 import jwt
 from datetime import datetime, timedelta, timezone
 
-from flask import Flask, request, jsonify, render_template, url_for, make_response, redirect
+from flask import (
+    Flask,
+    request,
+    jsonify,
+    render_template,
+    url_for,
+    make_response,
+    redirect,
+)
 from flask_cors import CORS
 from werkzeug.security import generate_password_hash, check_password_hash
 
-from config import SUPABASE_CONNECTION_STRING, S3_BUCKET, JWT_SECRET, ADMIN_USERNAME, ADMIN_PASSWORD, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_DISCOVERY_URL
+from config import (
+    SUPABASE_CONNECTION_STRING,
+    S3_BUCKET,
+    JWT_SECRET,
+    GOOGLE_CLIENT_ID,
+    GOOGLE_CLIENT_SECRET,
+    GOOGLE_DISCOVERY_URL,
+)
 from utils import (
     get_video_transcription_apify,
     summarize_video,
+    generate_video_summary,
     extract_video_id,
     put_object_to_s3,
     get_object_from_s3,
     extract_transcript_snippet,
     generate_ai_note,
     hms_to_seconds,
-    require_auth
+    require_auth,
 )
 from authlib.integrations.flask_client import OAuth
 
-app = Flask(__name__, template_folder='templates', static_folder='static')
+app = Flask(__name__, template_folder="templates", static_folder="static")
 CORS(app)
 
 
 oauth = OAuth(app)
 app.secret_key = JWT_SECRET
 oauth.register(
-    name='google',
+    name="google",
     client_id=GOOGLE_CLIENT_ID,
     client_secret=GOOGLE_CLIENT_SECRET,
     server_metadata_url=GOOGLE_DISCOVERY_URL,
-    client_kwargs={
-        'scope': 'openid email profile'
-    }
+    client_kwargs={"scope": "openid email profile"},
 )
+
 
 @app.route("/", methods=["GET"])
 def home():
     return render_template("home.html")
+
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -56,18 +72,20 @@ def login():
 
     with psycopg.connect(SUPABASE_CONNECTION_STRING) as conn:
         with conn.cursor() as cur:
-            cur.execute("SELECT id, password FROM users WHERE username = %s", (username,))
+            cur.execute(
+                "SELECT id, password FROM users WHERE username = %s", (username,)
+            )
             user_row = cur.fetchone()
-            
+
             if user_row and check_password_hash(user_row[1], password):
-                 pass
+                pass
             else:
-                 return jsonify({"message": "Invalid credentials"}), 401
-    
+                return jsonify({"message": "Invalid credentials"}), 401
+
     payload = {
         "sub": str(user_row[0]),
         "username": username,
-        "exp": datetime.now(timezone.utc) + timedelta(days=15)
+        "exp": datetime.now(timezone.utc) + timedelta(days=15),
     }
     token = jwt.encode(payload, JWT_SECRET, algorithm="HS256")
     return jsonify(access_token=token), 200
@@ -79,11 +97,10 @@ def login_google():
     return oauth.google.authorize_redirect(redirect_uri)
 
 
-
 @app.route("/auth/google/callback")
 def auth_google_callback():
     token = oauth.google.authorize_access_token()
-    user_info = token.get('userinfo') or oauth.google.parse_id_token(token)
+    user_info = token.get("userinfo") or oauth.google.parse_id_token(token)
     if not user_info:
         return jsonify({"message": "Google authentication failed"}), 401
 
@@ -98,7 +115,10 @@ def auth_google_callback():
             cur.execute("SELECT id FROM users WHERE username = %s", (email,))
             user_row = cur.fetchone()
             if not user_row:
-                cur.execute("INSERT INTO users (username, password) VALUES (%s, %s)", (email, 'GOOGLE_OAUTH'))
+                cur.execute(
+                    "INSERT INTO users (username, password) VALUES (%s, %s)",
+                    (email, "GOOGLE_OAUTH"),
+                )
                 conn.commit()
                 cur.execute("SELECT id FROM users WHERE username = %s", (email,))
                 user_row = cur.fetchone()
@@ -107,17 +127,17 @@ def auth_google_callback():
     payload = {
         "sub": str(user_id),
         "username": email,
-        "exp": datetime.now(timezone.utc) + timedelta(days=15)
+        "exp": datetime.now(timezone.utc) + timedelta(days=15),
     }
     jwt_token = jwt.encode(payload, JWT_SECRET, algorithm="HS256")
-
 
     if request.args.get("api") == "1":
         return jsonify(access_token=jwt_token), 200
     else:
         response = make_response(redirect("/dashboard"))
-        response.set_cookie('temp_access_token', jwt_token, max_age=60, path='/')
+        response.set_cookie("temp_access_token", jwt_token, max_age=60, path="/")
         return response
+
 
 @app.route("/signup", methods=["POST"])
 def signup():
@@ -127,7 +147,7 @@ def signup():
 
     if not username or not password:
         return jsonify({"message": "Username and password required"}), 400
-    
+
     if len(password) < 6:
         return jsonify({"message": "Password must be at least 6 characters"}), 400
 
@@ -135,10 +155,13 @@ def signup():
         with conn.cursor() as cur:
             cur.execute("SELECT 1 FROM users WHERE username = %s", (username,))
             if cur.fetchone():
-                 return jsonify({"message": "Username already exists"}), 409
-            
+                return jsonify({"message": "Username already exists"}), 409
+
             hashed = generate_password_hash(password)
-            cur.execute("INSERT INTO users (username, password) VALUES (%s, %s)", (username, hashed))
+            cur.execute(
+                "INSERT INTO users (username, password) VALUES (%s, %s)",
+                (username, hashed),
+            )
             conn.commit()
 
     with psycopg.connect(SUPABASE_CONNECTION_STRING) as conn:
@@ -149,11 +172,10 @@ def signup():
     payload = {
         "sub": str(user_id),
         "username": username,
-        "exp": datetime.now(timezone.utc) + timedelta(days=15)
+        "exp": datetime.now(timezone.utc) + timedelta(days=15),
     }
     token = jwt.encode(payload, JWT_SECRET, algorithm="HS256")
     return jsonify(access_token=token), 201
-
 
 
 @app.route("/guest-login", methods=["POST"])
@@ -163,25 +185,28 @@ def guest_login():
     payload = {
         "sub": guest_id,
         "exp": now + timedelta(days=3),
-        "trial_start": now.isoformat()
+        "trial_start": now.isoformat(),
     }
     token = jwt.encode(payload, JWT_SECRET, algorithm="HS256")
     return jsonify(access_token=token), 200
+
 
 @app.route("/dashboard", methods=["GET"])
 def dashboard():
     return render_template("dashboard.html")
 
+
 @app.route("/profile", methods=["GET"])
 def profile():
     return render_template("profile.html")
+
 
 @app.route("/user-status", methods=["GET"])
 @require_auth
 def get_user_status():
     if not request.user.startswith("guest_"):
         return jsonify({"is_guest": False}), 200
-    
+
     # Calculate time remaining based on token expiry
     exp_timestamp = request.auth_payload.get("exp")
     if exp_timestamp:
@@ -194,15 +219,19 @@ def get_user_status():
         days_remaining = 0
         hours_remaining = 0
 
-    return jsonify({
-        "is_guest": True,
-        "days_remaining": days_remaining,
-        "hours_remaining": hours_remaining
-    }), 200
+    return jsonify(
+        {
+            "is_guest": True,
+            "days_remaining": days_remaining,
+            "hours_remaining": hours_remaining,
+        }
+    ), 200
+
 
 @app.route("/<video_yt_id>")
 def get_note_page(video_yt_id):
     return render_template("note.html")
+
 
 @app.route("/all-video", methods=["GET"])
 @require_auth
@@ -217,7 +246,7 @@ def get_all_notes():
     sort = request.args.get("sort", "recent")
     start_date = request.args.get("start")
     end_date = request.args.get("end")
-    
+
     all_notes = []
     has_next = False
 
@@ -238,7 +267,9 @@ def get_all_notes():
 
     if end_date:
         try:
-            end_dt = datetime.fromisoformat(end_date).replace(tzinfo=timezone.utc) + timedelta(days=1)
+            end_dt = datetime.fromisoformat(end_date).replace(
+                tzinfo=timezone.utc
+            ) + timedelta(days=1)
             where_clauses.append("n.created_at < %s")
             params.append(end_dt)
         except ValueError:
@@ -276,28 +307,27 @@ def get_all_notes():
                 LIMIT %s OFFSET %s
             """
             formatted_query = query.format(
-                where_clause=" AND ".join(where_clauses),
-                order_by=order_by
+                where_clause=" AND ".join(where_clauses), order_by=order_by
             )
             cur.execute(formatted_query, (*params, limit + 1, offset))
             notes = cur.fetchall()
-            
+
             if len(notes) > limit:
                 has_next = True
                 notes = notes[:limit]
-        
-        for note in notes:
-            all_notes.append({
-                "id" : note[0],
-                "video_url" : note[1],
-                "video_title" : note[2],
-                "fav": note[3]
-            })
 
-    return jsonify({
-        "videos": all_notes,
-        "has_next": has_next
-    })
+        for note in notes:
+            all_notes.append(
+                {
+                    "id": note[0],
+                    "video_url": note[1],
+                    "video_title": note[2],
+                    "fav": note[3],
+                }
+            )
+
+    return jsonify({"videos": all_notes, "has_next": has_next})
+
 
 @app.route("/note/<video_yt_id>", methods=["GET"])
 @require_auth
@@ -306,34 +336,44 @@ def get_note(video_yt_id):
 
     with psycopg.connect(SUPABASE_CONNECTION_STRING) as conn:
         with conn.cursor() as cur:
-            cur.execute("SELECT id, video_url, video_title, fav FROM video WHERE id = %s", (video_yt_id,))
+            cur.execute(
+                "SELECT id, video_url, video_title, fav, video_summary FROM video WHERE id = %s",
+                (video_yt_id,),
+            )
             video = cur.fetchone()
 
             if not video:
                 return jsonify({"message": "Video not found"}), 404
 
-            cur.execute("SELECT id, created_at, video_timestamp, note, note_source FROM notes WHERE video_id = %s AND user_id = %s", (video_yt_id, request.user))
+            cur.execute(
+                "SELECT id, created_at, video_timestamp, note, note_source FROM notes WHERE video_id = %s AND user_id = %s",
+                (video_yt_id, request.user),
+            )
             notes = cur.fetchall()
 
             for note in notes:
-                video_notes.append({
-                    "id": note[0],
-                    "created_at": note[1],
-                    "video_id": video[0],
-                    "video_url": video[1],
-                    "video_title": video[2],
-                    "video_timestamp": note[2],
-                    "note": note[3],
-                    "fav": video[3],
-                    "note_source": note[4]
-                })
+                video_notes.append(
+                    {
+                        "id": note[0],
+                        "created_at": note[1],
+                        "video_id": video[0],
+                        "video_url": video[1],
+                        "video_title": video[2],
+                        "video_timestamp": note[2],
+                        "note": note[3],
+                        "fav": video[3],
+                        "note_source": note[4],
+                        "video_summary": video[4],
+                    }
+                )
 
     return jsonify(video_notes), 200
+
 
 @app.route("/add-notes", methods=["POST"])
 @require_auth
 def add_notes():
-    raw_body = request.get_data(as_text=True)    
+    raw_body = request.get_data(as_text=True)
     data = json.loads(raw_body)
     note_source = "user"
 
@@ -344,56 +384,76 @@ def add_notes():
 
     with psycopg.connect(SUPABASE_CONNECTION_STRING) as conn:
         with conn.cursor() as cur:
-
             cur.execute("SELECT 1 FROM video WHERE id = %s", (video_yt_id,))
             video_exists = cur.fetchone() is not None
 
             if not video_exists:
                 transcript = get_video_transcription_apify(video_yt_id)
-                uploaded = put_object_to_s3(video_yt_id, S3_BUCKET , transcript)
+                uploaded = put_object_to_s3(video_yt_id, S3_BUCKET, transcript)
+
+                video_summary = None
+                if transcript and isinstance(transcript, list):
+                    compiled_transcript = " ".join(
+                        snippet.get("text", "") for snippet in transcript if isinstance(snippet, dict)
+                    )
+                    if compiled_transcript.strip():
+                        video_summary = generate_video_summary(compiled_transcript)
 
                 if uploaded:
                     cur.execute(
                         """
-                        INSERT INTO video (id, video_url, video_title, created_at, user_id)
-                        VALUES (%s, %s, %s, %s, %s)
+                        INSERT INTO video (id, video_url, video_title, video_summary, created_at, user_id)
+                        VALUES (%s, %s, %s, %s, %s, %s)
                         ON CONFLICT (id) DO NOTHING
                         """,
                         (
                             video_yt_id,
                             data["videoUrl"],
                             data["videoTitle"],
+                            video_summary,
                             datetime.now(timezone.utc),
-                            request.user 
-                        )
+                            request.user,
+                        ),
                     )
                 else:
                     return jsonify({"error": "Failed to upload transcript to S3"}), 500
-            
+
             if not note_text:
                 note_source = "ai"
                 transcript = get_object_from_s3(video_yt_id, S3_BUCKET)
-                transcript_chunk = extract_transcript_snippet(transcript, center_time_sec)
+                transcript_chunk = extract_transcript_snippet(
+                    transcript, center_time_sec
+                )
                 note_text = generate_ai_note(transcript_chunk)
 
             cur.execute(
                 "INSERT INTO notes (video_timestamp, note, video_id, note_source, user_id) VALUES (%s, %s, %s, %s, %s)",
-                (data["currentTimeStamp"], note_text, video_yt_id, note_source, request.user)
+                (
+                    data["currentTimeStamp"],
+                    note_text,
+                    video_yt_id,
+                    note_source,
+                    request.user,
+                ),
             )
             conn.commit()
 
     return jsonify({"message": "Note added successfully"}), 201
 
+
 @app.route("/summarize", methods=["POST"])
 @require_auth
 def get_video_summary():
-    raw_body = request.get_data(as_text=True) 
+    raw_body = request.get_data(as_text=True)
     data = json.loads(raw_body)
     video_id = data["video_url"].split("v=")[1].split("&")[0]
     timestamped_transcript = get_object_from_s3(video_id, S3_BUCKET)
-    compiled_transcript = " ".join(snippet["text"] for snippet in timestamped_transcript if "text" in snippet)
+    compiled_transcript = " ".join(
+        snippet["text"] for snippet in timestamped_transcript if "text" in snippet
+    )
     summary = summarize_video(compiled_transcript)
     return jsonify({"message": summary}), 200
+
 
 @app.route("/fav-note", methods=["POST"])
 @require_auth
@@ -403,10 +463,13 @@ def mark_note_as_fav():
 
     with psycopg.connect(SUPABASE_CONNECTION_STRING) as conn:
         with conn.cursor() as cur:
-            cur.execute("UPDATE video SET fav = TRUE WHERE video_title = %s", (video_title,))
+            cur.execute(
+                "UPDATE video SET fav = TRUE WHERE video_title = %s", (video_title,)
+            )
         conn.commit()
 
     return {"message": "Note marked as favourite."}, 200
+
 
 @app.route("/unfav-note", methods=["POST"])
 @require_auth
@@ -416,10 +479,13 @@ def mark_note_as_unfav():
 
     with psycopg.connect(SUPABASE_CONNECTION_STRING) as conn:
         with conn.cursor() as cur:
-            cur.execute("UPDATE video SET fav = FALSE WHERE video_title = %s", (video_title,))
+            cur.execute(
+                "UPDATE video SET fav = FALSE WHERE video_title = %s", (video_title,)
+            )
         conn.commit()
 
     return {"message": "Note marked as favourite."}, 200
+
 
 @app.route("/labels", methods=["GET"])
 @require_auth
@@ -430,14 +496,12 @@ def get_all_labels():
         with conn.cursor() as cur:
             cur.execute("SELECT * FROM label WHERE user_id = %s", (request.user,))
             labels = cur.fetchall()
-        
+
         for label in labels:
-            all_labels.append({
-                "id" : label[0],
-                "label_name" : label[1]
-            })
+            all_labels.append({"id": label[0], "label_name": label[1]})
 
     return all_labels
+
 
 @app.route("/label", methods=["POST"])
 @require_auth
@@ -448,10 +512,13 @@ def add_new_label():
 
     with psycopg.connect(SUPABASE_CONNECTION_STRING) as conn:
         with conn.cursor() as cur:
-            cur.execute("INSERT INTO label (label_name, user_id) VALUES (%s, %s)",
-            (label_name, request.user))
-        
-    return jsonify({"message":"Label added successfully"}), 201
+            cur.execute(
+                "INSERT INTO label (label_name, user_id) VALUES (%s, %s)",
+                (label_name, request.user),
+            )
+
+    return jsonify({"message": "Label added successfully"}), 201
+
 
 @app.route("/label", methods=["PATCH"])
 @require_auth
@@ -462,10 +529,14 @@ def update_label():
 
     with psycopg.connect(SUPABASE_CONNECTION_STRING) as conn:
         with conn.cursor() as cur:
-            cur.execute("UPDATE label SET label_name = %s WHERE id = %s AND user_id = %s", (new_name, label_id, request.user))
+            cur.execute(
+                "UPDATE label SET label_name = %s WHERE id = %s AND user_id = %s",
+                (new_name, label_id, request.user),
+            )
         conn.commit()
-    
+
     return jsonify({"message": "Label updated successfully"}), 200
+
 
 @app.route("/label", methods=["DELETE"])
 @require_auth
@@ -476,10 +547,14 @@ def delete_label():
     with psycopg.connect(SUPABASE_CONNECTION_STRING) as conn:
         with conn.cursor() as cur:
             cur.execute("DELETE FROM video_label WHERE label_id = %s", (label_id,))
-            cur.execute("DELETE FROM label WHERE id = %s AND user_id = %s", (label_id, request.user))
+            cur.execute(
+                "DELETE FROM label WHERE id = %s AND user_id = %s",
+                (label_id, request.user),
+            )
         conn.commit()
-    
+
     return jsonify({"message": "Label deleted successfully"}), 200
+
 
 @app.route("/<label>/note", methods=["GET"])
 @require_auth
@@ -488,7 +563,10 @@ def filter_note_by_label(label):
 
     with psycopg.connect(SUPABASE_CONNECTION_STRING) as conn:
         with conn.cursor() as cur:
-            cur.execute("SELECT id FROM label WHERE label_name = %s AND user_id = %s", (label, request.user))
+            cur.execute(
+                "SELECT id FROM label WHERE label_name = %s AND user_id = %s",
+                (label, request.user),
+            )
             label_row = cur.fetchone()
 
             if not label_row:
@@ -496,30 +574,41 @@ def filter_note_by_label(label):
 
             label_id = label_row[0]
 
-            cur.execute("SELECT yt_video_id FROM video_label WHERE label_id = %s", (label_id,))
+            cur.execute(
+                "SELECT yt_video_id FROM video_label WHERE label_id = %s", (label_id,)
+            )
             video_rows = cur.fetchall()
 
             for video_row in video_rows:
                 video_id = video_row[0]
-                cur.execute("SELECT id, video_url, video_title, fav FROM video WHERE id = %s", (video_id,))
+                cur.execute(
+                    "SELECT id, video_url, video_title, fav FROM video WHERE id = %s",
+                    (video_id,),
+                )
                 video = cur.fetchone()
 
                 if video:
-                    filtered_videos.append({
-                        "video_id": video[0],
-                        "video_url": video[1],
-                        "video_title": video[2],
-                        "fav": video[3]
-                    })
+                    filtered_videos.append(
+                        {
+                            "video_id": video[0],
+                            "video_url": video[1],
+                            "video_title": video[2],
+                            "fav": video[3],
+                        }
+                    )
 
     return jsonify(filtered_videos), 200
 
-@app.route("/<video_yt_id>/label", methods=['GET'])
+
+@app.route("/<video_yt_id>/label", methods=["GET"])
 @require_auth
 def get_video_label(video_yt_id):
     with psycopg.connect(SUPABASE_CONNECTION_STRING) as conn:
         with conn.cursor() as cur:
-            cur.execute("SELECT label_id FROM video_label WHERE yt_video_id = %s", (video_yt_id,))
+            cur.execute(
+                "SELECT label_id FROM video_label WHERE yt_video_id = %s",
+                (video_yt_id,),
+            )
             result = cur.fetchone()
             if not result:
                 return {"label": None}, 200
@@ -532,13 +621,16 @@ def get_video_label(video_yt_id):
 
     return {"label": label_name}, 200
 
+
 @app.route("/video-label", methods=["POST"])
 @require_auth
 def add_video_label():
     data = request.json
     with psycopg.connect(SUPABASE_CONNECTION_STRING) as conn:
         with conn.cursor() as cur:
-            cur.execute("SELECT id FROM label WHERE label_name = %s", (data["label_name"],))
+            cur.execute(
+                "SELECT id FROM label WHERE label_name = %s", (data["label_name"],)
+            )
             label_row = cur.fetchone()
 
             if not label_row:
@@ -546,11 +638,17 @@ def add_video_label():
 
             label_id = label_row[0]
 
-            cur.execute("INSERT INTO video_label (label_id, yt_video_id) VALUES (%s, %s)", (label_id, data["video_id"],))
+            cur.execute(
+                "INSERT INTO video_label (label_id, yt_video_id) VALUES (%s, %s)",
+                (
+                    label_id,
+                    data["video_id"],
+                ),
+            )
             conn.commit()
 
-        
     return jsonify({"message": "Video Label added successfully"}), 201
+
 
 @app.route("/video-label", methods=["DELETE"])
 @require_auth
@@ -558,45 +656,56 @@ def remove_video_label():
     data = request.json
     with psycopg.connect(SUPABASE_CONNECTION_STRING) as conn:
         with conn.cursor() as cur:
-            cur.execute("DELETE FROM video_label WHERE yt_video_id = %s", (data["video_id"],))
+            cur.execute(
+                "DELETE FROM video_label WHERE yt_video_id = %s", (data["video_id"],)
+            )
             conn.commit()
     return jsonify({"message": "Video label removed successfully"}), 200
+
 
 @app.route("/<video_yt_id>", methods=["PATCH"])
 @require_auth
 def update_note(video_yt_id):
-    raw_body = request.get_data(as_text=True)  
+    raw_body = request.get_data(as_text=True)
     data = json.loads(raw_body)
     note_text = data["notes"].strip()
     timestamp = data["timestamp"]
 
     with psycopg.connect(SUPABASE_CONNECTION_STRING) as conn:
-            with conn.cursor() as cur:
-                cur.execute("""
+        with conn.cursor() as cur:
+            cur.execute(
+                """
                     UPDATE notes
                     SET note = %s
                     WHERE video_id = %s AND video_timestamp = %s AND user_id = %s
-                """, (note_text, video_yt_id, timestamp, request.user))
-                conn.commit()
+                """,
+                (note_text, video_yt_id, timestamp, request.user),
+            )
+            conn.commit()
 
     return jsonify({"status": "success"}), 200
+
 
 @app.route("/<video_yt_id>", methods=["DELETE"])
 @require_auth
 def delete_note(video_yt_id):
-    raw_body = request.get_data(as_text=True)  
+    raw_body = request.get_data(as_text=True)
     data = json.loads(raw_body)
     timestamp = data["timestamp"]
 
     with psycopg.connect(SUPABASE_CONNECTION_STRING) as conn:
-            with conn.cursor() as cur:
-                cur.execute("""
+        with conn.cursor() as cur:
+            cur.execute(
+                """
                     DELETE FROM notes
                     WHERE video_id = %s AND video_timestamp = %s AND user_id = %s
-                """, (video_yt_id, timestamp, request.user))
-                conn.commit()
+                """,
+                (video_yt_id, timestamp, request.user),
+            )
+            conn.commit()
 
     return jsonify({"status": "success"}), 200
 
+
 if __name__ == "__main__":
-    app.run(host='0.0.0.0', port=5001, debug=True)
+    app.run(host="0.0.0.0", port=5001, debug=True)
