@@ -1,58 +1,145 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Clipnote - Smart YouTube Note Taking</title>
+    <link
+      rel="icon"
+      type="image/svg+xml"
+      href="/static/assets/clipnote-logo-dark.svg"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link href="static/css/style.css" rel="stylesheet" />
+    <script src="https://unpkg.com/lucide@latest"></script>
+  </head>
 
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Clipnote - Smart YouTube Note Taking</title>
-  <link rel="icon" type="image/svg+xml" href="/static/assets/clipnote-logo-dark.svg" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link
-    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
-    rel="stylesheet" />
-  <link href="static/css/style.css" rel="stylesheet" />
-  <script src="https://unpkg.com/lucide@latest"></script>
-</head>
+  <body class="login-page">
+    <a href="/" class="login-logo-container">
+      <img
+        src="/static/assets/clipnote-logo-dark.svg"
+        data-dark="/static/assets/clipnote-logo-dark.svg"
+        data-light="/static/assets/clipnote-logo-light.svg"
+        alt="Clipnote Logo"
+        width="32"
+        height="32"
+        id="login-logo-img"
+      />
+      <span>Clipnote</span>
+    </a>
 
-<body class="login-page">
-  <a href="/" class="login-logo-container">
-    <img src="/static/assets/clipnote-logo-dark.svg" data-dark="/static/assets/clipnote-logo-dark.svg"
-      data-light="/static/assets/clipnote-logo-light.svg" alt="Clipnote Logo" width="32" height="32"
-      id="login-logo-img" />
-    <span>Clipnote</span>
-  </a>
+    <button id="theme-toggle-btn" class="theme-toggle-btn" title="Toggle Theme">
+      <i data-lucide="sun" style="width: 20px; height: 20px"></i>
+    </button>
 
-  <button id="theme-toggle-btn" class="theme-toggle-btn" title="Toggle Theme">
-    <i data-lucide="sun" style="width: 20px; height: 20px;"></i>
-  </button>
-
-  <div class="login-container">
-    <h2 id="login-title">Login</h2>
-    <div class="error-message" id="error-msg"></div>
-    <form id="login-form">
-      <input type="text" id="username" name="username" placeholder="Username" autocomplete="username" required />
-      <div class="password-wrapper">
-        <input type="password" id="password" name="password" placeholder="Password" autocomplete="current-password"
-          required />
-        <button type="button" id="toggle-password" class="password-toggle-btn" tabindex="-1">
-          <i data-lucide="eye" style="width: 18px; height: 18px;"></i>
+    <div class="login-container">
+      <h2 id="login-title">Login</h2>
+      <div class="error-message" id="error-msg"></div>
+      <form id="login-form">
+        <input
+          type="text"
+          id="username"
+          name="username"
+          placeholder="Username"
+          autocomplete="username"
+          style="display: none"
+        />
+        <input
+          type="email"
+          id="email"
+          name="email"
+          placeholder="Email"
+          autocomplete="email"
+          required
+        />
+        <div class="password-wrapper">
+          <input
+            type="password"
+            id="password"
+            name="password"
+            placeholder="Password"
+            autocomplete="current-password"
+            required
+          />
+          <button
+            type="button"
+            id="toggle-password"
+            class="password-toggle-btn"
+            tabindex="-1"
+          >
+            <i data-lucide="eye" style="width: 18px; height: 18px"></i>
+          </button>
+        </div>
+        <button
+          type="submit"
+          id="submit-btn"
+          class="btn btn-primary"
+          style="width: 100%"
+        >
+          Login
         </button>
-      </div>
-      <button type="submit" id="submit-btn" class="btn btn-primary" style="width: 100%">Login</button>
-      <div style="margin-top: 14px; display: flex; align-items: center; justify-content: space-between;">
-        <span style="height: 1px; background: var(--border-subtle); flex: 1;"></span>
-        <span style="padding: 0 10px; color: var(--text-subtle); font-size: 0.9em;">OR</span>
-        <span style="height: 1px; background: var(--border-subtle); flex: 1;"></span>
-      </div>
-      <button type="button" id="guest-btn" class="secondary-btn" style="margin-top: 12px;">Continue as Guest</button>
-      <button type="button" id="google-login-btn" class="secondary-btn" style="margin-top: 12px; background: #fff; color: #444; border: 1px solid #ddd; display: flex; align-items: center; justify-content: center; gap: 8px;">
-        <img src="https://developers.google.com/identity/images/g-logo.png" alt="Google logo" style="width: 20px; height: 20px;" />
-        Sign in with Google
-      </button>
-    </form>
-  </div>
-  <script src="static/js/login.js"></script>
-</body>
-
+        <div
+          style="
+            margin-top: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+          "
+        >
+          <span
+            style="height: 1px; background: var(--border-subtle); flex: 1"
+          ></span>
+          <span
+            style="padding: 0 10px; color: var(--text-subtle); font-size: 0.9em"
+            >OR</span
+          >
+          <span
+            style="height: 1px; background: var(--border-subtle); flex: 1"
+          ></span>
+        </div>
+        <button
+          type="button"
+          id="guest-btn"
+          class="secondary-btn"
+          style="margin-top: 12px"
+        >
+          Continue as Guest
+        </button>
+        <button
+          type="button"
+          id="google-login-btn"
+          class="secondary-btn"
+          style="
+            margin-top: 12px;
+            background: #fff;
+            color: #444;
+            border: 1px solid #ddd;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+          "
+        >
+          <img
+            src="https://developers.google.com/identity/images/g-logo.png"
+            alt="Google logo"
+            style="width: 20px; height: 20px"
+          />
+          Continue with Google
+        </button>
+      </form>
+      <p
+        style="margin-top: 16px; text-align: center; color: var(--text-subtle)"
+      >
+        <span id="toggle-text">Don't have an account?</span>
+        <a href="#" id="toggle-form">Sign up</a>
+      </p>
+    </div>
+    <script src="static/js/login.js"></script>
+  </body>
 </html>

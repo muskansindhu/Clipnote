@@ -27,6 +27,12 @@ from config import (
     GOOGLE_CLIENT_SECRET,
     GOOGLE_DISCOVERY_URL,
 )
+from auth_utils import (
+    derive_username_from_email,
+    issue_access_token,
+    normalise_email,
+    normalise_username,
+)
 from clipchat import answer_clipchat_question
 from utils import (
     get_video_transcription_apify,
@@ -55,6 +61,30 @@ oauth.register(
     server_metadata_url=GOOGLE_DISCOVERY_URL,
     client_kwargs={"scope": "openid email profile"},
 )
+
+def _username_exists(
+    cur: psycopg.Cursor[Any], username: str, *, exclude_user_id: str | None = None
+) -> bool:
+    if exclude_user_id is None:
+        cur.execute("SELECT 1 FROM users WHERE username = %s", (username,))
+    else:
+        cur.execute(
+            "SELECT 1 FROM users WHERE username = %s AND id <> %s",
+            (username, exclude_user_id),
+        )
+    return cur.fetchone() is not None
+
+
+def _build_available_username(cur: psycopg.Cursor[Any], email: str) -> str:
+    base_username = derive_username_from_email(email)
+    candidate = base_username
+    suffix = 1
+
+    while _username_exists(cur, candidate):
+        suffix += 1
+        candidate = f"{base_username}{suffix}"
+
+    return candidate
 
 
 def _get_clipchat_context(video_yt_id: str, user_id: str) -> dict[str, Any] | None:
@@ -126,31 +156,49 @@ def login():
     if request.method == "GET":
         return render_template("login.html")
 
-    data = request.get_json()
-    username = data.get("username")
-    password = data.get("password")
+    data = request.get_json(silent=True) or {}
+    email = normalise_email(data.get("email"))
+    password = str(data.get("password") or "")
 
-    if not username or not password:
-        return jsonify({"message": "Username and password required"}), 400
+    if not email or not password:
+        return jsonify({"message": "Email and password required"}), 400
 
     with psycopg.connect(SUPABASE_CONNECTION_STRING) as conn:
         with conn.cursor() as cur:
             cur.execute(
-                "SELECT id, password FROM users WHERE username = %s", (username,)
+                """
+                SELECT id, username, email, password_hash, google_sub
+                FROM users
+                WHERE lower(email) = %s
+                """,
+                (email,),
             )
             user_row = cur.fetchone()
 
-            if user_row and check_password_hash(user_row[1], password):
-                pass
-            else:
+            if not user_row:
                 return jsonify({"message": "Invalid credentials"}), 401
 
-    payload = {
-        "sub": str(user_row[0]),
-        "username": username,
-        "exp": datetime.now(timezone.utc) + timedelta(days=15),
-    }
-    token = jwt.encode(payload, JWT_SECRET, algorithm="HS256")
+            password_hash = user_row[3]
+            google_sub = user_row[4]
+
+            if not password_hash:
+                if google_sub:
+                    return jsonify(
+                        {
+                            "message": "This account uses Google sign-in. Use Google login or add a password first."
+                        }
+                    ), 401
+                return jsonify({"message": "Invalid credentials"}), 401
+
+            if not check_password_hash(password_hash, password):
+                return jsonify({"message": "Invalid credentials"}), 401
+
+    token = issue_access_token(
+        user_id=str(user_row[0]),
+        username=str(user_row[1]),
+        email=str(user_row[2]),
+        jwt_secret=JWT_SECRET,
+    )
     return jsonify(access_token=token), 200
 
 
@@ -167,32 +215,63 @@ def auth_google_callback():
     if not user_info:
         return jsonify({"message": "Google authentication failed"}), 401
 
-    email = user_info.get("email")
-    name = user_info.get("name")
+    email = normalise_email(user_info.get("email"))
     sub = user_info.get("sub")
     if not email or not sub:
         return jsonify({"message": "Google account info missing"}), 400
 
     with psycopg.connect(SUPABASE_CONNECTION_STRING) as conn:
         with conn.cursor() as cur:
-            cur.execute("SELECT id FROM users WHERE username = %s", (email,))
+            cur.execute(
+                """
+                SELECT id, username, email
+                FROM users
+                WHERE google_sub = %s
+                """,
+                (sub,),
+            )
             user_row = cur.fetchone()
             if not user_row:
                 cur.execute(
-                    "INSERT INTO users (username, password) VALUES (%s, %s)",
-                    (email, "GOOGLE_OAUTH"),
+                    """
+                    SELECT id, username, email
+                    FROM users
+                    WHERE lower(email) = %s
+                    """,
+                    (email,),
                 )
-                conn.commit()
-                cur.execute("SELECT id FROM users WHERE username = %s", (email,))
                 user_row = cur.fetchone()
+                if user_row:
+                    cur.execute(
+                        """
+                        UPDATE users
+                        SET google_sub = %s
+                        WHERE id = %s
+                        """,
+                        (sub, user_row[0]),
+                    )
+                else:
+                    username = _build_available_username(cur, email)
+                    cur.execute(
+                        """
+                        INSERT INTO users (username, email, password_hash, google_sub)
+                        VALUES (%s, %s, %s, %s)
+                        RETURNING id, username, email
+                        """,
+                        (username, email, None, sub),
+                    )
+                    user_row = cur.fetchone()
+                conn.commit()
             user_id = user_row[0]
+            username = user_row[1]
+            email = user_row[2]
 
-    payload = {
-        "sub": str(user_id),
-        "username": email,
-        "exp": datetime.now(timezone.utc) + timedelta(days=15),
-    }
-    jwt_token = jwt.encode(payload, JWT_SECRET, algorithm="HS256")
+    jwt_token = issue_access_token(
+        user_id=str(user_id),
+        username=str(username),
+        email=str(email),
+        jwt_secret=JWT_SECRET,
+    )
 
     if request.args.get("api") == "1":
         return jsonify(access_token=jwt_token), 200
@@ -204,40 +283,67 @@ def auth_google_callback():
 
 @app.route("/signup", methods=["POST"])
 def signup():
-    data = request.get_json()
-    username = data.get("username")
-    password = data.get("password")
+    data = request.get_json(silent=True) or {}
+    username = normalise_username(data.get("username"))
+    email = normalise_email(data.get("email"))
+    password = str(data.get("password") or "")
 
-    if not username or not password:
-        return jsonify({"message": "Username and password required"}), 400
+    if not username or not email or not password:
+        return jsonify({"message": "Username, email, and password required"}), 400
 
     if len(password) < 6:
         return jsonify({"message": "Password must be at least 6 characters"}), 400
 
+    hashed_password = generate_password_hash(password)
     with psycopg.connect(SUPABASE_CONNECTION_STRING) as conn:
         with conn.cursor() as cur:
-            cur.execute("SELECT 1 FROM users WHERE username = %s", (username,))
-            if cur.fetchone():
-                return jsonify({"message": "Username already exists"}), 409
-
-            hashed = generate_password_hash(password)
             cur.execute(
-                "INSERT INTO users (username, password) VALUES (%s, %s)",
-                (username, hashed),
+                """
+                SELECT id, username, email, password_hash
+                FROM users
+                WHERE lower(email) = %s
+                """,
+                (email,),
             )
+            user_row = cur.fetchone()
+
+            if user_row:
+                if user_row[3]:
+                    return jsonify({"message": "Email already exists"}), 409
+
+                if _username_exists(cur, username, exclude_user_id=str(user_row[0])):
+                    return jsonify({"message": "Username already exists"}), 409
+
+                cur.execute(
+                    """
+                    UPDATE users
+                    SET username = %s, email = %s, password_hash = %s
+                    WHERE id = %s
+                    """,
+                    (username, email, hashed_password, user_row[0]),
+                )
+                user_id = user_row[0]
+            else:
+                if _username_exists(cur, username):
+                    return jsonify({"message": "Username already exists"}), 409
+
+                cur.execute(
+                    """
+                    INSERT INTO users (username, email, password_hash)
+                    VALUES (%s, %s, %s)
+                    RETURNING id
+                    """,
+                    (username, email, hashed_password),
+                )
+                user_id = cur.fetchone()[0]
             conn.commit()
 
-    with psycopg.connect(SUPABASE_CONNECTION_STRING) as conn:
-        with conn.cursor() as cur:
-            cur.execute("SELECT id FROM users WHERE username = %s", (username,))
-            user_id = cur.fetchone()[0]
-
-    payload = {
-        "sub": str(user_id),
-        "username": username,
-        "exp": datetime.now(timezone.utc) + timedelta(days=15),
-    }
-    token = jwt.encode(payload, JWT_SECRET, algorithm="HS256")
+    token = issue_access_token(
+        user_id=str(user_id),
+        username=username,
+        email=email,
+        jwt_secret=JWT_SECRET,
+    )
     return jsonify(access_token=token), 201
 
 

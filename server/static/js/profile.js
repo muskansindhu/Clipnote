@@ -18,9 +18,11 @@ function loadProfileInfo() {
     try {
         const payload = JSON.parse(atob(token.split('.')[1]));
         document.getElementById('profile-username-display').textContent = payload.username || payload.sub || 'User';
+        document.getElementById('profile-email-display').textContent = payload.email || '';
     } catch (e) {
         console.error("Invalid token", e);
         document.getElementById('profile-username-display').textContent = 'Unknown User';
+        document.getElementById('profile-email-display').textContent = '';
     }
 
 

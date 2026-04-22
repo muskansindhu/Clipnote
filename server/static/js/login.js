@@ -19,6 +19,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
   const form = document.getElementById("login-form");
   const errorMsg = document.getElementById("error-msg");
+  const usernameInput = document.getElementById("username");
+  const emailInput = document.getElementById("email");
+  const passwordInput = document.getElementById("password");
 
   const loginTitle = document.getElementById("login-title");
   const submitBtn = document.getElementById("submit-btn");
@@ -27,31 +30,56 @@ document.addEventListener("DOMContentLoaded", function () {
 
   let isSignup = false;
 
+  function applyAuthMode() {
+    loginTitle.textContent = isSignup ? "Sign Up" : "Login";
+    submitBtn.textContent = isSignup ? "Sign Up" : "Login";
+    toggleText.textContent = isSignup
+      ? "Already have an account?"
+      : "Don't have an account?";
+    toggleLink.textContent = isSignup ? "Login" : "Sign up";
+
+    if (usernameInput) {
+      usernameInput.style.display = isSignup ? "block" : "none";
+      usernameInput.required = isSignup;
+      usernameInput.value = isSignup ? usernameInput.value : "";
+    }
+
+    if (emailInput) {
+      emailInput.placeholder = "Email";
+      emailInput.autocomplete = isSignup ? "email" : "username";
+    }
+
+    if (passwordInput) {
+      passwordInput.autocomplete = isSignup
+        ? "new-password"
+        : "current-password";
+    }
+
+    errorMsg.style.display = "none";
+  }
+
   if (toggleLink) {
     toggleLink.addEventListener("click", (e) => {
       e.preventDefault();
       isSignup = !isSignup;
-      loginTitle.textContent = isSignup ? "Sign Up" : "Login";
-      submitBtn.textContent = isSignup ? "Sign Up" : "Login";
-      toggleText.textContent = isSignup
-        ? "Already have an account?"
-        : "Don't have an account?";
-      toggleLink.textContent = isSignup ? "Login" : "Sign up";
-      errorMsg.style.display = "none";
+      applyAuthMode();
     });
   }
+
+  applyAuthMode();
 
   form.addEventListener("submit", async function (e) {
     e.preventDefault();
 
-    const username = form.username.value;
+    const username = String(form.username?.value || "").trim();
+    const email = String(form.email.value || "").trim().toLowerCase();
     const password = form.password.value;
     const endpoint = isSignup ? "/signup" : "/login";
 
     const res = await fetch(endpoint, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username, password }),
+      body: JSON.stringify({ username, email, password }),
     });
 
     if (!res.ok) {

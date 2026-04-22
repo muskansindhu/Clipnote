@@ -125,7 +125,9 @@ def create_users_table():
         CREATE TABLE IF NOT EXISTS public.users(
         id TEXT PRIMARY KEY DEFAULT gen_random_uuid(),
         username TEXT UNIQUE NOT NULL,
-        password TEXT NOT NULL,
+        email TEXT NOT NULL,
+        password_hash TEXT,
+        google_sub TEXT UNIQUE,
         created_at TIMESTAMPTZ NOT NULL DEFAULT now()
         );
     """

@@ -3,11 +3,15 @@
 ## REST API Endpoints
 
 ### Authentication
-- `POST /login` — User login with username and password
+- `POST /login` — User login with email and password
 - `GET /login/google` — Google OAuth login
 - `GET /auth/google/callback` — Google OAuth callback
-- `POST /signup` — Register a new user
+- `POST /signup` — Register a new user with username, email, and password
 - `POST /guest-login` — Guest login
+
+Accounts support a shared identity model with `username`, unique `email`,
+`password_hash`, and optional `google_sub`. Password login uses email plus
+password, while Google OAuth links by the same unique email address.
 
 ### User
 - `GET /profile` — Render profile page
