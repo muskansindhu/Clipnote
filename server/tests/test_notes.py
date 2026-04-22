@@ -82,3 +82,48 @@ def test_get_all_notes(mock_connect, client, auth_headers):
     assert "videos" in response.json
     assert len(response.json["videos"]) == 1
     assert response.json["videos"][0]["video_title"] == "Test Video"
+
+
+@patch("app.answer_clipchat_question")
+@patch("app.get_object_from_s3")
+@patch("app.psycopg.connect")
+def test_clipchat_ask_returns_simple_answer(
+    mock_connect,
+    mock_get_object,
+    mock_answer_clipchat_question,
+    client,
+    auth_headers,
+):
+    mock_conn = MagicMock()
+    mock_cur = MagicMock()
+    mock_connect.return_value.__enter__.return_value = mock_conn
+    mock_conn.cursor.return_value.__enter__.return_value = mock_cur
+
+    mock_cur.fetchone.return_value = (
+        "abcd123",
+        "https://youtube.com/watch?v=abcd123",
+        "Test Video",
+        False,
+        "Video summary",
+    )
+    mock_cur.fetchall.return_value = [
+        (1, "01:23", "RAG is introduced here", "user"),
+    ]
+
+    mock_get_object.return_value = [
+        {"start": 83, "text": "We are now talking about RAG"},
+    ]
+    mock_answer_clipchat_question.return_value = {
+        "answer": "**The speaker covers RAG around [83].**",
+    }
+
+    response = client.post(
+        "/clipchat/abcd123/ask",
+        json={"question": "Where does the speaker talk about RAG?"},
+        headers=auth_headers,
+    )
+
+    assert response.status_code == 200
+    assert response.json == {
+        "answer": "**The speaker covers RAG around [83].**",
+    }

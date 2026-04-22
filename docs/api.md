@@ -39,6 +39,22 @@
 - `GET /` — Home page
 - `GET /dashboard` — Dashboard page
 - `GET /<video_yt_id>` — Note page for a video
+- `GET /clipchat/<video_yt_id>` — Clipchat page for asking questions about a video
+
+### Clipchat
+- `GET /clipchat/<video_yt_id>/context` — Video title, URL, summary, notes, and metadata for the Clipchat page
+- `POST /clipchat/<video_yt_id>/ask` — Ask a non-streaming Clipchat question
+- `POST /clipchat/<video_yt_id>/stream` — Ask a streaming Clipchat question via server-sent events
+
+Clipchat model responses are requested as a strict JSON object with this shape:
+
+```json
+{
+  "answer": "**The speaker discusses the topic at [159].**"
+}
+```
+
+Clipchat sends the transcript to the model together with the user query. For shorter transcripts, it uses a single LLM call. For larger transcripts, it processes the transcript in sequential chunks, collects per-chunk findings, and then runs a final synthesis call so long-video questions keep their continuity instead of trimming away context. When the model cites a video moment, it uses raw seconds in square brackets such as `[159]` or `[6238]`. The frontend formats those seconds into `mm:ss` or `hh:mm:ss` for display.
 
 ---
 

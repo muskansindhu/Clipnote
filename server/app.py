@@ -3,15 +3,18 @@ import uuid
 import psycopg
 import jwt
 from datetime import datetime, timedelta, timezone
+from typing import Any, Iterator
 
 from flask import (
     Flask,
+    Response,
     request,
     jsonify,
     render_template,
     url_for,
     make_response,
     redirect,
+    stream_with_context,
 )
 from flask_cors import CORS
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -24,6 +27,7 @@ from config import (
     GOOGLE_CLIENT_SECRET,
     GOOGLE_DISCOVERY_URL,
 )
+from clipchat import answer_clipchat_question
 from utils import (
     get_video_transcription_apify,
     summarize_video,
@@ -51,6 +55,65 @@ oauth.register(
     server_metadata_url=GOOGLE_DISCOVERY_URL,
     client_kwargs={"scope": "openid email profile"},
 )
+
+
+def _get_clipchat_context(video_yt_id: str, user_id: str) -> dict[str, Any] | None:
+    with psycopg.connect(SUPABASE_CONNECTION_STRING) as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT id, video_url, video_title, fav, video_summary
+                FROM video
+                WHERE id = %s AND user_id = %s
+                """,
+                (video_yt_id, user_id),
+            )
+            video = cur.fetchone()
+
+            if not video:
+                return None
+
+            cur.execute(
+                """
+                SELECT id, video_timestamp, note, note_source
+                FROM notes
+                WHERE video_id = %s AND user_id = %s
+                ORDER BY created_at ASC
+                """,
+                (video_yt_id, user_id),
+            )
+            notes = cur.fetchall()
+
+    return {
+        "video_id": video[0],
+        "video_url": video[1],
+        "video_title": video[2],
+        "fav": video[3],
+        "video_summary": video[4],
+        "notes": [
+            {
+                "id": note[0],
+                "video_timestamp": note[1],
+                "note": note[2],
+                "note_source": note[3],
+            }
+            for note in notes
+        ],
+    }
+
+
+def _stream_clipchat_payload(
+    clipchat_response: dict[str, Any]
+) -> Iterator[str]:
+    answer = str(clipchat_response.get("answer", ""))
+    chunk_size = 28
+
+    for index in range(0, len(answer), chunk_size):
+        chunk = answer[index : index + chunk_size]
+        yield f"event: chunk\ndata: {json.dumps({'delta': chunk})}\n\n"
+
+    done_payload = json.dumps({"answer": answer})
+    yield f"event: done\ndata: {done_payload}\n\n"
 
 
 @app.route("/", methods=["GET"])
@@ -199,6 +262,102 @@ def dashboard():
 @app.route("/profile", methods=["GET"])
 def profile():
     return render_template("profile.html")
+
+
+@app.route("/clipchat/<video_yt_id>", methods=["GET"])
+def get_clipchat_page(video_yt_id: str):
+    return render_template("clipchat.html")
+
+
+@app.route("/clipchat/<video_yt_id>/context", methods=["GET"])
+@require_auth
+def get_clipchat_context(video_yt_id: str):
+    clipchat_context = _get_clipchat_context(video_yt_id, request.user)
+    if not clipchat_context:
+        return jsonify({"message": "Video not found"}), 404
+
+    return jsonify(clipchat_context), 200
+
+
+@app.route("/clipchat/<video_yt_id>/ask", methods=["POST"])
+@require_auth
+def ask_clipchat(video_yt_id: str):
+    data = request.get_json(silent=True) or {}
+    question = str(data.get("question", "")).strip()
+
+    if not question:
+        return jsonify({"message": "Question is required"}), 400
+
+    clipchat_context = _get_clipchat_context(video_yt_id, request.user)
+    if not clipchat_context:
+        return jsonify({"message": "Video not found"}), 404
+
+    transcript = get_object_from_s3(video_yt_id, S3_BUCKET)
+    if not transcript or not isinstance(transcript, list):
+        transcript = get_video_transcription_apify(video_yt_id)
+        if isinstance(transcript, list) and transcript:
+            put_object_to_s3(video_yt_id, S3_BUCKET, transcript)
+
+    if not transcript or not isinstance(transcript, list):
+        return jsonify({"message": "Transcript not available for this video"}), 404
+
+    try:
+        clipchat_response = answer_clipchat_question(
+            video_title=str(clipchat_context["video_title"] or "Untitled Video"),
+            video_summary=clipchat_context["video_summary"],
+            transcript=transcript,
+            notes=clipchat_context["notes"],
+            question=question,
+        )
+    except Exception:
+        app.logger.exception("Clipchat ask failed for video %s", video_yt_id)
+        return jsonify({"message": "Clipchat could not answer right now"}), 502
+
+    return jsonify(clipchat_response), 200
+
+
+@app.route("/clipchat/<video_yt_id>/stream", methods=["POST"])
+@require_auth
+def stream_clipchat(video_yt_id: str):
+    data = request.get_json(silent=True) or {}
+    question = str(data.get("question", "")).strip()
+
+    if not question:
+        return jsonify({"message": "Question is required"}), 400
+
+    clipchat_context = _get_clipchat_context(video_yt_id, request.user)
+    if not clipchat_context:
+        return jsonify({"message": "Video not found"}), 404
+
+    transcript = get_object_from_s3(video_yt_id, S3_BUCKET)
+    if not transcript or not isinstance(transcript, list):
+        transcript = get_video_transcription_apify(video_yt_id)
+        if isinstance(transcript, list) and transcript:
+            put_object_to_s3(video_yt_id, S3_BUCKET, transcript)
+
+    if not transcript or not isinstance(transcript, list):
+        return jsonify({"message": "Transcript not available for this video"}), 404
+
+    try:
+        clipchat_response = answer_clipchat_question(
+            video_title=str(clipchat_context["video_title"] or "Untitled Video"),
+            video_summary=clipchat_context["video_summary"],
+            transcript=transcript,
+            notes=clipchat_context["notes"],
+            question=question,
+        )
+    except Exception:
+        app.logger.exception("Clipchat stream failed for video %s", video_yt_id)
+        return jsonify({"message": "Clipchat could not answer right now"}), 502
+
+    return Response(
+        stream_with_context(_stream_clipchat_payload(clipchat_response)),
+        mimetype="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "X-Accel-Buffering": "no",
+        },
+    )
 
 
 @app.route("/user-status", methods=["GET"])

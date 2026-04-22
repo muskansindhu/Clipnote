@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Clipnote - Clipchat</title>
+    <link
+      rel="icon"
+      type="image/svg+xml"
+      href="/static/assets/clipnote-logo-dark.svg"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link href="/static/css/style.css" rel="stylesheet" />
+    <script src="https://unpkg.com/lucide@latest"></script>
+  </head>
+
+  <body>
+    <div class="navbar">
+      <a href="/" class="navbar-brand">
+        <img
+          src="/static/assets/clipnote-logo-dark.svg"
+          data-dark="/static/assets/clipnote-logo-dark.svg"
+          data-light="/static/assets/clipnote-logo-light.svg"
+          alt="Clipnote Logo"
+          class="logo"
+          id="clipnote-logo"
+          data-theme-switchable="true"
+        />
+        <h1>Clipnote</h1>
+      </a>
+      <div class="navbar-actions">
+        <button
+          id="dashboard-btn"
+          class="dashboard-btn"
+          style="display: none"
+          title="Dashboard"
+        >
+          <i data-lucide="layout-grid"></i>
+        </button>
+        <div class="profile-wrapper">
+          <div
+            id="profile-icon-placeholder"
+            class="profile-btn"
+            style="display: none"
+            title="Profile"
+          >
+            <i data-lucide="user" style="width: 18px; height: 18px"></i>
+          </div>
+          <div class="profile-dropdown" id="profile-dropdown">
+            <div
+              class="dropdown-guest-info"
+              id="dropdown-guest-info"
+              style="display: none"
+            ></div>
+            <button class="dropdown-item" id="manage-profile-btn">
+              <i data-lucide="settings"></i> Manage Profile
+            </button>
+            <button class="dropdown-item" id="logout-trigger-btn">
+              <i data-lucide="log-out"></i> Log Out
+            </button>
+          </div>
+        </div>
+        <button
+          id="theme-toggle-btn"
+          class="theme-toggle-btn"
+          title="Toggle Theme"
+        >
+          <i data-lucide="sun" style="width: 20px; height: 20px"></i>
+        </button>
+      </div>
+    </div>
+
+    <main class="main-content dashboard-main">
+      <header class="page-header">
+        <div class="page-title-group">
+          <span class="section-eyebrow">Clipchat</span>
+          <p class="page-subtitle">
+            Ask about key ideas, moments, or exact timestamps from the
+            transcript.
+          </p>
+        </div>
+        <div class="page-header-actions">
+          <a id="back-to-note-btn" href="#" class="btn btn-secondary btn-small"
+            >Back to Note</a
+          >
+        </div>
+      </header>
+
+      <div class="clipchat-layout">
+        <aside class="clipchat-sidebar">
+          <div class="clipchat-sidebar-card clipchat-video-card">
+            <div class="clipchat-thumbnail-wrapper">
+              <img
+                id="clipchat-thumbnail"
+                src=""
+                alt="Video thumbnail"
+                class="clipchat-thumbnail"
+              />
+            </div>
+            <div class="clipchat-video-meta">
+              <div class="clipchat-video-title-row">
+                <h3 id="clipchat-video-title">Loading video...</h3>
+                <a
+                  id="clipchat-video-link"
+                  class="clipchat-video-link-icon"
+                  href="#"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Open video in new tab"
+                  title="Open video in new tab"
+                >
+                  <i data-lucide="arrow-up-right"></i>
+                </a>
+              </div>
+              <div class="clipchat-summary-details">
+                <div class="clipchat-summary-label">Summary</div>
+                <p id="clipchat-summary" class="clipchat-summary-copy">
+                  Loading the saved summary for this video...
+                </p>
+              </div>
+            </div>
+          </div>
+        </aside>
+
+        <section class="clipchat-panel">
+          <div class="clipchat-panel-shell">
+            <div class="clipchat-panel-topbar">
+              <div class="clipchat-panel-brand">
+                <span class="clipchat-panel-icon">
+                  <i data-lucide="messages-square"></i>
+                </span>
+                <span>Clipchat</span>
+              </div>
+            </div>
+
+            <div id="clipchat-empty-state" class="clipchat-empty-state">
+              <div class="clipchat-empty-icon">
+                <i data-lucide="messages-square"></i>
+              </div>
+              <h3>Ready to chat!</h3>
+              <p class="clipchat-empty-copy">
+                Ask anything about this video and get clickable timestamp
+                citations.
+              </p>
+              <div
+                id="clipchat-default-questions"
+                class="clipchat-default-questions"
+              ></div>
+            </div>
+
+            <div
+              id="clipchat-thread"
+              class="clipchat-thread"
+              style="display: none"
+            ></div>
+          </div>
+
+          <form id="clipchat-form" class="clipchat-form">
+            <div class="clipchat-composer">
+              <input
+                id="clipchat-input"
+                type="text"
+                placeholder="Ask about this video..."
+              />
+              <button
+                type="submit"
+                id="clipchat-submit"
+                class="clipchat-send-btn"
+                aria-label="Send message"
+              >
+                <i data-lucide="send"></i>
+              </button>
+            </div>
+          </form>
+        </section>
+      </div>
+    </main>
+
+    <div id="logout-modal" class="modal-overlay">
+      <div class="modal-confirm">
+        <h3>Log Out</h3>
+        <p>Are you sure you want to sign out?</p>
+        <div class="btn-group">
+          <button class="btn btn-cancel" id="cancel-logout">Cancel</button>
+          <button class="btn btn-danger" id="confirm-logout">Log Out</button>
+        </div>
+      </div>
+    </div>
+
+    <footer class="footer">
+      <div class="footer-content">
+        <p>&copy; 2026 Clipnote. Built for better learning.</p>
+      </div>
+    </footer>
+    <script src="/static/js/clipchat.js"></script>
+  </body>
+</html>

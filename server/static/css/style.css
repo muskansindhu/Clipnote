@@ -2479,3 +2479,754 @@ img.action-item-icon {
   color: var(--text-muted);
   line-height: 1.6;
 }
+
+.page-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.btn-with-icon svg {
+  width: 16px;
+  height: 16px;
+}
+
+.clipchat-layout {
+  display: grid;
+  grid-template-columns: minmax(320px, 380px) minmax(0, 1fr);
+  gap: 24px;
+  align-items: start;
+}
+
+.clipchat-sidebar,
+.clipchat-panel {
+  display: grid;
+  gap: 24px;
+}
+
+.clipchat-sidebar-card,
+.clipchat-panel {
+  background: var(--surface-1);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-soft);
+}
+
+.clipchat-sidebar-card {
+  padding: 24px;
+}
+
+.clipchat-thumbnail-wrapper {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  margin-bottom: 20px;
+}
+
+.clipchat-thumbnail {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.clipchat-video-meta {
+  display: grid;
+  gap: 10px;
+}
+
+.clipchat-video-meta h3 {
+  font-size: 1.35rem;
+}
+
+.clipchat-video-link {
+  color: var(--accent-primary);
+  font-weight: 600;
+}
+
+.clipchat-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.clipchat-stat-card {
+  padding: 16px;
+  border-radius: var(--radius-md);
+  background: var(--surface-2);
+  border: 1px solid var(--border-subtle);
+  display: grid;
+  gap: 6px;
+}
+
+.clipchat-stat-label {
+  color: var(--text-subtle);
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.clipchat-stat-card strong {
+  font-size: 1rem;
+  color: var(--text-main);
+}
+
+.clipchat-summary-copy {
+  margin: 0;
+  color: var(--text-muted);
+  line-height: 1.7;
+}
+
+.clipchat-default-questions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.clipchat-question-chip {
+  padding: 10px 14px;
+  border-radius: var(--radius-pill);
+  border: 1px solid hsla(var(--accent-h), var(--accent-s), var(--accent-l), 0.25);
+  background: hsla(var(--accent-h), var(--accent-s), var(--accent-l), 0.08);
+  color: var(--text-main);
+  cursor: pointer;
+  transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+  font-size: 0.9rem;
+}
+
+.clipchat-question-chip:hover {
+  transform: translateY(-1px);
+  border-color: hsla(var(--accent-h), var(--accent-s), var(--accent-l), 0.45);
+  background: hsla(var(--accent-h), var(--accent-s), var(--accent-l), 0.14);
+}
+
+.clipchat-panel {
+  padding: 24px;
+  min-height: 720px;
+}
+
+.clipchat-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 18px;
+  margin-bottom: 24px;
+}
+
+.clipchat-panel-header h3 {
+  font-size: 1.4rem;
+  margin-top: 6px;
+}
+
+.clipchat-helper {
+  max-width: 280px;
+  color: var(--text-subtle);
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+.clipchat-thread {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 4px 4px 4px 0;
+  overflow-y: auto;
+  min-height: 420px;
+  max-height: 520px;
+}
+
+.clipchat-message {
+  display: grid;
+  gap: 8px;
+}
+
+.clipchat-message.user {
+  justify-items: end;
+}
+
+.clipchat-message.assistant {
+  justify-items: start;
+}
+
+.clipchat-message-badge {
+  font-size: 0.78rem;
+  color: var(--text-subtle);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.clipchat-bubble {
+  width: min(100%, 720px);
+  padding: 16px 18px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-subtle);
+  background: var(--surface-2);
+  display: grid;
+  gap: 14px;
+}
+
+.clipchat-message.user .clipchat-bubble {
+  background: hsla(var(--accent-h), var(--accent-s), var(--accent-l), 0.12);
+  border-color: hsla(var(--accent-h), var(--accent-s), var(--accent-l), 0.28);
+}
+
+.clipchat-message-answer {
+  color: var(--text-main);
+  line-height: 1.7;
+  white-space: pre-wrap;
+}
+
+.clipchat-citations {
+  display: grid;
+  gap: 10px;
+}
+
+.clipchat-citation {
+  display: grid;
+  gap: 4px;
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  background: var(--surface-1);
+  border: 1px solid var(--border-subtle);
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.clipchat-citation:hover {
+  transform: translateY(-1px);
+  border-color: hsla(var(--accent-h), var(--accent-s), var(--accent-l), 0.38);
+}
+
+.clipchat-citation-time {
+  color: var(--accent-primary);
+  font-weight: 700;
+}
+
+.clipchat-citation-copy {
+  color: var(--text-muted);
+  font-size: 0.92rem;
+  line-height: 1.55;
+}
+
+.clipchat-form {
+  margin-top: auto;
+  padding-top: 24px;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.clipchat-input-label {
+  display: block;
+  margin-bottom: 12px;
+  color: var(--text-subtle);
+  font-size: 0.9rem;
+}
+
+.clipchat-composer {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 14px;
+  align-items: end;
+}
+
+.clipchat-composer textarea {
+  width: 100%;
+  min-height: 110px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-subtle);
+  background: var(--surface-2);
+  color: var(--text-main);
+  padding: 14px 16px;
+  font-size: 1rem;
+  resize: vertical;
+}
+
+.clipchat-composer textarea:focus {
+  outline: none;
+  border-color: hsla(var(--accent-h), var(--accent-s), var(--accent-l), 0.6);
+  box-shadow: 0 0 0 3px hsla(var(--accent-h), var(--accent-s), var(--accent-l), 0.15);
+}
+
+.clipchat-composer .btn {
+  min-width: 140px;
+}
+
+@media (max-width: 1080px) {
+  .clipchat-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .clipchat-panel {
+    min-height: auto;
+  }
+}
+
+@media (max-width: 720px) {
+  .clipchat-panel-header {
+    flex-direction: column;
+  }
+
+  .clipchat-helper {
+    max-width: none;
+  }
+
+  .clipchat-composer {
+    grid-template-columns: 1fr;
+  }
+
+  .clipchat-thread {
+    max-height: none;
+  }
+}
+
+.clipchat-video-title-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: start;
+}
+
+.clipchat-video-link-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: var(--radius-pill);
+  border: 0;
+  background: transparent;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.clipchat-video-link-icon:hover {
+  background: hsla(var(--accent-h), var(--accent-s), var(--accent-l), 0.12);
+}
+
+.clipchat-video-link-icon .lucide {
+  width: 16px;
+  height: 16px;
+}
+
+.clipchat-summary-details {
+  margin-top: 0;
+}
+
+.clipchat-panel {
+  align-content: start;
+}
+
+.clipchat-empty-state {
+  display: grid;
+  gap: 14px;
+}
+
+.clipchat-empty-state h3 {
+  font-size: 1.35rem;
+  margin: 0;
+}
+
+.clipchat-empty-copy {
+  margin: 0;
+  color: var(--text-muted);
+}
+
+.clipchat-default-questions {
+  margin-top: 4px;
+}
+
+.clipchat-thread {
+  padding-top: 6px;
+}
+
+.clipchat-bubble {
+  width: min(100%, 760px);
+}
+
+.clipchat-inline-link {
+  color: var(--accent-primary);
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* Clipchat UI refresh */
+.clipchat-layout {
+  grid-template-columns: minmax(340px, 430px) minmax(0, 1fr);
+  gap: 28px;
+  align-items: stretch;
+}
+
+.clipchat-sidebar {
+  display: block;
+}
+
+.clipchat-video-card {
+  padding: 16px;
+}
+
+.clipchat-thumbnail-wrapper {
+  margin-bottom: 16px;
+  aspect-ratio: 16 / 10;
+}
+
+.clipchat-video-meta {
+  gap: 14px;
+}
+
+.clipchat-video-title-row {
+  gap: 14px;
+  align-items: center;
+}
+
+.clipchat-video-meta h3 {
+  font-size: 1.7rem;
+  line-height: 1.25;
+}
+
+.clipchat-summary-details {
+  min-height: 0;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 10px;
+}
+
+.clipchat-summary-label {
+  color: var(--accent-primary);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.clipchat-summary-copy {
+  margin-top: 12px;
+  font-size: 0.98rem;
+  line-height: 1.75;
+  color: var(--text-muted);
+  max-height: 180px;
+  overflow-y: auto;
+  padding-right: 6px;
+}
+
+.clipchat-panel {
+  padding: 0;
+  min-height: 700px;
+  overflow: hidden;
+  display: grid;
+  grid-template-rows: 1fr auto;
+}
+
+.clipchat-panel-shell {
+  min-height: 0;
+  display: grid;
+  grid-template-rows: auto 1fr;
+}
+
+.clipchat-panel-topbar {
+  display: flex;
+  align-items: center;
+  padding: 18px 22px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.clipchat-panel-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.clipchat-panel-icon,
+.clipchat-empty-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(124, 92, 255, 0.14);
+  border: 1px solid rgba(124, 92, 255, 0.2);
+}
+
+.clipchat-panel-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 14px;
+}
+
+.clipchat-panel-icon .lucide,
+.clipchat-empty-icon .lucide {
+  width: 20px;
+  height: 20px;
+  color: var(--accent-primary);
+}
+
+.clipchat-empty-state {
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 48px 36px 32px;
+  gap: 18px;
+}
+
+.clipchat-empty-state h3 {
+  font-size: 1.1rem;
+  margin: 0;
+}
+
+.clipchat-empty-copy {
+  max-width: 420px;
+  font-size: 0.98rem;
+  line-height: 1.7;
+}
+
+.clipchat-default-questions {
+  justify-content: center;
+  max-width: 560px;
+}
+
+.clipchat-question-chip {
+  padding: 12px 16px;
+  background: var(--surface-2);
+  border-color: var(--border-subtle);
+}
+
+.clipchat-question-chip:hover {
+  background: hsla(var(--accent-h), var(--accent-s), var(--accent-l), 0.12);
+}
+
+.clipchat-thread {
+  min-height: 0;
+  max-height: none;
+  overflow-y: auto;
+  padding: 24px 22px;
+  gap: 16px;
+}
+
+.clipchat-message {
+  width: 100%;
+}
+
+.clipchat-bubble {
+  width: min(100%, 760px);
+  box-shadow: none;
+}
+
+.clipchat-message.assistant .clipchat-bubble {
+  background: transparent;
+  border: none;
+  padding: 0;
+}
+
+.clipchat-message.user .clipchat-bubble {
+  max-width: 78%;
+  justify-self: end;
+  background: rgba(124, 92, 255, 0.12);
+  border-color: rgba(124, 92, 255, 0.18);
+}
+
+.clipchat-message-answer {
+  font-size: 1rem;
+  line-height: 1.8;
+}
+
+.clipchat-form {
+  margin-top: 0;
+  padding: 18px 22px 22px;
+  border-top: 1px solid var(--border-subtle);
+  background: rgba(10, 10, 12, 0.72);
+}
+
+.clipchat-composer {
+  grid-template-columns: minmax(0, 1fr) 60px;
+  gap: 14px;
+  align-items: center;
+}
+
+.clipchat-composer input {
+  width: 100%;
+  height: 60px;
+  border-radius: 20px;
+  border: 1px solid var(--border-subtle);
+  background: var(--surface-2);
+  color: var(--text-main);
+  padding: 0 22px;
+  font-size: 1rem;
+}
+
+.clipchat-composer input::placeholder {
+  color: var(--text-subtle);
+}
+
+.clipchat-composer input:focus {
+  outline: none;
+  border-color: hsla(var(--accent-h), var(--accent-s), var(--accent-l), 0.55);
+  box-shadow: 0 0 0 3px hsla(var(--accent-h), var(--accent-s), var(--accent-l), 0.12);
+}
+
+.clipchat-send-btn {
+  width: 60px;
+  height: 60px;
+  border-radius: 20px;
+  background: var(--accent-primary);
+  color: var(--bg-primary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.clipchat-send-btn:hover {
+  transform: translateY(-1px);
+}
+
+.clipchat-send-btn:disabled {
+  opacity: 0.65;
+  cursor: wait;
+}
+
+.clipchat-send-btn .lucide {
+  width: 20px;
+  height: 20px;
+  color: var(--bg-primary);
+}
+
+.clipchat-inline-link {
+  font-weight: 600;
+}
+
+@media (max-width: 1080px) {
+  .clipchat-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .clipchat-panel {
+    min-height: 640px;
+  }
+}
+
+@media (max-width: 720px) {
+  .clipchat-empty-state {
+    padding: 36px 20px 24px;
+  }
+
+  .clipchat-thread {
+    padding: 18px 16px;
+  }
+
+  .clipchat-form {
+    padding: 14px 16px 16px;
+  }
+
+  .clipchat-composer {
+    grid-template-columns: minmax(0, 1fr) 52px;
+    gap: 10px;
+  }
+
+  .clipchat-composer input,
+  .clipchat-send-btn {
+    height: 52px;
+    border-radius: 18px;
+  }
+}
+
+/* Clipchat polish */
+.clipchat-layout {
+  align-items: stretch;
+}
+
+.clipchat-video-card,
+.clipchat-panel {
+  height: clamp(620px, 74vh, 760px);
+}
+
+.clipchat-video-card {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  overflow: hidden;
+}
+
+.clipchat-video-meta {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  min-height: 0;
+}
+
+.clipchat-summary-details {
+  min-height: 0;
+}
+
+.clipchat-summary-copy {
+  margin-top: 10px;
+  max-height: none;
+  height: calc(100% - 32px);
+}
+
+.clipchat-panel-shell {
+  min-height: 0;
+  grid-template-rows: auto minmax(0, 1fr);
+}
+
+.clipchat-empty-state,
+.clipchat-thread {
+  min-height: 0;
+}
+
+.clipchat-thread {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.clipchat-bubble {
+  max-width: 100%;
+}
+
+.clipchat-typing {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 0;
+}
+
+.clipchat-typing span {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: hsla(var(--accent-h), var(--accent-s), var(--accent-l), 0.9);
+  opacity: 0.35;
+  animation: clipchatTyping 1s infinite ease-in-out;
+}
+
+.clipchat-typing span:nth-child(2) {
+  animation-delay: 0.15s;
+}
+
+.clipchat-typing span:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+@keyframes clipchatTyping {
+  0%, 80%, 100% {
+    transform: scale(0.9);
+    opacity: 0.3;
+  }
+
+  40% {
+    transform: scale(1.15);
+    opacity: 1;
+  }
+}
+
+@media (max-width: 1080px) {
+  .clipchat-video-card,
+  .clipchat-panel {
+    height: auto;
+    min-height: 620px;
+  }
+}

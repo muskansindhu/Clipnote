@@ -4,6 +4,11 @@ document.addEventListener("DOMContentLoaded", function () {
 
   const videoId = window.location.href.split("/").pop();
   const token = localStorage.getItem("clipnote_token");
+  const clipchatBtn = document.getElementById("clipchat-btn");
+
+  if (clipchatBtn) {
+    clipchatBtn.href = `/clipchat/${videoId}`;
+  }
 
   fetch(`/note/${videoId}`, {
     headers: {
