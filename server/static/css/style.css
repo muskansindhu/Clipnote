@@ -1035,6 +1035,10 @@ body.light-mode .logo {
   padding-bottom: 80px;
 }
 
+.dashboard-main.clipchat-main {
+  position: relative;
+}
+
 .page-header {
   display: flex;
   align-items: center;
@@ -2857,6 +2861,45 @@ img.action-item-icon {
   align-items: stretch;
 }
 
+.clipchat-setup-card {
+  margin-bottom: 20px;
+  padding: 20px;
+  gap: 18px;
+}
+
+.clipchat-setup-card h3 {
+  margin: 10px 0 8px;
+  font-size: 1.35rem;
+}
+
+.clipchat-setup-copy {
+  margin: 0;
+  color: var(--text-muted);
+  line-height: 1.7;
+}
+
+.clipchat-video-form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+}
+
+.clipchat-video-form input {
+  min-height: 52px;
+  border-radius: 16px;
+  border: 1px solid var(--border-subtle);
+  background: var(--surface-2);
+  color: var(--text-main);
+  padding: 0 16px;
+  font-size: 0.98rem;
+}
+
+.clipchat-video-form input:focus {
+  outline: none;
+  border-color: hsla(var(--accent-h), var(--accent-s), var(--accent-l), 0.55);
+  box-shadow: 0 0 0 3px hsla(var(--accent-h), var(--accent-s), var(--accent-l), 0.12);
+}
+
 .clipchat-sidebar {
   display: block;
 }
@@ -2868,10 +2911,47 @@ img.action-item-icon {
 .clipchat-thumbnail-wrapper {
   margin-bottom: 16px;
   aspect-ratio: 16 / 10;
+  position: relative;
+  overflow: hidden;
+  background: var(--surface-2);
 }
 
 .clipchat-video-meta {
   gap: 14px;
+}
+
+.clipchat-thumbnail-loader {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.04), rgba(124, 92, 255, 0.08));
+  z-index: 1;
+}
+
+.clipchat-thumbnail-spinner {
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  border: 3px solid rgba(255, 255, 255, 0.18);
+  border-top-color: var(--accent-primary);
+  animation: clipchatThumbnailSpin 0.9s linear infinite;
+}
+
+.clipchat-thumbnail {
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.clipchat-thumbnail.is-loaded {
+  opacity: 1;
+}
+
+@keyframes clipchatThumbnailSpin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .clipchat-video-title-row {
@@ -3112,6 +3192,10 @@ img.action-item-icon {
 }
 
 @media (max-width: 720px) {
+  .clipchat-video-form {
+    grid-template-columns: 1fr;
+  }
+
   .clipchat-empty-state {
     padding: 36px 20px 24px;
   }

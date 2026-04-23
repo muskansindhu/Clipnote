@@ -8,6 +8,7 @@ from urllib.parse import parse_qs, urlparse
 
 import boto3
 import jwt
+import requests
 from apify_client import ApifyClient
 from botocore.exceptions import ClientError
 from flask import jsonify, request
@@ -119,6 +120,38 @@ def extract_video_id(url: str) -> str | None:
     return query_params.get("v", [None])[0]
 
 
+def fetch_youtube_video_metadata(video_id: str) -> dict[str, str] | None:
+    """Fetch lightweight public metadata for a YouTube video."""
+    try:
+        response = requests.get(
+            "https://www.youtube.com/oembed",
+            params={
+                "url": f"https://www.youtube.com/watch?v={video_id}",
+                "format": "json",
+            },
+            timeout=4,
+        )
+        response.raise_for_status()
+        payload = response.json()
+    except requests.RequestException:
+        logging.exception("Failed to fetch metadata for video %s", video_id)
+        return None
+    except ValueError:
+        logging.exception("Invalid metadata payload for video %s", video_id)
+        return None
+
+    title = str(payload.get("title", "")).strip()
+    author_name = str(payload.get("author_name", "")).strip()
+
+    metadata = {
+        "video_url": f"https://www.youtube.com/watch?v={video_id}",
+        "video_title": title or "YouTube video",
+    }
+    if author_name:
+        metadata["author_name"] = author_name
+    return metadata
+
+
 def extract_transcript_snippet(
     transcript: list[dict[str, Any]],
     center_timestamp: float,
@@ -184,6 +217,23 @@ def require_auth(f: F) -> F:
     return cast(F, decorated)
 
 
+def require_registered_user(f: F) -> F:
+    """Allow access only to authenticated non-guest accounts."""
+
+    @require_auth
+    @wraps(f)
+    def decorated(*args: Any, **kwargs: Any) -> Any:
+        if str(getattr(request, "user", "")).startswith("guest_"):
+            return jsonify(
+                {
+                    "message": "Create an account to take notes, use the dashboard, and save videos."
+                }
+            ), 403
+        return f(*args, **kwargs)
+
+    return cast(F, decorated)
+
+
 def _request_text_completion(
     *,
     request_name: str,
@@ -204,5 +254,3 @@ def _request_text_completion(
     )
     raw_content = (response.choices[0].message.content or "").strip()
     return raw_content
-
-

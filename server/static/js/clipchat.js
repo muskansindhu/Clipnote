@@ -7,33 +7,55 @@ const DEFAULT_CLIPCHAT_QUESTIONS = [
 document.addEventListener("DOMContentLoaded", function () {
   insertDashboardIconIfLoggedIn();
   setupThemeToggle();
+  setupClipchatLimitModal();
   if (window.lucide) lucide.createIcons();
 
-  const token = localStorage.getItem("clipnote_token");
+  let token = localStorage.getItem("clipnote_token");
   if (!token) {
     window.location.href = "/login";
     return;
   }
 
-  const videoId = window.location.pathname.split("/").filter(Boolean).pop();
-  if (!videoId) return;
-
+  const isGuest = isGuestAccessToken(token);
+  let videoId = getClipchatVideoIdFromLocation();
   const backToNoteBtn = document.getElementById("back-to-note-btn");
   const form = document.getElementById("clipchat-form");
   const input = document.getElementById("clipchat-input");
   const submitButton = document.getElementById("clipchat-submit");
   const thread = document.getElementById("clipchat-thread");
   const emptyState = document.getElementById("clipchat-empty-state");
+  const layout = document.getElementById("clipchat-layout");
+  const setupCard = document.getElementById("clipchat-setup-card");
+  const setupForm = document.getElementById("clipchat-video-form");
+  const setupInput = document.getElementById("clipchat-video-url");
   const defaultQuestionsContainer = document.getElementById(
     "clipchat-default-questions",
   );
+  const limitModal = document.getElementById("clipchat-limit-modal");
+  const limitModalCopy = document.getElementById("clipchat-limit-copy");
+
+  if (!videoId && !isGuest) {
+    window.location.href = "/dashboard";
+    return;
+  }
+
+  const pageSubtitleElem = document.getElementById("clipchat-page-subtitle");
+  if (pageSubtitleElem) {
+    pageSubtitleElem.textContent = isGuest
+      ? "Ask about key ideas, moments, or exact timestamps from the transcript. Create an account to save notes and unlock the dashboard."
+      : "Ask about key ideas, moments, or exact timestamps from the transcript.";
+  }
+
+  const emptyCopyElem = document.getElementById("clipchat-empty-copy");
+  if (emptyCopyElem) {
+    emptyCopyElem.textContent = isGuest
+      ? "Ask about key ideas, moments, or exact timestamps from the transcript. Create an account to save notes and unlock the dashboard."
+      : "Ask about key ideas, moments, or exact timestamps from the transcript.";
+  }
 
   let videoContext = null;
   let conversationStarted = false;
-
-  if (backToNoteBtn) {
-    backToNoteBtn.href = `/${videoId}`;
-  }
+  let hasShownLimitModal = false;
 
   renderDefaultQuestions(
     defaultQuestionsContainer,
@@ -41,25 +63,12 @@ document.addEventListener("DOMContentLoaded", function () {
     handleQuestionSubmit,
   );
 
-  fetch(`/clipchat/${videoId}/context`, {
-    headers: {
-      Authorization: "Bearer " + token,
-      "Content-Type": "application/json",
-    },
-  })
-    .then((response) => {
-      if (!response.ok) throw new Error("Failed to load Clipchat context.");
-      return response.json();
-    })
-    .then((data) => {
-      videoContext = data;
-      renderVideoContext(videoId, data);
-      if (window.lucide) lucide.createIcons();
-    })
-    .catch((error) => {
-      setEmptyStateCopy("I could not load this video's details right now.");
-      console.error("Clipchat context error:", error);
-    });
+  syncPageState();
+
+  if (videoId) {
+    initialiseThumbnail(videoId);
+    loadClipchatContext(videoId);
+  }
 
   if (form && input) {
     form.addEventListener("submit", (event) => {
@@ -75,9 +84,29 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
+  if (setupForm && setupInput) {
+    setupForm.addEventListener("submit", (event) => {
+      event.preventDefault();
+      const nextVideoId = extractYouTubeVideoId(setupInput.value);
+      if (!nextVideoId) {
+        setEmptyStateCopy("Paste a valid YouTube watch URL to start Clipchat.");
+        return;
+      }
+
+      videoId = nextVideoId;
+      setupInput.value = "";
+      window.history.replaceState({}, "", `/clipchat/${videoId}`);
+      syncPageState();
+      initialiseThumbnail(videoId);
+      loadClipchatContext(videoId);
+    });
+  }
+
   async function handleQuestionSubmit(rawQuestion) {
     const question = String(rawQuestion || "").trim();
-    if (!question || !thread || !input || !submitButton) return;
+    if (!question || !thread || !input || !submitButton || !videoId) return;
+    let nextTrialState = null;
+    let nextTrialOptions = {};
 
     startConversation();
     appendUserMessage(question);
@@ -96,6 +125,8 @@ document.addEventListener("DOMContentLoaded", function () {
         body: JSON.stringify({ question }),
       });
 
+      persistUpdatedToken(response.headers);
+
       if (!response.ok || !response.body) {
         const body = await response.json().catch(() => ({}));
         typingElement.remove();
@@ -105,10 +136,16 @@ document.addEventListener("DOMContentLoaded", function () {
           body.message || "Clipchat could not answer that just now.",
           "#",
         );
+        nextTrialState = body.trial;
+        nextTrialOptions = {
+          lockComposer: response.status === 403,
+          message: body.message,
+        };
         return;
       }
 
       await streamAssistantAnswer(response.body, answerElement, typingElement);
+      nextTrialState = readTrialStateFromHeaders(response.headers);
     } catch (error) {
       typingElement.remove();
       answerElement.style.display = "block";
@@ -120,6 +157,7 @@ document.addEventListener("DOMContentLoaded", function () {
       console.error("Clipchat stream error:", error);
     } finally {
       setComposerLoading(false);
+      applyTrialState(nextTrialState, nextTrialOptions);
     }
   }
 
@@ -139,11 +177,209 @@ document.addEventListener("DOMContentLoaded", function () {
     if (window.lucide) lucide.createIcons();
   }
 
+  function syncPageState() {
+    const hasVideo = Boolean(videoId);
+
+    if (setupCard) {
+      setupCard.style.display = !isGuest || hasVideo ? "none" : "grid";
+    }
+
+    if (layout) {
+      layout.style.display = hasVideo ? "grid" : "none";
+    }
+
+    if (backToNoteBtn) {
+      if (!hasVideo || isGuest) {
+        backToNoteBtn.style.display = "none";
+      } else {
+        backToNoteBtn.style.display = "inline-flex";
+        backToNoteBtn.href = `/${videoId}`;
+      }
+    }
+
+    if (!hasVideo) {
+      setEmptyStateCopy(
+        "Paste a YouTube URL above to start chatting with a video.",
+      );
+      setComposerAvailability(
+        false,
+        "Paste a YouTube URL to start Clipchat...",
+      );
+    } else {
+      setComposerAvailability(false, "Loading video details...");
+    }
+  }
+
+  async function loadClipchatContext(currentVideoId) {
+    try {
+      const response = await fetch(`/clipchat/${currentVideoId}/context`, {
+        headers: {
+          Authorization: "Bearer " + token,
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to load Clipchat context.");
+      }
+
+      const data = await response.json();
+      videoContext = data;
+      renderVideoContext(currentVideoId, data);
+      applyTrialState(data.trial);
+      if (needsAssetPreparation(data.asset_status)) {
+        setPreparationState(true);
+        await prepareClipchatAssets(currentVideoId);
+      } else {
+        setPreparationState(false);
+      }
+      if (window.lucide) lucide.createIcons();
+    } catch (error) {
+      setEmptyStateCopy("I could not load this video's details right now.");
+      console.error("Clipchat context error:", error);
+    }
+  }
+
+  async function prepareClipchatAssets(currentVideoId) {
+    try {
+      const response = await fetch(`/clipchat/${currentVideoId}/prepare`, {
+        method: "POST",
+        headers: {
+          Authorization: "Bearer " + token,
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to prepare Clipchat assets.");
+      }
+
+      const data = await response.json();
+      videoContext = data;
+      renderVideoContext(currentVideoId, data);
+      applyTrialState(data.trial);
+    } catch (error) {
+      console.error("Clipchat preparation error:", error);
+      setEmptyStateCopy(
+        "I could not finish preparing the transcript and summary for this video.",
+      );
+      setComposerAvailability(
+        false,
+        "Clipchat is still preparing this video...",
+      );
+      return;
+    }
+
+    setPreparationState(false);
+  }
+
+  function setComposerAvailability(isEnabled, placeholderText) {
+    if (!input || !submitButton) return;
+
+    input.disabled = !isEnabled;
+    submitButton.disabled = !isEnabled;
+    input.placeholder = placeholderText;
+  }
+
+  function setPreparationState(isPreparing) {
+    const titleElement = document.getElementById("clipchat-video-title");
+    const summaryElement = document.getElementById("clipchat-summary");
+
+    if (isPreparing) {
+      if (titleElement && (!videoContext || !videoContext.video_title)) {
+        titleElement.textContent = "Preparing Clipchat...";
+      }
+      if (summaryElement) {
+        summaryElement.textContent =
+          "Preparing transcript and summary for this video. This usually takes a few moments the first time.";
+      }
+      setEmptyStateCopy(
+        "Preparing transcript and summary for this video. You will be able to chat as soon as everything is ready.",
+      );
+      setComposerAvailability(
+        false,
+        "Preparing transcript and summary...",
+      );
+      return;
+    }
+
+    if (videoId && videoContext && !needsAssetPreparation(videoContext.asset_status)) {
+      const placeholderText = isGuest 
+        ? "Ask about key ideas, moments, or exact timestamps from the transcript. Create an account to save notes and unlock the dashboard." 
+        : "Ask about key ideas, moments, or exact timestamps from the transcript.";
+      setComposerAvailability(true, placeholderText);
+    }
+  }
+
+  function applyTrialState(trial, options = {}) {
+    if (!isGuest) return;
+
+    const details = trial || videoContext?.trial;
+    if (!details) return;
+
+    const videosUsed = Number(details.videos_used || 0);
+    const videoLimit = Number(details.video_limit || 1);
+    const queriesRemaining = Number(
+      details.queries_remaining_for_video ??
+        details.queries_per_video_limit ??
+        0,
+    );
+
+    if (videoContext) {
+      videoContext.trial = { ...videoContext.trial, ...details };
+    }
+
+    const queriesUsed = Number(details.queries_used_for_video || 0);
+    const hasReachedQuestionLimit = queriesRemaining <= 0;
+    const hasReachedVideoLimit = videosUsed >= videoLimit && queriesUsed === 0;
+
+    if (
+      options.lockComposer ||
+      hasReachedQuestionLimit ||
+      hasReachedVideoLimit
+    ) {
+      setComposerAvailability(
+        false,
+        "GPUs need to eat! Create an account to keep chatting.",
+      );
+
+      if (!hasShownLimitModal) {
+        const fallbackMessage = hasReachedQuestionLimit
+          ? "Beep boop! 🤖 You've used your 5 free questions for this video. GPUs need to eat too, and inference costs are adding up! Please create an account to support us."
+          : "Whoa there! You've hit your 1-video free trial limit. Our GPUs are sweating and inference ain't cheap! 😅 Create an account to support the app and keep chatting.";
+        showClipchatLimitModal(options.message || fallbackMessage);
+        hasShownLimitModal = true;
+      }
+    }
+
+    if (limitModalCopy && !hasReachedQuestionLimit && !hasReachedVideoLimit) {
+      limitModalCopy.textContent =
+        "Whoa there! You've hit your free trial limit. GPUs aren't free! 😅 Create an account to support the app and keep chatting.";
+    }
+  }
+
+  function showClipchatLimitModal(message) {
+    if (!limitModal) return;
+    if (limitModalCopy) {
+      limitModalCopy.textContent =
+        message ||
+        "Whoa there! You've hit your free trial limit. GPUs aren't free! 😅 Create an account to support the app and keep chatting.";
+    }
+    limitModal.style.display = "flex";
+  }
+
+  function persistUpdatedToken(headers) {
+    const refreshedToken = headers.get("X-Clipnote-Access-Token");
+    if (!refreshedToken) return;
+
+    token = refreshedToken;
+    localStorage.setItem("clipnote_token", refreshedToken);
+  }
+
   function renderVideoContext(currentVideoId, data) {
     const titleElement = document.getElementById("clipchat-video-title");
     const videoLink = document.getElementById("clipchat-video-link");
     const summaryElement = document.getElementById("clipchat-summary");
-    const thumbnail = document.getElementById("clipchat-thumbnail");
 
     if (titleElement)
       titleElement.textContent = data.video_title || "Untitled video";
@@ -151,15 +387,77 @@ document.addEventListener("DOMContentLoaded", function () {
     if (summaryElement) {
       summaryElement.textContent =
         data.video_summary ||
-        "No saved summary is available yet. Clipchat will answer from the transcript and your notes.";
+        "No saved summary is available yet. Clipchat will answer from the transcript.";
     }
-    if (thumbnail) {
-      thumbnail.src = `https://img.youtube.com/vi/${currentVideoId}/maxresdefault.jpg`;
-      thumbnail.alt = data.video_title || "Video thumbnail";
-      thumbnail.onerror = function () {
-        this.src = `https://img.youtube.com/vi/${currentVideoId}/hqdefault.jpg`;
-      };
+    if (
+      (data.asset_status?.transcript_source === "fetched" ||
+        data.asset_status?.summary_source === "generated") &&
+      emptyState
+    ) {
+      const copyText = isGuest
+        ? "Ask about key ideas, moments, or exact timestamps from the transcript. Create an account to save notes and unlock the dashboard."
+        : "Ask about key ideas, moments, or exact timestamps from the transcript.";
+      setEmptyStateCopy(copyText);
     }
+    initialiseThumbnail(currentVideoId, data.video_title || "Video thumbnail");
+  }
+
+  function initialiseThumbnail(currentVideoId, altText = "Video thumbnail") {
+    const thumbnail = document.getElementById("clipchat-thumbnail");
+    const loader = document.getElementById("clipchat-thumbnail-loader");
+    if (!thumbnail) return;
+
+    if (
+      thumbnail.dataset.videoId === currentVideoId &&
+      thumbnail.getAttribute("src")
+    ) {
+      thumbnail.alt = altText;
+      return;
+    }
+
+    const maxResUrl = `https://img.youtube.com/vi/${currentVideoId}/maxresdefault.jpg`;
+    const hqUrl = `https://img.youtube.com/vi/${currentVideoId}/hqdefault.jpg`;
+
+    if (loader) {
+      loader.style.display = "flex";
+    }
+
+    thumbnail.classList.remove("is-loaded");
+    thumbnail.alt = altText;
+    thumbnail.dataset.videoId = currentVideoId;
+
+    const showLoadedImage = () => {
+      thumbnail.classList.add("is-loaded");
+      if (loader) {
+        loader.style.display = "none";
+      }
+    };
+
+    thumbnail.onload = showLoadedImage;
+    thumbnail.onerror = () => {
+      if (thumbnail.dataset.fallbackAttempted === "true") {
+        thumbnail.removeAttribute("src");
+        thumbnail.classList.remove("is-loaded");
+        if (loader) {
+          loader.style.display = "flex";
+        }
+        return;
+      }
+
+      thumbnail.dataset.fallbackAttempted = "true";
+      thumbnail.src = hqUrl;
+    };
+
+    thumbnail.dataset.fallbackAttempted = "false";
+    thumbnail.src = maxResUrl;
+  }
+
+  function needsAssetPreparation(assetStatus) {
+    return (
+      !assetStatus ||
+      assetStatus.transcript !== "ready" ||
+      assetStatus.summary !== "ready"
+    );
   }
 
   function appendUserMessage(text) {
@@ -339,7 +637,6 @@ function buildTimestampUrl(videoUrl, seconds) {
   return `${videoUrl}${videoUrl.includes("?") ? "&" : "?"}t=${safeSeconds}s`;
 }
 
-
 function secondsToTimestampDisplay(seconds) {
   const safeSeconds = Math.max(0, Math.floor(Number(seconds)));
   const hours = Math.floor(safeSeconds / 3600);
@@ -473,9 +770,10 @@ function setupThemeToggle() {
 function insertDashboardIconIfLoggedIn() {
   const token = localStorage.getItem("clipnote_token");
   if (!token) return;
+  const isGuest = isGuestAccessToken(token);
 
   const dashboardBtn = document.getElementById("dashboard-btn");
-  if (dashboardBtn) {
+  if (dashboardBtn && !isGuest) {
     dashboardBtn.style.display = "flex";
     dashboardBtn.addEventListener("click", () => {
       window.location.href = "/dashboard";
@@ -493,7 +791,7 @@ function insertDashboardIconIfLoggedIn() {
   const cancelLogout = document.getElementById("cancel-logout");
   const confirmLogout = document.getElementById("confirm-logout");
 
-  if (profilePlaceholder) {
+  if (profilePlaceholder && !isGuest) {
     profilePlaceholder.style.display = "flex";
 
     profilePlaceholder.addEventListener("click", (event) => {
@@ -524,6 +822,10 @@ function insertDashboardIconIfLoggedIn() {
     }
   }
 
+  if (isGuest && dropdown) {
+    dropdown.classList.remove("show");
+  }
+
   if (logoutModal) {
     if (cancelLogout) {
       cancelLogout.addEventListener("click", () => {
@@ -549,27 +851,103 @@ function insertDashboardIconIfLoggedIn() {
 }
 
 function checkGuestStatus() {
-  const token = localStorage.getItem("clipnote_token");
-  if (!token) return;
+  const badge = document.getElementById("dropdown-guest-info");
+  if (badge) {
+    badge.style.display = "none";
+  }
+}
 
-  fetch("/user-status", {
-    headers: { Authorization: "Bearer " + token },
-  })
-    .then((response) => response.json())
-    .then((data) => {
-      if (!data.is_guest) return;
+function setupClipchatLimitModal() {
+  const limitModal = document.getElementById("clipchat-limit-modal");
+  const cancelLimit = document.getElementById("cancel-clipchat-limit");
 
-      const badge = document.getElementById("dropdown-guest-info");
-      if (!badge) return;
+  if (!limitModal) return;
 
-      const days = data.days_remaining;
-      const hours = data.hours_remaining;
-      const timeText = days > 0 ? `${days}d ${hours}h left` : `${hours}h left`;
-
-      badge.innerHTML = `<span style="display:block; font-size:0.75rem; opacity:0.8;">Trial Expires In:</span> ${timeText}`;
-      badge.style.display = "block";
-    })
-    .catch((error) => {
-      console.error("Error checking status:", error);
+  if (cancelLimit) {
+    cancelLimit.addEventListener("click", () => {
+      limitModal.style.display = "none";
     });
+  }
+
+  limitModal.addEventListener("click", (event) => {
+    if (event.target === limitModal) {
+      limitModal.style.display = "none";
+    }
+  });
+}
+
+function readTrialStateFromHeaders(headers) {
+  if (!headers) return null;
+
+  const videosUsed = Number(headers.get("X-Clipnote-Trial-Videos-Used"));
+  const videoLimit = Number(headers.get("X-Clipnote-Trial-Video-Limit"));
+  const queriesUsed = Number(headers.get("X-Clipnote-Trial-Queries-Used"));
+  const queriesRemaining = Number(
+    headers.get("X-Clipnote-Trial-Queries-Remaining"),
+  );
+
+  if (
+    [videosUsed, videoLimit, queriesUsed, queriesRemaining].some(Number.isNaN)
+  ) {
+    return null;
+  }
+
+  return {
+    videos_used: videosUsed,
+    video_limit: videoLimit,
+    queries_used_for_video: queriesUsed,
+    queries_remaining_for_video: queriesRemaining,
+  };
+}
+
+function getClipchatVideoIdFromLocation() {
+  const pathParts = window.location.pathname.split("/").filter(Boolean);
+  if (pathParts[0] === "clipchat" && pathParts[1]) {
+    return pathParts[1];
+  }
+
+  const urlParams = new URLSearchParams(window.location.search);
+  return extractYouTubeVideoId(urlParams.get("video") || "");
+}
+
+function extractYouTubeVideoId(value) {
+  const rawValue = String(value || "").trim();
+  if (!rawValue) return "";
+
+  if (/^[a-zA-Z0-9_-]{11}$/.test(rawValue)) {
+    return rawValue;
+  }
+
+  try {
+    const url = new URL(rawValue);
+    if (url.hostname.includes("youtu.be")) {
+      return url.pathname.replace("/", "").slice(0, 11);
+    }
+    return url.searchParams.get("v") || "";
+  } catch (error) {
+    return "";
+  }
+}
+
+function isGuestAccessToken(token) {
+  const payload = parseAccessTokenPayload(token);
+  return (
+    payload?.sub?.startsWith("guest_") ||
+    payload?.account_tier === "clipchat_trial"
+  );
+}
+
+function parseAccessTokenPayload(token) {
+  if (!token) return null;
+
+  try {
+    const base64Payload = token.split(".")[1];
+    if (!base64Payload) return null;
+
+    const normalised = base64Payload.replace(/-/g, "+").replace(/_/g, "/");
+    return JSON.parse(atob(normalised));
+  } catch (error) {
+    console.error("Failed to parse access token payload:", error);
+    return null;
+  }
 }

@@ -1,7 +1,9 @@
 import pytest
+import jwt
 from unittest.mock import MagicMock, patch
 
 from werkzeug.security import generate_password_hash
+from config import JWT_SECRET
 
 
 @pytest.fixture
@@ -229,6 +231,11 @@ def test_google_login_creates_new_account_with_derived_username(
 
 
 def test_guest_login(client):
-    response = client.post("/guest-login")
+    response = client.post("/trial-login")
     assert response.status_code == 200
-    assert "access_token" in response.json
+    access_token = response.json["access_token"]
+    payload = jwt.decode(access_token, JWT_SECRET, algorithms=["HS256"])
+
+    assert payload["sub"].startswith("guest_")
+    assert payload["account_tier"] == "clipchat_trial"
+    assert payload["clipchat_usage"] == {}

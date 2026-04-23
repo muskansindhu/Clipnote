@@ -6,6 +6,16 @@ document.addEventListener("DOMContentLoaded", function () {
   const token = localStorage.getItem("clipnote_token");
   const clipchatBtn = document.getElementById("clipchat-btn");
 
+  if (!token) {
+    window.location.href = "/login";
+    return;
+  }
+
+  if (isGuestAccessToken(token)) {
+    window.location.href = `/clipchat/${videoId}`;
+    return;
+  }
+
   if (clipchatBtn) {
     clipchatBtn.href = `/clipchat/${videoId}`;
   }
@@ -411,32 +421,10 @@ function insertDashboardIconIfLoggedIn() {
 }
 
 function checkGuestStatus() {
-  const token = localStorage.getItem("clipnote_token");
-  if (!token) return;
-
-  fetch("/user-status", {
-    headers: { Authorization: "Bearer " + token },
-  })
-    .then(res => res.json())
-    .then(data => {
-      if (data.is_guest) {
-        const badge = document.getElementById("dropdown-guest-info");
-        if (badge) {
-          const days = data.days_remaining;
-          const hours = data.hours_remaining;
-          let timeText = "";
-          if (days > 0) {
-            timeText = `${days}d ${hours}h left`;
-          } else {
-            timeText = `${hours}h left`;
-          }
-
-          badge.innerHTML = `<span style="display:block; font-size:0.75rem; opacity:0.8;">Trial Expires In:</span> ${timeText}`;
-          badge.style.display = "block";
-        }
-      }
-    })
-    .catch(err => console.error("Error checking status:", err));
+  const badge = document.getElementById("dropdown-guest-info");
+  if (badge) {
+    badge.style.display = "none";
+  }
 }
 
 function applyThemeToIconImages() {
@@ -550,4 +538,24 @@ function getVideoLabel(videoId, token) {
     .catch((err) => {
       console.error("Error fetching video label:", err);
     });
+}
+
+function isGuestAccessToken(token) {
+  const payload = parseAccessTokenPayload(token);
+  return payload?.sub?.startsWith("guest_") || payload?.account_tier === "clipchat_trial";
+}
+
+function parseAccessTokenPayload(token) {
+  if (!token) return null;
+
+  try {
+    const base64Payload = token.split(".")[1];
+    if (!base64Payload) return null;
+
+    const normalised = base64Payload.replace(/-/g, "+").replace(/_/g, "/");
+    return JSON.parse(atob(normalised));
+  } catch (error) {
+    console.error("Failed to parse access token payload:", error);
+    return null;
+  }
 }

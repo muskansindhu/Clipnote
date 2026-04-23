@@ -1,11 +1,23 @@
-"""Clipchat retrieval and answering helpers."""
-
 from __future__ import annotations
+
+import psycopg
+from datetime import datetime, timezone
+from flask import Response, jsonify
+from exceptions import TrialClipchatLimitError
+from auth_utils import issue_guest_access_token
+from config import SUPABASE_CONNECTION_STRING, S3_BUCKET, JWT_SECRET
+from utils import (
+    get_video_transcription_apify,
+    generate_video_summary,
+    fetch_youtube_video_metadata,
+    put_object_to_s3,
+    get_object_from_s3,
+)
 
 import json
 import logging
 import re
-from typing import Any
+from typing import Any, Iterator
 
 from openai import OpenAI
 
@@ -530,4 +542,370 @@ def _hms_to_seconds(hms_str: str) -> float:
     if len(parts) == 2:
         return parts[0] * 60 + parts[1]
     return parts[0]
+
+
+
+TRIAL_VIDEO_LIMIT = 1
+TRIAL_QUERIES_PER_VIDEO_LIMIT = 5
+
+
+
+
+def _is_guest_user(user_id: str) -> bool:
+    return user_id.startswith("guest_")
+
+
+def _normalise_guest_clipchat_usage(raw_usage: Any) -> dict[str, int]:
+    usage: dict[str, int] = {}
+    if not isinstance(raw_usage, dict):
+        return usage
+
+    for raw_video_id, raw_count in raw_usage.items():
+        if not isinstance(raw_video_id, str):
+            continue
+        try:
+            count = int(raw_count)
+        except (TypeError, ValueError):
+            continue
+        usage[raw_video_id] = max(0, count)
+
+    return usage
+
+
+def _build_guest_trial_details(
+    auth_payload: dict[str, Any], *, video_yt_id: str | None = None
+) -> dict[str, Any]:
+    usage = _normalise_guest_clipchat_usage(auth_payload.get("clipchat_usage"))
+
+    trial_details: dict[str, Any] = {
+        "videos_used": len(usage),
+        "video_limit": TRIAL_VIDEO_LIMIT,
+        "queries_per_video_limit": TRIAL_QUERIES_PER_VIDEO_LIMIT,
+    }
+
+    if video_yt_id is not None:
+        queries_used = usage.get(video_yt_id, 0)
+        trial_details["queries_used_for_video"] = queries_used
+        trial_details["queries_remaining_for_video"] = max(
+            0, TRIAL_QUERIES_PER_VIDEO_LIMIT - queries_used
+        )
+
+    return trial_details
+
+
+def _issue_refreshed_guest_token(
+    *, auth_payload: dict[str, Any], clipchat_usage: dict[str, int]
+) -> str:
+    exp_timestamp = auth_payload.get("exp")
+    expires_at = None
+    if exp_timestamp:
+        expires_at = datetime.fromtimestamp(exp_timestamp, tz=timezone.utc)
+
+    return issue_guest_access_token(
+        guest_id=str(auth_payload.get("sub") or ""),
+        jwt_secret=JWT_SECRET,
+        clipchat_usage=clipchat_usage,
+        trial_start=str(auth_payload.get("trial_start") or ""),
+        expires_at=expires_at,
+    )
+
+
+def _build_transcript_text(transcript: list[dict[str, Any]]) -> str:
+    return " ".join(
+        str(snippet.get("text", "")).strip()
+        for snippet in transcript
+        if isinstance(snippet, dict) and str(snippet.get("text", "")).strip()
+    )
+
+
+def _persist_video_summary_if_available(
+    *, video_yt_id: str, video_summary: str | None
+) -> None:
+    if not video_summary:
+        return
+
+    with psycopg.connect(SUPABASE_CONNECTION_STRING) as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                UPDATE video
+                SET video_summary = %s
+                WHERE id = %s AND (video_summary IS NULL OR video_summary = '')
+                """,
+                (video_summary, video_yt_id),
+            )
+            conn.commit()
+
+
+def _hydrate_clipchat_metadata(
+    *, video_yt_id: str, clipchat_context: dict[str, Any]
+) -> dict[str, Any]:
+    metadata = None
+    default_video_url = f"https://www.youtube.com/watch?v={video_yt_id}"
+    current_title = str(clipchat_context.get("video_title") or "").strip()
+    current_url = str(clipchat_context.get("video_url") or "").strip()
+
+    if not current_title or current_title == "YouTube video":
+        metadata = fetch_youtube_video_metadata(video_yt_id)
+
+    if metadata:
+        clipchat_context["video_title"] = metadata.get("video_title") or current_title
+        clipchat_context["video_url"] = metadata.get("video_url") or current_url
+    else:
+        if not current_title:
+            clipchat_context["video_title"] = "YouTube video"
+        if not current_url:
+            clipchat_context["video_url"] = default_video_url
+
+    return clipchat_context
+
+
+def _build_clipchat_asset_status(
+    *, clipchat_context: dict[str, Any], transcript: Any
+) -> dict[str, str]:
+    transcript_ready = isinstance(transcript, list) and len(transcript) > 0
+    summary_ready = bool(str(clipchat_context.get("video_summary") or "").strip())
+
+    return {
+        "transcript": "ready" if transcript_ready else "pending",
+        "summary": "ready" if summary_ready else "pending",
+    }
+
+
+def _ensure_clipchat_assets(
+    *, video_yt_id: str, clipchat_context: dict[str, Any]
+) -> tuple[list[dict[str, Any]] | None, dict[str, str]]:
+    transcript_source = "s3"
+    transcript = get_object_from_s3(video_yt_id, S3_BUCKET)
+    if not transcript or not isinstance(transcript, list):
+        transcript_source = "fetched"
+        transcript = get_video_transcription_apify(video_yt_id)
+        if isinstance(transcript, list) and transcript:
+            put_object_to_s3(video_yt_id, S3_BUCKET, transcript)
+
+    if not transcript or not isinstance(transcript, list):
+        return None, {"transcript": "unavailable", "summary": "unavailable"}
+
+    summary_source = "existing"
+    if not clipchat_context.get("video_summary"):
+        transcript_text = _build_transcript_text(transcript)
+        if transcript_text:
+            generated_summary = generate_video_summary(transcript_text)
+            if generated_summary:
+                clipchat_context["video_summary"] = generated_summary
+                _persist_video_summary_if_available(
+                    video_yt_id=video_yt_id,
+                    video_summary=generated_summary,
+                )
+                summary_source = "generated"
+            else:
+                return transcript, {
+                    "transcript": "ready",
+                    "summary": "unavailable",
+                    "transcript_source": transcript_source,
+                    "summary_source": "failed",
+                }
+        else:
+            return transcript, {
+                "transcript": "ready",
+                "summary": "unavailable",
+                "transcript_source": transcript_source,
+                "summary_source": "empty_transcript",
+            }
+
+    return transcript, {
+        "transcript": "ready",
+        "summary": "ready",
+        "transcript_source": transcript_source,
+        "summary_source": summary_source,
+    }
+
+
+def _reserve_guest_clipchat_query_slot(
+    *, video_yt_id: str, auth_payload: dict[str, Any]
+) -> tuple[str, dict[str, int]]:
+    clipchat_usage = _normalise_guest_clipchat_usage(
+        auth_payload.get("clipchat_usage")
+    )
+    current_video_queries = clipchat_usage.get(video_yt_id, 0)
+
+    if video_yt_id not in clipchat_usage and len(clipchat_usage) >= TRIAL_VIDEO_LIMIT:
+        raise TrialClipchatLimitError(
+            "Whoa there! You've hit your 1-video free trial limit. Our GPUs are sweating and inference ain't cheap! 😅 Create an account to support the app and keep chatting."
+        )
+
+    if current_video_queries >= TRIAL_QUERIES_PER_VIDEO_LIMIT:
+        raise TrialClipchatLimitError(
+            "Beep boop! 🤖 You've used your 5 free questions for this video. GPUs need to eat too, and inference costs are adding up! Please create an account to support us."
+        )
+
+    updated_usage = dict(clipchat_usage)
+    updated_usage[video_yt_id] = current_video_queries + 1
+    
+    guest_id = auth_payload.get("sub")
+    if guest_id:
+        with psycopg.connect(SUPABASE_CONNECTION_STRING) as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """
+                    INSERT INTO guest_usage (guest_id, clipchat_usage) 
+                    VALUES (%s, %s::jsonb)
+                    ON CONFLICT (guest_id) DO UPDATE SET clipchat_usage = EXCLUDED.clipchat_usage
+                    """,
+                    (guest_id, json.dumps(updated_usage))
+                )
+                conn.commit()
+
+    refreshed_token = _issue_refreshed_guest_token(
+        auth_payload=auth_payload,
+        clipchat_usage=updated_usage,
+    )
+    return refreshed_token, updated_usage
+
+
+def _build_guest_clipchat_limit_response(
+    *, auth_payload: dict[str, Any], message: str, video_yt_id: str
+) -> tuple[Response, int]:
+    return (
+        jsonify(
+            {
+                "message": message,
+                "code": "clipchat_trial_limit",
+                "trial": _build_guest_trial_details(
+                    auth_payload, video_yt_id=video_yt_id
+                ),
+            }
+        ),
+        403,
+    )
+
+
+def _attach_guest_trial_headers(
+    response: Response,
+    *,
+    refreshed_token: str | None,
+    auth_payload: dict[str, Any],
+    video_yt_id: str,
+) -> Response:
+    if refreshed_token:
+        response.headers["X-Clipnote-Access-Token"] = refreshed_token
+        response.set_cookie(
+            "clipnote_guest_token",
+            refreshed_token,
+            max_age=365 * 24 * 60 * 60,
+            httponly=True,
+            secure=True,
+            samesite="Strict"
+        )
+
+    trial_details = _build_guest_trial_details(auth_payload, video_yt_id=video_yt_id)
+    response.headers["X-Clipnote-Trial-Videos-Used"] = str(
+        trial_details["videos_used"]
+    )
+    response.headers["X-Clipnote-Trial-Video-Limit"] = str(
+        trial_details["video_limit"]
+    )
+    response.headers["X-Clipnote-Trial-Queries-Used"] = str(
+        trial_details["queries_used_for_video"]
+    )
+    response.headers["X-Clipnote-Trial-Queries-Remaining"] = str(
+        trial_details["queries_remaining_for_video"]
+    )
+    return response
+
+
+def _get_registered_clipchat_context(
+    video_yt_id: str, user_id: str
+) -> dict[str, Any] | None:
+    with psycopg.connect(SUPABASE_CONNECTION_STRING) as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT id, video_url, video_title, fav, video_summary
+                FROM video
+                WHERE id = %s AND user_id = %s
+                """,
+                (video_yt_id, user_id),
+            )
+            video = cur.fetchone()
+
+            if not video:
+                return None
+
+            cur.execute(
+                """
+                SELECT id, video_timestamp, note, note_source
+                FROM notes
+                WHERE video_id = %s AND user_id = %s
+                ORDER BY created_at ASC
+                """,
+                (video_yt_id, user_id),
+            )
+            notes = cur.fetchall()
+
+    return {
+        "video_id": video[0],
+        "video_url": video[1],
+        "video_title": video[2],
+        "fav": video[3],
+        "video_summary": video[4],
+        "notes": [
+            {
+                "id": note[0],
+                "video_timestamp": note[1],
+                "note": note[2],
+                "note_source": note[3],
+            }
+            for note in notes
+        ],
+    }
+
+
+def _get_guest_clipchat_context(video_yt_id: str) -> dict[str, Any]:
+    default_url = f"https://www.youtube.com/watch?v={video_yt_id}"
+    default_title = "YouTube video"
+
+    with psycopg.connect(SUPABASE_CONNECTION_STRING) as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT video_url, video_title, video_summary
+                FROM video
+                WHERE id = %s
+                ORDER BY created_at DESC NULLS LAST
+                LIMIT 1
+                """,
+                (video_yt_id,),
+            )
+            video = cur.fetchone()
+
+    return {
+        "video_id": video_yt_id,
+        "video_url": video[0] if video and video[0] else default_url,
+        "video_title": video[1] if video and video[1] else default_title,
+        "fav": False,
+        "video_summary": video[2] if video else None,
+        "notes": [],
+    }
+
+
+def _get_clipchat_context(video_yt_id: str, user_id: str) -> dict[str, Any] | None:
+    if _is_guest_user(user_id):
+        return _get_guest_clipchat_context(video_yt_id)
+    return _get_registered_clipchat_context(video_yt_id, user_id)
+
+
+def _stream_clipchat_payload(
+    clipchat_response: dict[str, Any]
+) -> Iterator[str]:
+    answer = str(clipchat_response.get("answer", ""))
+    chunk_size = 28
+
+    for index in range(0, len(answer), chunk_size):
+        chunk = answer[index : index + chunk_size]
+        yield f"event: chunk\ndata: {json.dumps({'delta': chunk})}\n\n"
+
+    done_payload = json.dumps({"answer": answer})
+    yield f"event: done\ndata: {done_payload}\n\n"
+
 

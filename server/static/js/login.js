@@ -12,8 +12,8 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 
   const token = localStorage.getItem("clipnote_token");
-  if (token) {
-    window.location.href = "/dashboard";
+  if (token && !isGuestAccessToken(token)) {
+    window.location.href = getPostLoginDestination(token);
     return;
   }
 
@@ -72,7 +72,9 @@ document.addEventListener("DOMContentLoaded", function () {
     e.preventDefault();
 
     const username = String(form.username?.value || "").trim();
-    const email = String(form.email.value || "").trim().toLowerCase();
+    const email = String(form.email.value || "")
+      .trim()
+      .toLowerCase();
     const password = form.password.value;
     const endpoint = isSignup ? "/signup" : "/login";
 
@@ -101,11 +103,11 @@ document.addEventListener("DOMContentLoaded", function () {
           if (chrome.runtime.lastError) {
             console.error("Extension error:", chrome.runtime.lastError);
           }
-          window.location.href = "/dashboard";
+          window.location.href = getPostLoginDestination(access_token);
         },
       );
     } else {
-      window.location.href = "/dashboard";
+      window.location.href = getPostLoginDestination(access_token);
     }
   });
 
@@ -120,19 +122,19 @@ document.addEventListener("DOMContentLoaded", function () {
   const googleToken = urlParams.get("access_token");
   if (googleToken) {
     localStorage.setItem("clipnote_token", googleToken);
-    window.location.href = "/dashboard";
+    window.location.href = getPostLoginDestination(googleToken);
   }
   const guestBtn = document.getElementById("guest-btn");
   if (guestBtn) {
     guestBtn.addEventListener("click", async () => {
-      const res = await fetch("/guest-login", {
+      const res = await fetch("/trial-login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
       });
 
       if (!res.ok) {
         errorMsg.style.display = "block";
-        errorMsg.textContent = "Failed to create guest session.";
+        errorMsg.textContent = "Failed to start the Clipchat trial.";
         return;
       }
 
@@ -144,15 +146,42 @@ document.addEventListener("DOMContentLoaded", function () {
           EXT_ID,
           { type: "SET_TOKEN", jwt: access_token },
           (response) => {
-            window.location.href = "/dashboard";
+            window.location.href = getPostLoginDestination(access_token);
           },
         );
       } else {
-        window.location.href = "/dashboard";
+        window.location.href = getPostLoginDestination(access_token);
       }
     });
   }
 });
+
+function getPostLoginDestination(token) {
+  return isGuestAccessToken(token) ? "/clipchat" : "/dashboard";
+}
+
+function isGuestAccessToken(token) {
+  const payload = parseAccessTokenPayload(token);
+  return (
+    payload?.sub?.startsWith("guest_") ||
+    payload?.account_tier === "clipchat_trial"
+  );
+}
+
+function parseAccessTokenPayload(token) {
+  if (!token) return null;
+
+  try {
+    const base64Payload = token.split(".")[1];
+    if (!base64Payload) return null;
+
+    const normalised = base64Payload.replace(/-/g, "+").replace(/_/g, "/");
+    return JSON.parse(atob(normalised));
+  } catch (error) {
+    console.error("Failed to parse access token payload:", error);
+    return null;
+  }
+}
 
 function setupThemeToggle() {
   const toggleBtn = document.getElementById("theme-toggle-btn");

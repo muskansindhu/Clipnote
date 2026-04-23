@@ -75,11 +75,11 @@
       </div>
     </div>
 
-    <main class="main-content dashboard-main">
+    <main class="main-content dashboard-main clipchat-main">
       <header class="page-header">
         <div class="page-title-group">
           <span class="section-eyebrow">Clipchat</span>
-          <p class="page-subtitle">
+          <p id="clipchat-page-subtitle" class="page-subtitle">
             Ask about key ideas, moments, or exact timestamps from the
             transcript.
           </p>
@@ -91,10 +91,41 @@
         </div>
       </header>
 
-      <div class="clipchat-layout">
+      <section
+        id="clipchat-setup-card"
+        class="clipchat-sidebar-card clipchat-setup-card"
+        style="display: none"
+      >
+        <div>
+          <span class="section-eyebrow">Free Trial</span>
+          <h3>Start with any YouTube video</h3>
+          <p class="clipchat-setup-copy">
+            Paste a YouTube URL to use Clipchat on up to 1 video with 5
+            questions per video.
+          </p>
+        </div>
+        <form id="clipchat-video-form" class="clipchat-video-form">
+          <input
+            id="clipchat-video-url"
+            type="url"
+            placeholder="https://www.youtube.com/watch?v=..."
+          />
+          <button type="submit" class="btn btn-primary btn-small">
+            Open Video
+          </button>
+        </form>
+      </section>
+
+      <div id="clipchat-layout" class="clipchat-layout">
         <aside class="clipchat-sidebar">
           <div class="clipchat-sidebar-card clipchat-video-card">
-            <div class="clipchat-thumbnail-wrapper">
+            <div class="clipchat-thumbnail-wrapper" id="clipchat-thumbnail-wrapper">
+              <div
+                id="clipchat-thumbnail-loader"
+                class="clipchat-thumbnail-loader"
+              >
+                <div class="clipchat-thumbnail-spinner"></div>
+              </div>
               <img
                 id="clipchat-thumbnail"
                 src=""
@@ -143,9 +174,8 @@
                 <i data-lucide="messages-square"></i>
               </div>
               <h3>Ready to chat!</h3>
-              <p class="clipchat-empty-copy">
-                Ask anything about this video and get clickable timestamp
-                citations.
+              <p id="clipchat-empty-copy" class="clipchat-empty-copy">
+                Ask about key ideas, moments, or exact timestamps from the transcript.
               </p>
               <div
                 id="clipchat-default-questions"
@@ -165,7 +195,7 @@
               <input
                 id="clipchat-input"
                 type="text"
-                placeholder="Ask about this video..."
+                placeholder="Ask about key ideas, moments, or exact timestamps from the transcript"
               />
               <button
                 type="submit"
@@ -188,6 +218,24 @@
         <div class="btn-group">
           <button class="btn btn-cancel" id="cancel-logout">Cancel</button>
           <button class="btn btn-danger" id="confirm-logout">Log Out</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="clipchat-limit-modal" class="modal-overlay">
+      <div class="modal-confirm">
+        <h3>Create an Account</h3>
+        <p id="clipchat-limit-copy">
+          You have reached the free Clipchat limit. Create an account to keep
+          chatting and save notes.
+        </p>
+        <div class="btn-group">
+          <button class="btn btn-cancel" id="cancel-clipchat-limit">
+            Maybe Later
+          </button>
+          <a href="/login" class="btn btn-primary" id="confirm-clipchat-limit">
+            Create Account
+          </a>
         </div>
       </div>
     </div>

@@ -66,10 +66,10 @@ function setupThemeToggle() {
 function insertDashboardIconIfLoggedIn() {
   const token = localStorage.getItem("clipnote_token");
   if (!token) return;
+  const isGuest = isGuestAccessToken(token);
 
-  // Dashboard Icon
   const dashboardBtn = document.getElementById("dashboard-btn");
-  if (dashboardBtn) {
+  if (dashboardBtn && !isGuest) {
     dashboardBtn.style.display = "flex";
     dashboardBtn.addEventListener("click", () => {
       window.location.href = "/dashboard";
@@ -88,7 +88,7 @@ function insertDashboardIconIfLoggedIn() {
   const cancelLogout = document.getElementById("cancel-logout");
   const confirmLogout = document.getElementById("confirm-logout");
 
-  if (profilePlaceholder) {
+  if (profilePlaceholder && !isGuest) {
     profilePlaceholder.style.display = "flex";
 
     // Toggle Dropdown
@@ -144,34 +144,36 @@ function insertDashboardIconIfLoggedIn() {
     });
   }
 
+  if (isGuest && dropdown) {
+    dropdown.classList.remove("show");
+  }
+
   checkGuestStatus();
 }
 
 function checkGuestStatus() {
-  const token = localStorage.getItem("clipnote_token");
-  if (!token) return;
+  const badge = document.getElementById("dropdown-guest-info");
+  if (badge) {
+    badge.style.display = "none";
+  }
+}
 
-  fetch("/user-status", {
-    headers: { Authorization: "Bearer " + token },
-  })
-    .then((res) => res.json())
-    .then((data) => {
-      if (data.is_guest) {
-        const badge = document.getElementById("dropdown-guest-info");
-        if (badge) {
-          const days = data.days_remaining;
-          const hours = data.hours_remaining;
-          let timeText = "";
-          if (days > 0) {
-            timeText = `${days}d ${hours}h left`;
-          } else {
-            timeText = `${hours}h left`;
-          }
+function isGuestAccessToken(token) {
+  const payload = parseAccessTokenPayload(token);
+  return payload?.sub?.startsWith("guest_") || payload?.account_tier === "clipchat_trial";
+}
 
-          badge.innerHTML = `<span style="display:block; font-size:0.75rem; opacity:0.8;">Trial Expires In:</span> ${timeText}`;
-          badge.style.display = "block";
-        }
-      }
-    })
-    .catch((err) => console.error("Error checking status:", err));
+function parseAccessTokenPayload(token) {
+  if (!token) return null;
+
+  try {
+    const base64Payload = token.split(".")[1];
+    if (!base64Payload) return null;
+
+    const normalised = base64Payload.replace(/-/g, "+").replace(/_/g, "/");
+    return JSON.parse(atob(normalised));
+  } catch (error) {
+    console.error("Failed to parse access token payload:", error);
+    return null;
+  }
 }

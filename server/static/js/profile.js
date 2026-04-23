@@ -13,6 +13,10 @@ if (!token) {
     window.location.href = "/login";
 }
 
+if (isGuestAccessToken(token)) {
+    window.location.href = "/clipchat";
+}
+
 function loadProfileInfo() {
 
     try {
@@ -153,10 +157,11 @@ function deleteLabel(id) {
 function insertDashboardIconIfLoggedIn() {
     const token = localStorage.getItem("clipnote_token");
     if (!token) return;
+    const isGuest = isGuestAccessToken(token);
 
     // Dashboard Icon
     const dashboardBtn = document.getElementById("dashboard-btn");
-    if (dashboardBtn) {
+    if (dashboardBtn && !isGuest) {
         dashboardBtn.style.display = "flex";
         dashboardBtn.addEventListener("click", () => {
             window.location.href = "/dashboard";
@@ -175,7 +180,7 @@ function insertDashboardIconIfLoggedIn() {
     const cancelLogout = document.getElementById("cancel-logout");
     const confirmLogout = document.getElementById("confirm-logout");
 
-    if (profilePlaceholder) {
+    if (profilePlaceholder && !isGuest) {
         profilePlaceholder.style.display = "flex";
 
         // Toggle Dropdown
@@ -232,6 +237,26 @@ function insertDashboardIconIfLoggedIn() {
     }
 }
 
+function isGuestAccessToken(token) {
+    const payload = parseAccessTokenPayload(token);
+    return payload?.sub?.startsWith("guest_") || payload?.account_tier === "clipchat_trial";
+}
+
+function parseAccessTokenPayload(token) {
+    if (!token) return null;
+
+    try {
+        const base64Payload = token.split(".")[1];
+        if (!base64Payload) return null;
+
+        const normalised = base64Payload.replace(/-/g, "+").replace(/_/g, "/");
+        return JSON.parse(atob(normalised));
+    } catch (error) {
+        console.error("Failed to parse access token payload:", error);
+        return null;
+    }
+}
+
 function setupThemeToggle() {
     const toggleBtn = document.getElementById("theme-toggle-btn");
     const body = document.body;
@@ -270,41 +295,13 @@ function setupThemeToggle() {
 }
 
 function checkGuestProfileStatus() {
-    const token = localStorage.getItem("clipnote_token");
-    if (!token) return;
+    const info = document.getElementById('guest-profile-info');
+    if (info) {
+        info.style.display = "none";
+    }
 
-    fetch("/user-status", {
-        headers: { Authorization: "Bearer " + token },
-    })
-        .then(res => res.json())
-        .then(data => {
-            if (data.is_guest) {
-                const display = document.getElementById('profile-username-display');
-                if (display) display.textContent = "Guest User";
-
-                const info = document.getElementById('guest-profile-info');
-                if (info) {
-                    const days = data.days_remaining;
-                    const hours = data.hours_remaining;
-                    let timeText = "";
-                    if (days > 0) {
-                        timeText = `${days} days, ${hours} hours`;
-                    } else {
-                        timeText = `${hours} hours`;
-                    }
-
-                    info.innerText = `Guest Account: Trial ends in ${timeText}`;
-                    info.style.display = "block";
-
-                    // Update Dropdown Info as well
-                    const dropdownBadge = document.getElementById("dropdown-guest-info");
-                    if (dropdownBadge) {
-                        let shortText = (days > 0) ? `${days}d ${hours}h left` : `${hours}h left`;
-                        dropdownBadge.innerHTML = `<span style="display:block; font-size:0.75rem; opacity:0.8;">Trial Expires In:</span> ${shortText}`;
-                        dropdownBadge.style.display = "block";
-                    }
-                }
-            }
-        })
-        .catch(err => console.error("Error checking guest status:", err));
+    const dropdownBadge = document.getElementById("dropdown-guest-info");
+    if (dropdownBadge) {
+        dropdownBadge.style.display = "none";
+    }
 }

@@ -29,6 +29,26 @@ def issue_access_token(
     return jwt.encode(payload, jwt_secret, algorithm="HS256")
 
 
+def issue_guest_access_token(
+    *,
+    guest_id: str,
+    jwt_secret: str,
+    clipchat_usage: dict[str, int] | None = None,
+    trial_start: str | None = None,
+    expires_at: datetime | None = None,
+) -> str:
+    """Create a signed Clipnote access token for a Clipchat trial guest."""
+    issued_at = datetime.now(timezone.utc)
+    payload: dict[str, Any] = {
+        "sub": str(guest_id),
+        "exp": expires_at or (issued_at + timedelta(days=3)),
+        "trial_start": trial_start or issued_at.isoformat(),
+        "account_tier": "clipchat_trial",
+        "clipchat_usage": clipchat_usage or {},
+    }
+    return jwt.encode(payload, jwt_secret, algorithm="HS256")
+
+
 def normalise_username(raw_username: Any) -> str:
     """Trim a user-provided username while preserving its casing."""
     return str(raw_username or "").strip()

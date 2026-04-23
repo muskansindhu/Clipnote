@@ -1,7 +1,6 @@
 import json
 import uuid
 import psycopg
-import jwt
 from datetime import datetime, timedelta, timezone
 from typing import Any, Iterator
 
@@ -30,26 +29,43 @@ from config import (
 from auth_utils import (
     derive_username_from_email,
     issue_access_token,
+    issue_guest_access_token,
     normalise_email,
     normalise_username,
 )
-from clipchat import answer_clipchat_question
+from exceptions import TrialClipchatLimitError
+from clipchat import (
+    answer_clipchat_question,
+    _is_guest_user,
+    _get_clipchat_context,
+    _ensure_clipchat_assets,
+    _build_clipchat_asset_status,
+    _reserve_guest_clipchat_query_slot,
+    _build_guest_clipchat_limit_response,
+    _attach_guest_trial_headers,
+    _hydrate_clipchat_metadata,
+    _build_guest_trial_details,
+    _stream_clipchat_payload,
+)
 from utils import (
     get_video_transcription_apify,
     summarize_video,
     generate_video_summary,
     extract_video_id,
+    fetch_youtube_video_metadata,
     put_object_to_s3,
     get_object_from_s3,
     extract_transcript_snippet,
     generate_ai_note,
     hms_to_seconds,
     require_auth,
+    require_registered_user,
 )
 from authlib.integrations.flask_client import OAuth
 
 app = Flask(__name__, template_folder="templates", static_folder="static")
-CORS(app)
+CORS(app, expose_headers=["X-Clipnote-Access-Token", "X-Clipnote-Trial-Videos-Used", "X-Clipnote-Trial-Video-Limit", "X-Clipnote-Trial-Queries-Used", "X-Clipnote-Trial-Queries-Remaining"])
+
 
 
 oauth = OAuth(app)
@@ -85,65 +101,6 @@ def _build_available_username(cur: psycopg.Cursor[Any], email: str) -> str:
         candidate = f"{base_username}{suffix}"
 
     return candidate
-
-
-def _get_clipchat_context(video_yt_id: str, user_id: str) -> dict[str, Any] | None:
-    with psycopg.connect(SUPABASE_CONNECTION_STRING) as conn:
-        with conn.cursor() as cur:
-            cur.execute(
-                """
-                SELECT id, video_url, video_title, fav, video_summary
-                FROM video
-                WHERE id = %s AND user_id = %s
-                """,
-                (video_yt_id, user_id),
-            )
-            video = cur.fetchone()
-
-            if not video:
-                return None
-
-            cur.execute(
-                """
-                SELECT id, video_timestamp, note, note_source
-                FROM notes
-                WHERE video_id = %s AND user_id = %s
-                ORDER BY created_at ASC
-                """,
-                (video_yt_id, user_id),
-            )
-            notes = cur.fetchall()
-
-    return {
-        "video_id": video[0],
-        "video_url": video[1],
-        "video_title": video[2],
-        "fav": video[3],
-        "video_summary": video[4],
-        "notes": [
-            {
-                "id": note[0],
-                "video_timestamp": note[1],
-                "note": note[2],
-                "note_source": note[3],
-            }
-            for note in notes
-        ],
-    }
-
-
-def _stream_clipchat_payload(
-    clipchat_response: dict[str, Any]
-) -> Iterator[str]:
-    answer = str(clipchat_response.get("answer", ""))
-    chunk_size = 28
-
-    for index in range(0, len(answer), chunk_size):
-        chunk = answer[index : index + chunk_size]
-        yield f"event: chunk\ndata: {json.dumps({'delta': chunk})}\n\n"
-
-    done_payload = json.dumps({"answer": answer})
-    yield f"event: done\ndata: {done_payload}\n\n"
 
 
 @app.route("/", methods=["GET"])
@@ -347,17 +304,64 @@ def signup():
     return jsonify(access_token=token), 201
 
 
+@app.route("/trial-login", methods=["POST"])
 @app.route("/guest-login", methods=["POST"])
 def guest_login():
-    guest_id = "guest_" + str(uuid.uuid4())
-    now = datetime.now(timezone.utc)
-    payload = {
-        "sub": guest_id,
-        "exp": now + timedelta(days=3),
-        "trial_start": now.isoformat(),
-    }
-    token = jwt.encode(payload, JWT_SECRET, algorithm="HS256")
-    return jsonify(access_token=token), 200
+    import jwt
+    import hashlib
+    existing_token = request.cookies.get("clipnote_guest_token")
+    
+    ip = request.headers.get("X-Forwarded-For", request.remote_addr) or "unknown"
+    ip = ip.split(",")[0].strip()
+    ua = request.headers.get("User-Agent", "")
+    al = request.headers.get("Accept-Language", "")
+    raw = f"{ip}-{ua}-{al}"
+    hash_hex = hashlib.sha256(raw.encode("utf-8")).hexdigest()
+    guest_id = f"guest_{hash_hex[:16]}"
+    
+    clipchat_usage = {}
+    trial_start = None
+    
+    with psycopg.connect(SUPABASE_CONNECTION_STRING) as conn:
+        with conn.cursor() as cur:
+            cur.execute("SELECT clipchat_usage FROM guest_usage WHERE guest_id = %s", (guest_id,))
+            row = cur.fetchone()
+            if row:
+                clipchat_usage = row[0]
+            else:
+                cur.execute("INSERT INTO guest_usage (guest_id) VALUES (%s) ON CONFLICT DO NOTHING", (guest_id,))
+                conn.commit()
+    
+    if existing_token:
+        try:
+            payload = jwt.decode(
+                existing_token, 
+                JWT_SECRET, 
+                algorithms=["HS256"], 
+                options={"verify_exp": False}
+            )
+            if payload.get("account_tier") == "clipchat_trial":
+                trial_start = payload.get("trial_start")
+        except Exception:
+            pass
+
+    token = issue_guest_access_token(
+        guest_id=guest_id,
+        jwt_secret=JWT_SECRET,
+        clipchat_usage=clipchat_usage,
+        trial_start=trial_start
+    )
+    
+    response = jsonify(access_token=token)
+    response.set_cookie(
+        "clipnote_guest_token", 
+        token, 
+        max_age=365 * 24 * 60 * 60,
+        httponly=True,
+        secure=True,
+        samesite="Strict"
+    )
+    return response, 200
 
 
 @app.route("/dashboard", methods=["GET"])
@@ -375,12 +379,60 @@ def get_clipchat_page(video_yt_id: str):
     return render_template("clipchat.html")
 
 
+@app.route("/clipchat", methods=["GET"])
+def get_clipchat_landing_page():
+    return render_template("clipchat.html")
+
+
 @app.route("/clipchat/<video_yt_id>/context", methods=["GET"])
 @require_auth
 def get_clipchat_context(video_yt_id: str):
     clipchat_context = _get_clipchat_context(video_yt_id, request.user)
     if not clipchat_context:
         return jsonify({"message": "Video not found"}), 404
+
+    clipchat_context = _hydrate_clipchat_metadata(
+        video_yt_id=video_yt_id,
+        clipchat_context=clipchat_context,
+    )
+    transcript = get_object_from_s3(video_yt_id, S3_BUCKET)
+    clipchat_context["asset_status"] = _build_clipchat_asset_status(
+        clipchat_context=clipchat_context,
+        transcript=transcript,
+    )
+
+    if _is_guest_user(request.user):
+        clipchat_context["trial"] = _build_guest_trial_details(
+            request.auth_payload, video_yt_id=video_yt_id
+        )
+
+    return jsonify(clipchat_context), 200
+
+
+@app.route("/clipchat/<video_yt_id>/prepare", methods=["POST"])
+@require_auth
+def prepare_clipchat_context(video_yt_id: str):
+    clipchat_context = _get_clipchat_context(video_yt_id, request.user)
+    if not clipchat_context:
+        return jsonify({"message": "Video not found"}), 404
+
+    clipchat_context = _hydrate_clipchat_metadata(
+        video_yt_id=video_yt_id,
+        clipchat_context=clipchat_context,
+    )
+
+    transcript, asset_status = _ensure_clipchat_assets(
+        video_yt_id=video_yt_id,
+        clipchat_context=clipchat_context,
+    )
+    if transcript is None:
+        return jsonify({"message": "Transcript not available for this video"}), 404
+
+    clipchat_context["asset_status"] = asset_status
+    if _is_guest_user(request.user):
+        clipchat_context["trial"] = _build_guest_trial_details(
+            request.auth_payload, video_yt_id=video_yt_id
+        )
 
     return jsonify(clipchat_context), 200
 
@@ -398,13 +450,28 @@ def ask_clipchat(video_yt_id: str):
     if not clipchat_context:
         return jsonify({"message": "Video not found"}), 404
 
-    transcript = get_object_from_s3(video_yt_id, S3_BUCKET)
-    if not transcript or not isinstance(transcript, list):
-        transcript = get_video_transcription_apify(video_yt_id)
-        if isinstance(transcript, list) and transcript:
-            put_object_to_s3(video_yt_id, S3_BUCKET, transcript)
+    refreshed_token: str | None = None
+    updated_guest_payload = request.auth_payload
+    if _is_guest_user(request.user):
+        try:
+            refreshed_token, updated_usage = _reserve_guest_clipchat_query_slot(
+                video_yt_id=video_yt_id,
+                auth_payload=request.auth_payload,
+            )
+        except TrialClipchatLimitError as exc:
+            return _build_guest_clipchat_limit_response(
+                auth_payload=request.auth_payload,
+                message=str(exc),
+                video_yt_id=video_yt_id,
+            )
+        updated_guest_payload = dict(request.auth_payload)
+        updated_guest_payload["clipchat_usage"] = updated_usage
 
-    if not transcript or not isinstance(transcript, list):
+    transcript, _ = _ensure_clipchat_assets(
+        video_yt_id=video_yt_id,
+        clipchat_context=clipchat_context,
+    )
+    if transcript is None:
         return jsonify({"message": "Transcript not available for this video"}), 404
 
     try:
@@ -419,7 +486,15 @@ def ask_clipchat(video_yt_id: str):
         app.logger.exception("Clipchat ask failed for video %s", video_yt_id)
         return jsonify({"message": "Clipchat could not answer right now"}), 502
 
-    return jsonify(clipchat_response), 200
+    response = jsonify(clipchat_response)
+    if _is_guest_user(request.user):
+        response = _attach_guest_trial_headers(
+            response,
+            refreshed_token=refreshed_token,
+            auth_payload=updated_guest_payload,
+            video_yt_id=video_yt_id,
+        )
+    return response, 200
 
 
 @app.route("/clipchat/<video_yt_id>/stream", methods=["POST"])
@@ -435,13 +510,28 @@ def stream_clipchat(video_yt_id: str):
     if not clipchat_context:
         return jsonify({"message": "Video not found"}), 404
 
-    transcript = get_object_from_s3(video_yt_id, S3_BUCKET)
-    if not transcript or not isinstance(transcript, list):
-        transcript = get_video_transcription_apify(video_yt_id)
-        if isinstance(transcript, list) and transcript:
-            put_object_to_s3(video_yt_id, S3_BUCKET, transcript)
+    refreshed_token: str | None = None
+    updated_guest_payload = request.auth_payload
+    if _is_guest_user(request.user):
+        try:
+            refreshed_token, updated_usage = _reserve_guest_clipchat_query_slot(
+                video_yt_id=video_yt_id,
+                auth_payload=request.auth_payload,
+            )
+        except TrialClipchatLimitError as exc:
+            return _build_guest_clipchat_limit_response(
+                auth_payload=request.auth_payload,
+                message=str(exc),
+                video_yt_id=video_yt_id,
+            )
+        updated_guest_payload = dict(request.auth_payload)
+        updated_guest_payload["clipchat_usage"] = updated_usage
 
-    if not transcript or not isinstance(transcript, list):
+    transcript, _ = _ensure_clipchat_assets(
+        video_yt_id=video_yt_id,
+        clipchat_context=clipchat_context,
+    )
+    if transcript is None:
         return jsonify({"message": "Transcript not available for this video"}), 404
 
     try:
@@ -456,7 +546,7 @@ def stream_clipchat(video_yt_id: str):
         app.logger.exception("Clipchat stream failed for video %s", video_yt_id)
         return jsonify({"message": "Clipchat could not answer right now"}), 502
 
-    return Response(
+    response = Response(
         stream_with_context(_stream_clipchat_payload(clipchat_response)),
         mimetype="text/event-stream",
         headers={
@@ -464,31 +554,27 @@ def stream_clipchat(video_yt_id: str):
             "X-Accel-Buffering": "no",
         },
     )
+    if _is_guest_user(request.user):
+        response = _attach_guest_trial_headers(
+            response,
+            refreshed_token=refreshed_token,
+            auth_payload=updated_guest_payload,
+            video_yt_id=video_yt_id,
+        )
+    return response
 
 
 @app.route("/user-status", methods=["GET"])
 @require_auth
 def get_user_status():
     if not request.user.startswith("guest_"):
-        return jsonify({"is_guest": False}), 200
-
-    # Calculate time remaining based on token expiry
-    exp_timestamp = request.auth_payload.get("exp")
-    if exp_timestamp:
-        exp_date = datetime.fromtimestamp(exp_timestamp, tz=timezone.utc)
-        now = datetime.now(timezone.utc)
-        remaining = exp_date - now
-        days_remaining = max(0, remaining.days)
-        hours_remaining = max(0, remaining.seconds // 3600)
-    else:
-        days_remaining = 0
-        hours_remaining = 0
+        return jsonify({"is_guest": False, "is_trial": False}), 200
 
     return jsonify(
         {
             "is_guest": True,
-            "days_remaining": days_remaining,
-            "hours_remaining": hours_remaining,
+            "is_trial": True,
+            "trial": _build_guest_trial_details(request.auth_payload),
         }
     ), 200
 
@@ -499,7 +585,7 @@ def get_note_page(video_yt_id):
 
 
 @app.route("/all-video", methods=["GET"])
-@require_auth
+@require_registered_user
 def get_all_notes():
     page = request.args.get("page", 1, type=int)
     limit = 10
@@ -595,7 +681,7 @@ def get_all_notes():
 
 
 @app.route("/note/<video_yt_id>", methods=["GET"])
-@require_auth
+@require_registered_user
 def get_note(video_yt_id):
     video_notes = []
 
@@ -636,7 +722,7 @@ def get_note(video_yt_id):
 
 
 @app.route("/add-notes", methods=["POST"])
-@require_auth
+@require_registered_user
 def add_notes():
     raw_body = request.get_data(as_text=True)
     data = json.loads(raw_body)
@@ -707,7 +793,7 @@ def add_notes():
 
 
 @app.route("/summarize", methods=["POST"])
-@require_auth
+@require_registered_user
 def get_video_summary():
     raw_body = request.get_data(as_text=True)
     data = json.loads(raw_body)
@@ -721,7 +807,7 @@ def get_video_summary():
 
 
 @app.route("/fav-note", methods=["POST"])
-@require_auth
+@require_registered_user
 def mark_note_as_fav():
     data = request.json
     video_title = data["video_title"]
@@ -737,7 +823,7 @@ def mark_note_as_fav():
 
 
 @app.route("/unfav-note", methods=["POST"])
-@require_auth
+@require_registered_user
 def mark_note_as_unfav():
     data = request.json
     video_title = data["video_title"]
@@ -753,7 +839,7 @@ def mark_note_as_unfav():
 
 
 @app.route("/labels", methods=["GET"])
-@require_auth
+@require_registered_user
 def get_all_labels():
     all_labels = []
 
@@ -769,7 +855,7 @@ def get_all_labels():
 
 
 @app.route("/label", methods=["POST"])
-@require_auth
+@require_registered_user
 def add_new_label():
 
     data = request.json
@@ -786,7 +872,7 @@ def add_new_label():
 
 
 @app.route("/label", methods=["PATCH"])
-@require_auth
+@require_registered_user
 def update_label():
     data = request.json
     label_id = data["label_id"]
@@ -804,7 +890,7 @@ def update_label():
 
 
 @app.route("/label", methods=["DELETE"])
-@require_auth
+@require_registered_user
 def delete_label():
     data = request.json
     label_id = data["label_id"]
@@ -822,7 +908,7 @@ def delete_label():
 
 
 @app.route("/<label>/note", methods=["GET"])
-@require_auth
+@require_registered_user
 def filter_note_by_label(label):
     filtered_videos = []
 
@@ -866,7 +952,7 @@ def filter_note_by_label(label):
 
 
 @app.route("/<video_yt_id>/label", methods=["GET"])
-@require_auth
+@require_registered_user
 def get_video_label(video_yt_id):
     with psycopg.connect(SUPABASE_CONNECTION_STRING) as conn:
         with conn.cursor() as cur:
@@ -888,7 +974,7 @@ def get_video_label(video_yt_id):
 
 
 @app.route("/video-label", methods=["POST"])
-@require_auth
+@require_registered_user
 def add_video_label():
     data = request.json
     with psycopg.connect(SUPABASE_CONNECTION_STRING) as conn:
@@ -916,7 +1002,7 @@ def add_video_label():
 
 
 @app.route("/video-label", methods=["DELETE"])
-@require_auth
+@require_registered_user
 def remove_video_label():
     data = request.json
     with psycopg.connect(SUPABASE_CONNECTION_STRING) as conn:
@@ -929,7 +1015,7 @@ def remove_video_label():
 
 
 @app.route("/<video_yt_id>", methods=["PATCH"])
-@require_auth
+@require_registered_user
 def update_note(video_yt_id):
     raw_body = request.get_data(as_text=True)
     data = json.loads(raw_body)
@@ -952,7 +1038,7 @@ def update_note(video_yt_id):
 
 
 @app.route("/<video_yt_id>", methods=["DELETE"])
-@require_auth
+@require_registered_user
 def delete_note(video_yt_id):
     raw_body = request.get_data(as_text=True)
     data = json.loads(raw_body)
