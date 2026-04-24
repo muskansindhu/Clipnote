@@ -12,14 +12,14 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
     <link href="/static/css/style.css" rel="stylesheet" />
     <script src="https://unpkg.com/lucide@latest"></script>
   </head>
 
-  <body>
+  <body class="clipchat-page">
     <div class="navbar">
       <a href="/" class="navbar-brand">
         <img
@@ -75,21 +75,8 @@
       </div>
     </div>
 
-    <main class="main-content dashboard-main clipchat-main">
-      <header class="page-header">
-        <div class="page-title-group">
-          <span class="section-eyebrow">Clipchat</span>
-          <p id="clipchat-page-subtitle" class="page-subtitle">
-            Ask about key ideas, moments, or exact timestamps from the
-            transcript.
-          </p>
-        </div>
-        <div class="page-header-actions">
-          <a id="back-to-note-btn" href="#" class="btn btn-secondary btn-small"
-            >Back to Note</a
-          >
-        </div>
-      </header>
+    <main class="main-content clipchat-main">
+      <p id="clipchat-page-subtitle" style="display: none"></p>
 
       <section
         id="clipchat-setup-card"
@@ -167,6 +154,7 @@
                 </span>
                 <span>Clipchat</span>
               </div>
+              <a id="back-to-note-btn" href="#" class="btn btn-secondary btn-small" style="display: none">Back to Note</a>
             </div>
 
             <div id="clipchat-empty-state" class="clipchat-empty-state">

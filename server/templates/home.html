@@ -12,14 +12,14 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
     <link href="static/css/style.css" rel="stylesheet" />
     <script src="https://unpkg.com/lucide@latest"></script>
   </head>
 
-  <body>
+  <body class="home-page">
     <div class="navbar">
       <a href="/" class="navbar-brand">
         <img
@@ -76,36 +76,26 @@
     </div>
 
     <main class="main-content">
+
+      <!-- Hero -->
       <section class="hero">
         <div class="hero-content reveal">
-          <div style="margin-bottom: 20px">
+          <div style="margin-bottom: 18px">
             <div class="badge-pill">
               <span class="badge-dot"></span>
-              New: Enhanced AI Summaries
+              Chrome Extension + Clipchat
             </div>
           </div>
-
           <h1 class="hero-title">
-            The <span class="highlight">modern way</span> to <br />
-            learn from YouTube
+            The <span class="highlight">modern way</span><br />
+            to learn from YouTube
           </h1>
-
           <p class="hero-description">
-            Turn long videos into structured notes, instant summaries, and
-            searchable insights. Clipnote keeps everything organized so you can
-            focus on learning, not scrubbing.
+            Turn long videos into structured notes, AI summaries, and searchable clips — without leaving YouTube.
           </p>
-          <p
-            class="hero-description"
-            style="margin-top: -8px; color: var(--text-subtle)"
-          >
-            Try Clipchat free on 1 video with up to 5 questions each, then
-            create an account when you are ready to save notes.
-          </p>
-
           <div class="hero-actions">
-            <a href="/login" class="btn btn-primary"> Get Started </a>
-            <a href="/login" class="btn btn-secondary"> Try Clipchat Free </a>
+            <a href="/login" class="btn btn-primary">Get Started</a>
+            <a href="/clipchat" class="btn btn-secondary">Try Clipchat Free</a>
             <a
               href="https://github.com/muskansindhu/Clipnote"
               class="btn btn-secondary"
@@ -115,21 +105,6 @@
               <i data-lucide="star" style="width: 18px; height: 18px"></i>
               Star on GitHub
             </a>
-          </div>
-
-          <div class="hero-metrics">
-            <div class="metric">
-              <span class="metric-value">3x</span>
-              <span class="metric-label">faster review sessions</span>
-            </div>
-            <div class="metric">
-              <span class="metric-value">1 hub</span>
-              <span class="metric-label">for every clip & note</span>
-            </div>
-            <div class="metric">
-              <span class="metric-value">0 clutter</span>
-              <span class="metric-label">clean, focused workspace</span>
-            </div>
           </div>
         </div>
 
@@ -145,7 +120,6 @@
                 <span>clipnote.muskansindhu.tech</span>
               </div>
             </div>
-
             <div class="demo-content">
               <div class="demo-sidebar">
                 <div class="sidebar-line primary" style="width: 80%"></div>
@@ -153,7 +127,6 @@
                 <div class="sidebar-line" style="width: 70%"></div>
                 <div class="sidebar-line" style="width: 50%"></div>
               </div>
-
               <div class="demo-main">
                 <div
                   class="note-item"
@@ -171,14 +144,14 @@
                   "
                 >
                   <span class="timestamp">05:12</span>
-                  <p>Important: Neural network architecture explained</p>
+                  <p>Important: Neural network architecture</p>
                 </div>
                 <div
                   class="note-item"
                   style="opacity: 0.8; transform: scale(0.98)"
                 >
                   <span class="timestamp">08:45</span>
-                  <p>Summary: Backpropagation algorithm overview</p>
+                  <p>Summary: Backpropagation overview</p>
                 </div>
               </div>
             </div>
@@ -186,141 +159,252 @@
         </div>
       </section>
 
-      <section class="highlights">
+      <!-- Demo GIF -->
+      <section class="demo-section">
         <div class="section-header reveal">
-          <span class="section-eyebrow">Why Clipnote</span>
-          <h2>Everything you need to capture YouTube knowledge</h2>
-          <p>
-            Clipnote distills videos into a clean workspace—notes, summaries,
-            and labels that stay organized across your learning.
-          </p>
+          <span class="section-eyebrow">See it in action</span>
+          <h2>Watch. Clip. Remember.</h2>
+          <p>From YouTube to structured notes — in seconds.</p>
         </div>
-        <div class="highlight-grid">
-          <div class="highlight-copy reveal" data-delay="60">
-            <h3>Stay in flow while you learn</h3>
-            <p>
-              Clip notes while you watch and return later with a focused,
-              searchable workspace.
-            </p>
+        <div class="demo-gif-wrapper reveal" data-delay="80">
+          <img
+            src="/static/assets/demo.gif"
+            alt="Clipnote demo"
+            class="demo-gif"
+            onerror="this.outerHTML='<div class=\'demo-gif-placeholder\'><i data-lucide=\'play-circle\' style=\'width:52px;height:52px;opacity:0.25\'></i><p>Demo coming soon</p></div>';if(window.lucide)lucide.createIcons();"
+          />
+        </div>
+      </section>
+
+      <!-- Extension + Clipchat -->
+      <section class="product-section">
+        <div class="section-header reveal">
+          <span class="section-eyebrow">Two tools</span>
+          <h2>Built into your learning flow</h2>
+          <p>Most learners forget 70% of what they watch. Clipnote captures what matters — while you watch.</p>
+        </div>
+        <div class="product-grid">
+          <div class="product-card reveal" data-delay="0">
+            <div class="feature-icon">
+              <i data-lucide="puzzle"></i>
+            </div>
+            <div>
+              <h3>Chrome Extension</h3>
+              <p class="product-tagline">Clip it while you watch</p>
+            </div>
+            <p>Take timestamped notes without pausing. Your dashboard fills up automatically as you learn.</p>
             <ul class="checklist">
               <li>
-                <i data-lucide="check-circle"></i> AI summaries for fast recall
+                <i data-lucide="check-circle"></i> One-click capture with
+                timestamp
               </li>
               <li>
-                <i data-lucide="check-circle"></i> Timestamped notes you can
-                jump to
+                <i data-lucide="check-circle"></i> Auto-synced to your
+                dashboard
               </li>
               <li>
-                <i data-lucide="check-circle"></i> Labels to keep topics
-                organized
+                <i data-lucide="check-circle"></i> Searchable by video, label,
+                or keyword
               </li>
             </ul>
           </div>
-          <div class="highlight-panel reveal" data-delay="120">
-            <div class="panel-heading">
-              <h4>What you get</h4>
-              <span class="pill">Extension + Web</span>
+          <div class="product-card reveal" data-delay="80">
+            <div class="feature-icon">
+              <i data-lucide="messages-square"></i>
             </div>
-            <div class="panel-list">
-              <div>
-                <strong>Quick capture</strong>
-                <span>Clip insights without pausing the video.</span>
-              </div>
-              <div>
-                <strong>Clean dashboard</strong>
-                <span>Browse notes by video, label, or search.</span>
-              </div>
-              <div>
-                <strong>Review mode</strong>
-                <span>Return to key moments in one click.</span>
-              </div>
+            <div>
+              <h3>Clipchat</h3>
+              <p class="product-tagline">Ask the video anything</p>
             </div>
+            <p>A conversational AI for any YouTube transcript. Get precise, timestamped answers from the source.</p>
+            <ul class="checklist">
+              <li>
+                <i data-lucide="check-circle"></i> Chat with any YouTube
+                transcript
+              </li>
+              <li>
+                <i data-lucide="check-circle"></i> Every answer cites exact
+                timestamps
+              </li>
+              <li>
+                <i data-lucide="check-circle"></i> Free trial: 1 video, 5
+                questions
+              </li>
+            </ul>
           </div>
         </div>
       </section>
 
-      <section class="workflow">
+      <!-- Pricing -->
+      <section class="pricing-section">
         <div class="section-header reveal">
-          <span class="section-eyebrow">Workflow</span>
-          <h2>A streamlined 3-step process</h2>
-          <p>
-            From watching to retention in minutes—no clutter, no extra tools.
-          </p>
+          <span class="section-eyebrow">Pricing</span>
+          <h2>Start free. Scale when you're ready.</h2>
+          <p>No credit card required to try. Bring your own key when you're hooked.</p>
         </div>
-        <div class="workflow-steps">
-          <div class="workflow-step reveal" data-delay="0">
-            <span class="step-count">01</span>
-            <h3>Capture</h3>
-            <p>
-              Create an account, then use the extension to take notes and
-              capture key timestamps as you watch.
-            </p>
+        <div class="pricing-grid">
+          <div class="pricing-card reveal" data-delay="0">
+            <div>
+              <div class="pricing-tier-label">Free Trial</div>
+              <div class="pricing-price">
+                <span class="pricing-amount">$0</span>
+              </div>
+              <p class="pricing-tagline">Try before you commit. No account needed.</p>
+            </div>
+            <ul class="pricing-features">
+              <li><i data-lucide="check"></i> Clipchat on 1 video</li>
+              <li><i data-lucide="check"></i> Up to 5 questions per video</li>
+              <li><i data-lucide="check"></i> No sign-up required</li>
+            </ul>
+            <div class="pricing-cta">
+              <a
+                href="/clipchat"
+                class="btn btn-secondary"
+                style="width: 100%; justify-content: center"
+                >Try Clipchat</a
+              >
+            </div>
           </div>
-          <div class="workflow-step reveal" data-delay="80">
-            <span class="step-count">02</span>
-            <h3>Summarize</h3>
-            <p>
-              Let AI extract the highlights and generate a clean summary for
-              review.
-            </p>
+
+          <div class="pricing-card featured reveal" data-delay="80">
+            <div>
+              <div class="pricing-tier-label">Bring Your Own Key</div>
+              <div class="pricing-price">
+                <span class="pricing-amount">API</span>
+                <span class="pricing-period">costs only</span>
+              </div>
+              <p class="pricing-tagline">Full access. Pay only what you use.</p>
+            </div>
+            <ul class="pricing-features">
+              <li><i data-lucide="check"></i> Unlimited Clipchat</li>
+              <li><i data-lucide="check"></i> Full note-taking dashboard</li>
+              <li><i data-lucide="check"></i> Labels, search &amp; organization</li>
+              <li><i data-lucide="check"></i> Use your OpenAI or Gemini key</li>
+              <li><i data-lucide="check"></i> Self-hostable on any server</li>
+            </ul>
+            <div class="pricing-cta">
+              <a
+                href="/login"
+                class="btn btn-primary"
+                style="width: 100%; justify-content: center"
+                >Get Started</a
+              >
+            </div>
           </div>
-          <div class="workflow-step reveal" data-delay="160">
-            <span class="step-count">03</span>
-            <h3>Review</h3>
-            <p>
-              Return to your dashboard to search, label, and revisit the exact
-              moments.
-            </p>
+
+          <div class="pricing-card reveal" data-delay="160">
+            <div>
+              <div class="pricing-tier-label">Pro</div>
+              <div class="pricing-price">
+                <span
+                  class="pricing-amount"
+                  style="font-size: 1.5rem; color: var(--text-muted)"
+                  >Coming soon</span
+                >
+              </div>
+              <p class="pricing-tagline">Hosted, managed, no API key needed.</p>
+            </div>
+            <ul class="pricing-features">
+              <li><i data-lucide="check"></i> Everything in BYOK</li>
+              <li><i data-lucide="check"></i> No API key required</li>
+              <li><i data-lucide="check"></i> Hosted &amp; managed for you</li>
+              <li><i data-lucide="check"></i> Priority features &amp; support</li>
+            </ul>
+            <div class="pricing-cta">
+              <button
+                class="btn btn-secondary"
+                style="width: 100%; justify-content: center; opacity: 0.55"
+                disabled
+              >
+                Notify Me
+              </button>
+            </div>
           </div>
         </div>
       </section>
 
-      <section class="trust">
+      <!-- Who it's for -->
+      <section class="for-who-section">
         <div class="section-header reveal">
-          <span class="section-eyebrow">Trusted Workflow</span>
-          <h2>Built for focused learning</h2>
-          <p>
-            Clipnote is designed around clarity, speed, and your ownership of
-            notes.
-          </p>
+          <span class="section-eyebrow">Who it's for</span>
+          <h2>Built for curious learners</h2>
+          <p>If you learn from YouTube, Clipnote was made for you.</p>
         </div>
-        <div class="logo-row reveal" data-delay="60">
-          <span>Learning Teams</span>
-          <span>Independent Researchers</span>
-          <span>Bootcamp Students</span>
-          <span>Creator Educators</span>
-        </div>
-        <div class="trust-list">
-          <div class="trust-item reveal" data-delay="120">
-            <i data-lucide="shield"></i>
-            <div>
-              <h4>Privacy-first</h4>
-              <p>Your notes stay in your account. No noisy social feed.</p>
-            </div>
+        <div class="audience-grid">
+          <div class="audience-card reveal" data-delay="0">
+            <i data-lucide="graduation-cap"></i>
+            <h4>Students</h4>
+            <p>Turn lecture recordings and course videos into organized review notes.</p>
           </div>
-          <div class="trust-item reveal" data-delay="180">
-            <i data-lucide="sparkles"></i>
-            <div>
-              <h4>Focused UI</h4>
-              <p>Minimal layout to keep attention on what matters.</p>
-            </div>
+          <div class="audience-card reveal" data-delay="60">
+            <i data-lucide="search"></i>
+            <h4>Researchers</h4>
+            <p>Catalogue deep-dive videos and extract key insights without re-watching.</p>
           </div>
-          <div class="trust-item reveal" data-delay="240">
-            <i data-lucide="folder"></i>
-            <div>
-              <h4>Organized by default</h4>
-              <p>Labels and search keep every video note easy to find.</p>
-            </div>
+          <div class="audience-card reveal" data-delay="120">
+            <i data-lucide="code-2"></i>
+            <h4>Bootcamp Learners</h4>
+            <p>Keep up with fast-paced technical tutorials and revisit only what you need.</p>
+          </div>
+          <div class="audience-card reveal" data-delay="180">
+            <i data-lucide="briefcase"></i>
+            <h4>Knowledge Workers</h4>
+            <p>Save insights from talks, podcasts, and online courses in one clean place.</p>
           </div>
         </div>
       </section>
 
+      <!-- Upcoming Features -->
+      <section class="upcoming-section">
+        <div class="section-header reveal">
+          <span class="section-eyebrow">Coming next</span>
+          <h2>We're just getting started</h2>
+          <p>Features designed to make your learning compound over time.</p>
+        </div>
+        <div class="upcoming-grid">
+          <div class="upcoming-item reveal" data-delay="0">
+            <span class="upcoming-badge">Soon</span>
+            <div class="feature-icon">
+              <i data-lucide="file-text"></i>
+            </div>
+            <h3>Markdown Export</h3>
+            <p>
+              Download your notes as clean Markdown. Works seamlessly with
+              Obsidian, Notion, and any notes app.
+            </p>
+          </div>
+          <div class="upcoming-item reveal" data-delay="80">
+            <span class="upcoming-badge">Soon</span>
+            <div class="feature-icon">
+              <i data-lucide="network"></i>
+            </div>
+            <h3>Knowledge Graph</h3>
+            <p>
+              See how ideas across your videos connect. Discover patterns in
+              what you've been learning.
+            </p>
+          </div>
+          <div class="upcoming-item reveal" data-delay="160">
+            <span class="upcoming-badge">Soon</span>
+            <div class="feature-icon">
+              <i data-lucide="bar-chart-2"></i>
+            </div>
+            <h3>Clipscore</h3>
+            <p>
+              AI rates content quality before you invest the time. Know what's
+              worth watching.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- CTA -->
       <section class="cta">
         <div class="cta-card reveal">
           <div class="cta-content">
-            <h2>Ready to enhance your learning?</h2>
-            <p>Start taking smarter notes from YouTube videos today.</p>
-            <a href="/login" class="btn btn-primary"> Get Started Now </a>
+            <h2>Start learning smarter today</h2>
+            <p>Free to try. No credit card. No fluff.</p>
+            <a href="/login" class="btn btn-primary">Get Started Now</a>
           </div>
         </div>
       </section>
