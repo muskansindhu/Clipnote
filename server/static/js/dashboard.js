@@ -278,18 +278,9 @@ document.addEventListener("DOMContentLoaded", function () {
         }
         filterModal.style.display = "flex";
       });
-      const plusBtn = document.createElement("button");
-      plusBtn.className = "add-label-btn";
-      plusBtn.innerHTML = `<i data-lucide="plus" style="width:18px; height:18px;" stroke-width="2"></i>`;
-      plusBtn.title = "Add Label";
-      plusBtn.addEventListener("click", () => {
-        document.getElementById("label-modal").style.display = "flex";
-      });
-      
       if (searchActions) {
         searchActions.innerHTML = "";
         searchActions.appendChild(filterBtn);
-        searchActions.appendChild(plusBtn);
       }
 
 
@@ -333,17 +324,6 @@ document.addEventListener("DOMContentLoaded", function () {
       if (window.lucide) lucide.createIcons();
 
 
-      const modal = document.getElementById("label-modal");
-      const closeBtn = document.getElementById("close-label-modal");
-      if (closeBtn) closeBtn.onclick = () => modal.style.display = "none";
-
-      // Close on outside click for label modal
-      modal.addEventListener("click", (e) => {
-        if (e.target === modal) {
-          modal.style.display = "none";
-        }
-      });
-
       if (filterModal) {
         filterModal.addEventListener("click", (event) => {
           if (event.target === filterModal) {
@@ -351,36 +331,6 @@ document.addEventListener("DOMContentLoaded", function () {
           }
         });
       }
-
-      const form = document.getElementById("label-form");
-
-
-      form.onsubmit = function (e) {
-        e.preventDefault();
-        const labelName = document.getElementById("new-label-input").value.trim();
-        if (!labelName) return;
-
-        fetch("/label", {
-          method: "POST",
-          headers: {
-            Authorization: "Bearer " + token,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ label_name: labelName }),
-        })
-          .then((res) => {
-            if (!res.ok) throw new Error("Failed to add label.");
-            return res.json();
-          })
-          .then(() => {
-            modal.style.display = "none";
-            location.reload();
-          })
-          .catch((err) => {
-            console.error(err);
-            alert("Failed to add label.");
-          });
-      };
 
       if (activeFilters) {
         activeFilters.addEventListener("click", (event) => {

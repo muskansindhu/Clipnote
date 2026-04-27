@@ -8,9 +8,7 @@
   <link rel="icon" type="image/svg+xml" href="/static/assets/clipnote-logo-dark.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link
-    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
-    rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link href="static/css/style.css" rel="stylesheet">
   <script src="https://unpkg.com/lucide@latest"></script>
 </head>
@@ -32,9 +30,7 @@
           <i data-lucide="user" style="width: 18px; height: 18px;"></i>
         </div>
         <div class="profile-dropdown" id="profile-dropdown">
-          <div id="dropdown-guest-info" class="dropdown-guest-info" style="display:none;">
-            Trial: Loading...
-          </div>
+          <div id="dropdown-guest-info" class="dropdown-guest-info" style="display:none;"></div>
           <button class="dropdown-item" id="manage-profile-btn">
             <i data-lucide="settings"></i> Manage Profile
           </button>
@@ -49,44 +45,94 @@
     </div>
   </div>
 
-  <div class="container profile-container">
-    <div class="profile-header-center">
-      <div class="profile-avatar">
-        <i data-lucide="user"></i>
+  <main class="main-content dashboard-main">
+    <header class="page-header">
+      <div class="page-title-group">
+        <span class="section-eyebrow">Account</span>
+        <h2>Profile</h2>
+        <p class="page-subtitle">Manage your account settings and labels.</p>
       </div>
-      <h2 id="profile-username-display">User</h2>
-      <p id="profile-email-display" style="margin-top: 4px; color: var(--text-subtle);">user@example.com</p>
-      <div id="guest-profile-info" style="display:none; color: var(--accent-secondary); margin-top: 5px; font-weight: 600;">Clipchat
-        Trial</div>
-      <p style="margin-top: 4px;">Manage your account settings</p>
-    </div>
+    </header>
 
-    <div class="profile-section">
-      <h3>Control Center</h3>
-      <div class="info-group">
-        <label>API Token (JWT)</label>
-        <div class="token-input-group">
-          <input type="password" id="jwt-token" readonly value="">
-          <button class="icon-btn" id="toggle-token-btn" title="Show/Hide Token">
-            <i data-lucide="eye"></i>
-          </button>
-          <button class="icon-btn" id="copy-token-btn" title="Copy Token">
-            <i data-lucide="copy"></i>
-          </button>
+    <!-- Identity card -->
+    <div class="panel profile-identity-card">
+      <div class="profile-avatar" id="profile-avatar-initials">U</div>
+      <div class="profile-identity-info">
+        <h3 id="profile-username-display">User</h3>
+        <p id="profile-email-display">user@example.com</p>
+        <div class="profile-tier-row">
+          <span class="profile-tier-badge" id="profile-tier-badge"></span>
         </div>
-        <small class="hint-text">Keep this token secret. It gives full access to your account.</small>
+        <div id="guest-profile-info" style="display:none;" class="guest-badge">Clipchat Trial</div>
       </div>
     </div>
 
-    <div class="profile-section">
-      <h3>Label Management</h3>
-      <p class="section-desc">Manage your custom labels for organizing notes.</p>
+    <div class="profile-grid">
 
-      <div id="labels-list" class="labels-list">
-        <div class="loading-spinner">Loading labels...</div>
+      <!-- Security -->
+      <div class="panel profile-section">
+        <div class="profile-section-title">
+          <i data-lucide="shield" style="width:16px;height:16px;"></i>
+          Security
+        </div>
+
+        <div class="profile-subsection">
+          <p class="profile-subsection-label">API Token</p>
+          <p class="section-desc">Keep this secret — it grants full access to your account.</p>
+          <div class="token-input-group">
+            <input type="password" id="jwt-token" readonly value="" />
+            <button class="icon-btn" id="toggle-token-btn" title="Show/Hide Token">
+              <i data-lucide="eye"></i>
+            </button>
+            <button class="icon-btn" id="copy-token-btn" title="Copy Token">
+              <i data-lucide="copy"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="profile-subsection-divider"></div>
+
+        <div class="profile-subsection">
+          <p class="profile-subsection-label">Change Password</p>
+          <p class="section-desc">Must be at least 6 characters.</p>
+          <form id="change-password-form" class="change-password-form">
+            <div class="password-field">
+              <input type="password" id="current-password" placeholder="Current password" required />
+            </div>
+            <div class="password-field">
+              <input type="password" id="new-password" placeholder="New password" required />
+            </div>
+            <div class="password-field">
+              <input type="password" id="confirm-password" placeholder="Confirm new password" required />
+            </div>
+            <div class="password-form-footer">
+              <p id="password-feedback" class="password-feedback"></p>
+              <button type="submit" class="btn btn-primary btn-small">Update Password</button>
+            </div>
+          </form>
+        </div>
       </div>
+
+      <!-- Labels -->
+      <div class="panel profile-section">
+        <div class="profile-section-title">
+          <i data-lucide="tag" style="width:16px;height:16px;"></i>
+          Labels
+        </div>
+        <p class="section-desc">Create and manage labels to organise your video notes.</p>
+
+        <form id="label-form" class="add-label-form">
+          <input type="text" id="new-label-input" placeholder="New label name…" required />
+          <button type="submit" class="btn btn-primary btn-small">Add</button>
+        </form>
+
+        <div id="labels-list" class="labels-list">
+          <div class="loading-spinner">Loading labels…</div>
+        </div>
+      </div>
+
     </div>
-  </div>
+  </main>
 
   <div id="logout-modal" class="modal-overlay">
     <div class="modal-confirm">

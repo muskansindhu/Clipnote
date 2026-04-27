@@ -4,6 +4,8 @@ document.addEventListener("DOMContentLoaded", function () {
     loadProfileInfo();
     loadLabels();
     setupTokenControls();
+    setupAddLabel();
+    setupChangePassword();
     checkGuestProfileStatus();
 });
 
@@ -18,19 +20,74 @@ if (isGuestAccessToken(token)) {
 }
 
 function loadProfileInfo() {
-
     try {
         const payload = JSON.parse(atob(token.split('.')[1]));
-        document.getElementById('profile-username-display').textContent = payload.username || payload.sub || 'User';
-        document.getElementById('profile-email-display').textContent = payload.email || '';
+        const username = payload.username || payload.sub || 'User';
+        const email = payload.email || '';
+        const picture = payload.picture || null;
+        const accountTier = payload.account_tier;
+
+        document.getElementById('profile-username-display').textContent = username;
+        document.getElementById('profile-email-display').textContent = email;
+
+        // Avatar: Google photo or initials
+        const avatarEl = document.getElementById('profile-avatar-initials');
+        if (avatarEl) {
+            if (picture) {
+                avatarEl.innerHTML = `<img src="${picture}" alt="${username}" class="profile-avatar-img" />`;
+            } else {
+                avatarEl.textContent = username.slice(0, 2).toUpperCase();
+            }
+        }
+
+        // Subscription tier badge
+        const tierBadge = document.getElementById('profile-tier-badge');
+        if (tierBadge) {
+            if (accountTier === 'clipchat_trial') {
+                tierBadge.textContent = 'Clipchat Trial';
+                tierBadge.className = 'profile-tier-badge tier-trial';
+            } else {
+                tierBadge.textContent = 'Bring Your Own Key';
+                tierBadge.className = 'profile-tier-badge tier-byok';
+            }
+        }
     } catch (e) {
         console.error("Invalid token", e);
         document.getElementById('profile-username-display').textContent = 'Unknown User';
         document.getElementById('profile-email-display').textContent = '';
     }
 
-
     document.getElementById('jwt-token').value = token;
+}
+
+function setupAddLabel() {
+    const form = document.getElementById('label-form');
+    if (!form) return;
+
+    form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const input = document.getElementById('new-label-input');
+        const labelName = input.value.trim();
+        if (!labelName) return;
+
+        fetch('/label', {
+            method: 'POST',
+            headers: {
+                Authorization: 'Bearer ' + token,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ label_name: labelName }),
+        })
+            .then(res => {
+                if (!res.ok) throw new Error('Failed to add label.');
+                return res.json();
+            })
+            .then(() => {
+                input.value = '';
+                loadLabels();
+            })
+            .catch(() => alert('Failed to add label.'));
+    });
 }
 
 function setupTokenControls() {
@@ -152,6 +209,55 @@ function deleteLabel(id) {
             loadLabels(); // Reload list
         })
         .catch(err => alert("Failed to delete label"));
+}
+
+function setupChangePassword() {
+    const form = document.getElementById('change-password-form');
+    if (!form) return;
+
+    const feedback = document.getElementById('password-feedback');
+
+    const setFeedback = (msg, isError = true) => {
+        feedback.textContent = msg;
+        feedback.className = 'password-feedback ' + (isError ? 'feedback-error' : 'feedback-success');
+    };
+
+    form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const current = document.getElementById('current-password').value;
+        const newPass = document.getElementById('new-password').value;
+        const confirm = document.getElementById('confirm-password').value;
+
+        if (newPass !== confirm) {
+            setFeedback('New passwords do not match.');
+            return;
+        }
+        if (newPass.length < 6) {
+            setFeedback('Password must be at least 6 characters.');
+            return;
+        }
+
+        feedback.textContent = '';
+
+        fetch('/change-password', {
+            method: 'POST',
+            headers: {
+                Authorization: 'Bearer ' + token,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ current_password: current, new_password: newPass }),
+        })
+            .then(res => res.json().then(data => ({ ok: res.ok, data })))
+            .then(({ ok, data }) => {
+                if (ok) {
+                    setFeedback(data.message || 'Password updated.', false);
+                    form.reset();
+                } else {
+                    setFeedback(data.message || 'Failed to update password.');
+                }
+            })
+            .catch(() => setFeedback('Something went wrong. Please try again.'));
+    });
 }
 
 function insertDashboardIconIfLoggedIn() {

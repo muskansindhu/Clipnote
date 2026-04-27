@@ -402,54 +402,25 @@ document.addEventListener("DOMContentLoaded", function () {
     initialiseThumbnail(currentVideoId, data.video_title || "Video thumbnail");
   }
 
-  function initialiseThumbnail(currentVideoId, altText = "Video thumbnail") {
-    const thumbnail = document.getElementById("clipchat-thumbnail");
+  function initialiseThumbnail(currentVideoId) {
+    const embed = document.getElementById("clipchat-thumbnail");
     const loader = document.getElementById("clipchat-thumbnail-loader");
-    if (!thumbnail) return;
+    if (!embed) return;
 
-    if (
-      thumbnail.dataset.videoId === currentVideoId &&
-      thumbnail.getAttribute("src")
-    ) {
-      thumbnail.alt = altText;
+    if (embed.dataset.videoId === currentVideoId && embed.getAttribute("src")) {
       return;
     }
 
-    const maxResUrl = `https://img.youtube.com/vi/${currentVideoId}/maxresdefault.jpg`;
-    const hqUrl = `https://img.youtube.com/vi/${currentVideoId}/hqdefault.jpg`;
+    if (loader) loader.style.display = "flex";
+    embed.classList.remove("is-loaded");
+    embed.dataset.videoId = currentVideoId;
 
-    if (loader) {
-      loader.style.display = "flex";
-    }
-
-    thumbnail.classList.remove("is-loaded");
-    thumbnail.alt = altText;
-    thumbnail.dataset.videoId = currentVideoId;
-
-    const showLoadedImage = () => {
-      thumbnail.classList.add("is-loaded");
-      if (loader) {
-        loader.style.display = "none";
-      }
+    embed.onload = () => {
+      embed.classList.add("is-loaded");
+      if (loader) loader.style.display = "none";
     };
 
-    thumbnail.onload = showLoadedImage;
-    thumbnail.onerror = () => {
-      if (thumbnail.dataset.fallbackAttempted === "true") {
-        thumbnail.removeAttribute("src");
-        thumbnail.classList.remove("is-loaded");
-        if (loader) {
-          loader.style.display = "flex";
-        }
-        return;
-      }
-
-      thumbnail.dataset.fallbackAttempted = "true";
-      thumbnail.src = hqUrl;
-    };
-
-    thumbnail.dataset.fallbackAttempted = "false";
-    thumbnail.src = maxResUrl;
+    embed.src = `https://www.youtube.com/embed/${currentVideoId}?enablejsapi=1`;
   }
 
   function needsAssetPreparation(assetStatus) {
@@ -610,11 +581,14 @@ function renderLinkedAnswer(element, text, videoUrl) {
     element.appendChild(document.createTextNode("["));
 
     const link = document.createElement("a");
-    link.href = buildTimestampUrl(videoUrl, seconds);
-    link.target = "_blank";
-    link.rel = "noopener noreferrer";
-    link.className = "clipchat-inline-link";
+    link.href = "#";
+    link.className = "clipchat-inline-link clipchat-timestamp-link";
+    link.dataset.seconds = seconds;
     link.textContent = displayTimestamp;
+    link.addEventListener("click", (e) => {
+      e.preventDefault();
+      seekEmbedToSeconds(seconds);
+    });
 
     element.appendChild(link);
     element.appendChild(document.createTextNode("]"));
@@ -627,6 +601,15 @@ function renderLinkedAnswer(element, text, videoUrl) {
 function appendTextSegment(element, text) {
   if (!text) return;
   renderTextWithLineBreaks(element, text);
+}
+
+function seekEmbedToSeconds(seconds) {
+  const embed = document.getElementById("clipchat-thumbnail");
+  if (!embed || !embed.contentWindow) return;
+  const cmd = (func, args) =>
+    embed.contentWindow.postMessage(JSON.stringify({ event: "command", func, args }), "*");
+  cmd("seekTo", [seconds, true]);
+  cmd("playVideo", []);
 }
 
 function buildTimestampUrl(videoUrl, seconds) {

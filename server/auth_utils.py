@@ -16,6 +16,7 @@ def issue_access_token(
     username: str | None,
     email: str | None,
     jwt_secret: str,
+    picture: str | None = None,
 ) -> str:
     """Create a signed Clipnote access token for an authenticated user."""
     payload: dict[str, Any] = {
@@ -26,6 +27,8 @@ def issue_access_token(
         payload["username"] = username
     if email:
         payload["email"] = email
+    if picture:
+        payload["picture"] = picture
     return jwt.encode(payload, jwt_secret, algorithm="HS256")
 
 

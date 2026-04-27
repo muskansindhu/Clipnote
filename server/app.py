@@ -228,6 +228,7 @@ def auth_google_callback():
         username=str(username),
         email=str(email),
         jwt_secret=JWT_SECRET,
+        picture=user_info.get("picture"),
     )
 
     if request.args.get("api") == "1":
@@ -1056,6 +1057,43 @@ def delete_note(video_yt_id):
             conn.commit()
 
     return jsonify({"status": "success"}), 200
+
+
+@app.route("/change-password", methods=["POST"])
+@require_registered_user
+def change_password():
+    data = request.get_json() or {}
+    current_password = str(data.get("current_password") or "")
+    new_password = str(data.get("new_password") or "")
+
+    if not new_password or len(new_password) < 6:
+        return jsonify({"message": "New password must be at least 6 characters."}), 400
+
+    with psycopg.connect(SUPABASE_CONNECTION_STRING) as conn:
+        with conn.cursor() as cur:
+            cur.execute("SELECT password_hash FROM users WHERE id = %s", (request.user,))
+            row = cur.fetchone()
+            if not row:
+                return jsonify({"message": "User not found."}), 404
+
+            password_hash = row[0]
+
+            if not password_hash:
+                return jsonify({"message": "This account uses Google sign-in. Password changes are not available."}), 400
+
+            if not current_password:
+                return jsonify({"message": "Current password is required."}), 400
+
+            if not check_password_hash(password_hash, current_password):
+                return jsonify({"message": "Current password is incorrect."}), 401
+
+            cur.execute(
+                "UPDATE users SET password_hash = %s WHERE id = %s",
+                (generate_password_hash(new_password), request.user),
+            )
+            conn.commit()
+
+    return jsonify({"message": "Password updated successfully."}), 200
 
 
 if __name__ == "__main__":

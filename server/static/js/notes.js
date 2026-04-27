@@ -41,21 +41,20 @@ document.addEventListener("DOMContentLoaded", function () {
       container.innerHTML = `
         <div class="note-content">
         <div class="video-thumbnail-wrapper">
-          <img src="https://img.youtube.com/vi/${videoId}/maxresdefault.jpg" 
-               alt="${note.video_title}" 
+          <img src="https://img.youtube.com/vi/${videoId}/maxresdefault.jpg"
+               alt="${note.video_title}"
                class="video-thumbnail"
                onerror="this.src='https://img.youtube.com/vi/${videoId}/hqdefault.jpg'" />
         </div>
         <h2><a href="${note.video_url}" target="_blank" class="video-title">${note.video_title
         }</a></h2>
       <div class="video-tag">
-       <i data-lucide="tag" class="tag-icon"></i>
+        <div class="video-tag-label-area"></div>
+        <a href="/clipchat/${videoId}" class="btn btn-secondary btn-small video-tag-clipchat-btn">Open Clipchat</a>
       </div>
           ${note.video_summary ? `
           <details class="video-summary-details">
-            <summary class="video-summary-title">
-              Video Summary
-            </summary>
+            <summary class="video-summary-title">Summary</summary>
             <div class="video-summary-content">
               <p>${note.video_summary.replace(/\n/g, "<br>")}</p>
             </div>
@@ -448,7 +447,7 @@ function getVideoLabel(videoId, token) {
       return res.json();
     })
     .then((data) => {
-      const tagDiv = document.querySelector(".video-tag");
+      const tagDiv = document.querySelector(".video-tag-label-area");
       if (!tagDiv) return;
 
       if (data.label) {
