@@ -830,7 +830,26 @@ def _get_registered_clipchat_context(
             video = cur.fetchone()
 
             if not video:
-                return None
+                cur.execute(
+                    """
+                    SELECT video_url, video_title, video_summary
+                    FROM video
+                    WHERE id = %s
+                    ORDER BY created_at DESC NULLS LAST
+                    LIMIT 1
+                    """,
+                    (video_yt_id,),
+                )
+                any_video = cur.fetchone()
+                default_url = f"https://www.youtube.com/watch?v={video_yt_id}"
+                return {
+                    "video_id": video_yt_id,
+                    "video_url": any_video[0] if any_video and any_video[0] else default_url,
+                    "video_title": any_video[1] if any_video and any_video[1] else "YouTube video",
+                    "fav": False,
+                    "video_summary": any_video[2] if any_video else None,
+                    "notes": [],
+                }
 
             cur.execute(
                 """

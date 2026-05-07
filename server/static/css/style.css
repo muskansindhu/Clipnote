@@ -138,9 +138,6 @@ body.light-mode::after {
   opacity: 0.2;
 }
 
-body.light-mode .navbar {
-  background: rgba(245, 245, 248, 0.88);
-}
 
 body.light-mode .footer {
   background: var(--bg-secondary);
@@ -571,12 +568,10 @@ h6 {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 1px solid var(--border-subtle);
-  background: rgba(6, 6, 9, 0.85);
-  backdrop-filter: blur(20px) saturate(180%);
-  position: sticky;
-  top: 0;
-  z-index: 100;
+  border-bottom: none;
+  background: transparent;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 }
 
 .navbar-brand {
@@ -3354,22 +3349,7 @@ img.action-item-icon {
   }
 }
 
-/* ===== HOME PAGE MINIMAL NAVBAR (scrolls away) ===== */
-.home-page .navbar {
-  background: transparent;
-  border-bottom: none;
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
-  position: static;
-}
 
-/* ===== CLIPCHAT PAGE TRANSPARENT NAVBAR (stays sticky) ===== */
-.clipchat-page .navbar {
-  background: transparent;
-  border-bottom: none;
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
-}
 
 /* ===== DEMO SECTION ===== */
 .demo-section {

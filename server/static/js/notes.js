@@ -339,6 +339,15 @@ function insertDashboardIconIfLoggedIn() {
   const token = localStorage.getItem("clipnote_token");
   if (!token) return;
 
+  // Clipchat Icon
+  const clipchatNavBtn = document.getElementById("clipchat-nav-btn");
+  if (clipchatNavBtn) {
+    clipchatNavBtn.style.display = "flex";
+    clipchatNavBtn.addEventListener("click", () => {
+      window.location.href = "/clipchat";
+    });
+  }
+
   // Dashboard Icon
   const dashboardBtn = document.getElementById("dashboard-btn");
   if (dashboardBtn) {

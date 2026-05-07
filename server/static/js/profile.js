@@ -265,6 +265,15 @@ function insertDashboardIconIfLoggedIn() {
     if (!token) return;
     const isGuest = isGuestAccessToken(token);
 
+    // Clipchat Icon
+    const clipchatNavBtn = document.getElementById("clipchat-nav-btn");
+    if (clipchatNavBtn && !isGuest) {
+        clipchatNavBtn.style.display = "flex";
+        clipchatNavBtn.addEventListener("click", () => {
+            window.location.href = "/clipchat";
+        });
+    }
+
     // Dashboard Icon
     const dashboardBtn = document.getElementById("dashboard-btn");
     if (dashboardBtn && !isGuest) {

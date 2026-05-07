@@ -19,6 +19,13 @@ document.addEventListener("DOMContentLoaded", function () {
   const isGuest = isGuestAccessToken(token);
   let videoId = getClipchatVideoIdFromLocation();
   const backToNoteBtn = document.getElementById("back-to-note-btn");
+
+  if (!isGuest) {
+    const setupEyebrow = document.querySelector("#clipchat-setup-card .section-eyebrow");
+    if (setupEyebrow) setupEyebrow.style.display = "none";
+    const setupCopy = document.querySelector("#clipchat-setup-card .clipchat-setup-copy");
+    if (setupCopy) setupCopy.textContent = "Paste a YouTube URL to chat with the video transcript.";
+  }
   const form = document.getElementById("clipchat-form");
   const input = document.getElementById("clipchat-input");
   const submitButton = document.getElementById("clipchat-submit");
@@ -33,11 +40,6 @@ document.addEventListener("DOMContentLoaded", function () {
   );
   const limitModal = document.getElementById("clipchat-limit-modal");
   const limitModalCopy = document.getElementById("clipchat-limit-copy");
-
-  if (!videoId && !isGuest) {
-    window.location.href = "/dashboard";
-    return;
-  }
 
   const pageSubtitleElem = document.getElementById("clipchat-page-subtitle");
   if (pageSubtitleElem) {
@@ -181,7 +183,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const hasVideo = Boolean(videoId);
 
     if (setupCard) {
-      setupCard.style.display = !isGuest || hasVideo ? "none" : "grid";
+      setupCard.style.display = hasVideo ? "none" : "grid";
     }
 
     if (layout) {
