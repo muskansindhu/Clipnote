@@ -1,70 +1,91 @@
 # Clipnote Architecture
 
-## Overview
+Clipnote saves timestamped notes on YouTube videos, organises them, writes AI notes and
+summaries, and lets you chat with a video. Notes can be captured from the Chrome extension,
+the web app, or the iPhone share sheet.
 
-Clipnote is a web application and Chrome extension for saving timestamped notes on YouTube videos, organizing them with labels, and generating AI-powered summaries.
+## Clean architecture
 
-## Main Components
+Dependencies point inward only: `interfaces → application → domain`, and `infrastructure`
+implements the ports that `application` defines.
 
-### 1. Backend (Flask API)
+```
+server/
+├── app.py                         entrypoint: load settings, create_app()
+├── clipnote/
+│   ├── domain/                    entities, errors, YouTube URL and clock parsing (stdlib only)
+│   ├── application/
+│   │   ├── ports.py               Protocols: repositories, LLM, transcripts, hashing, tokens...
+│   │   ├── prompts.py
+│   │   ├── services/              use cases: auth, notes, capture, labels, api tokens,
+│   │   │                          export, enrichment, transcripts, videos
+│   │   └── clipchat/              question answering: retrieval engine + service
+│   ├── infrastructure/            adapters implementing the ports
+│   │   ├── config.py              Settings from the environment
+│   │   ├── db/                    Postgres repositories + SQL migrations + runner
+│   │   ├── storage/               S3 and filesystem transcript caches
+│   │   ├── transcripts/           youtube-transcript-api, Apify
+│   │   ├── llm/                   OpenAI, offline stub
+│   │   ├── youtube/               oEmbed titles
+│   │   ├── security/              password hashing, JWT
+│   │   └── jobs/                  thread-pool task runner
+│   └── interfaces/http/           Flask app factory, blueprints, auth guards,
+│                                  request schemas (pydantic), error mapping,
+│                                  and container.py, the composition root
+├── static/  templates/            front end (vanilla JS + Jinja)
+└── tests/  unit/ api/ integration/ support/
+```
 
-- Handles authentication (username/password, Google OAuth, guest)
-- Manages users, notes, videos, labels, and favorites
-- Integrates with external services: YouTube Transcript API, Apify, Google Gemini, AWS S3
-- Provides REST API endpoints for extension and web frontend
+Rules that keep it clean:
 
-### 2. Database (PostgreSQL)
+- `domain` imports nothing outside the standard library.
+- Services depend on **ports** (`typing.Protocol`), never on Flask, psycopg, boto3 or OpenAI.
+- Only `interfaces/http/container.py` knows which adapter backs which port.
+- Routes validate input, call one service method and serialise the result. No SQL, no
+  business rules.
 
-- Tables: `video`, `notes`, `label`, `video_label`, `users`
-- Stores user data, notes, video metadata, and label associations
+## Data model (Postgres)
 
-### 3. Chrome Extension
+`users`, `video` (shared), `notes`, `label`, `video_label`, `user_video` (per-user
+favourites), `api_tokens` (hashed), `schema_migrations`. Notes store `timestamp_seconds`
+(nullable, for video-level notes), `note_type`, `status` and a mirrored legacy
+`video_timestamp` string.
 
-- Popup UI for note-taking and authentication
-- Content script for handshake with web page
-- Uses `chrome.storage` for token management
-- Communicates with backend API for CRUD operations
+Migrations are plain SQL in `infrastructure/db/migrations/` and run **only** when you run
+`python -m clipnote.infrastructure.db.migrate`, never on app start.
 
-### 4. Web Frontend (Jinja2 Templates)
-
-- Renders pages: home, login, dashboard, note, profile
-- Interacts with backend via forms and AJAX
-
-## Data Flow
-
-1. User logs in via extension or web (token stored in extension/local storage)
-2. User opens a YouTube video, takes a note (timestamp auto-captured)
-3. Note is sent to backend, stored in DB, transcript fetched if new video
-4. AI summary generated on request using Gemini and transcript
-5. Notes and videos can be labeled, favorited, searched, and filtered
-
-## Deployment
-
-- Backend deployed via Render
-- Extension loaded in Chrome (manifest.json)
-
----
-
-## Sequence Diagram
+## Saving a note
 
 ```mermaid
 sequenceDiagram
-	participant User
-	participant Extension
-	participant Backend
-	participant DB
-	participant S3
-	participant Gemini
-	User->>Extension: Take note on YouTube
-	Extension->>Backend: POST /add-notes
-	alt User provides note body
-		Backend->>DB: Store user note, video metadata
-		Backend-->>Extension: Success
-	else No note body (empty)
-		Backend->>S3: Fetch transcript
-		Backend->>Gemini: Generate AI note from transcript
-		Backend->>DB: Store AI note, video metadata
-		Backend-->>Extension: Success (AI note)
-	end
-	Extension-->>User: Show confirmation/summary
+    participant C as Client (extension, web, Shortcut)
+    participant API as Flask route
+    participant S as NoteService
+    participant DB as Postgres
+    participant W as Background worker
+    participant T as Transcript + LLM
+    C->>API: POST /add-notes or /api/capture
+    API->>S: create_note()
+    S->>DB: insert note (pending if work remains)
+    S-->>API: note
+    API-->>C: 201 immediately
+    S->>W: schedule(note_id)
+    W->>T: transcript → summary → AI text
+    W->>DB: status ready / failed
+    C->>API: GET /note/<id> (polls while pending)
 ```
+
+Saving never waits for a transcript or an LLM. A note with the user's own text is always
+`ready`, even if enrichment fails. Notes still `pending` after a restart are re-queued at
+startup.
+
+## Transcripts
+
+`TranscriptService` checks the cache (S3 or disk), then tries each provider in order
+(`TRANSCRIPT_PROVIDERS`, default `youtube_transcript_api,apify`), then caches the result.
+
+## Deployment
+
+- Backend: any container host (Render today). `Dockerfile` runs `python3 app.py`.
+- Chrome extension: loaded unpacked from `extension/`.
+- Local development: `docker compose up -d db`, see the README.
