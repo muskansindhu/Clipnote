@@ -1,5 +1,11 @@
 """Business entities and rules. Depends on nothing outside the standard library."""
 
+from clipnote.domain.accounts import (
+    MIN_PASSWORD_LENGTH,
+    derive_username_from_email,
+    normalise_email,
+    normalise_username,
+)
 from clipnote.domain.entities import (
     ApiToken,
     EnrichmentStatus,
@@ -32,6 +38,7 @@ from clipnote.domain.youtube import (
 )
 
 __all__ = [
+    "MIN_PASSWORD_LENGTH",
     "ApiToken",
     "AuthenticationError",
     "ConflictError",
@@ -50,10 +57,13 @@ __all__ = [
     "ValidationError",
     "Video",
     "VideoListing",
+    "derive_username_from_email",
     "extract_start_seconds",
     "extract_video_id",
     "format_clock",
     "is_valid_video_id",
+    "normalise_email",
+    "normalise_username",
     "parse_clock",
     "snippet_around",
     "timestamp_url",

@@ -1,5 +1,5 @@
 [tool.pytest.ini_options]
-pythonpath = ["server"]
+pythonpath = ["server", "server/tests"]
 testpaths = ["server/tests"]
 markers = [
     "integration: needs a running Postgres (see docker-compose.yml)",
@@ -16,6 +16,7 @@ select = ["E", "F", "I", "B", "UP", "S", "SIM"]
 ignore = ["S101"]
 
 [tool.ruff.lint.per-file-ignores]
+"server/clipnote/application/prompts.py" = ["E501"]
 "server/tests/**" = ["S", "B"]
 
 [tool.mypy]
