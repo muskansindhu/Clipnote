@@ -1,0 +1,29 @@
+[tool.pytest.ini_options]
+pythonpath = ["server"]
+testpaths = ["server/tests"]
+markers = [
+    "integration: needs a running Postgres (see docker-compose.yml)",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+extend-exclude = ["venv", "server/static", "server/templates"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "S", "SIM"]
+ignore = ["S101"]
+
+[tool.ruff.lint.per-file-ignores]
+"server/tests/**" = ["S", "B"]
+
+[tool.mypy]
+python_version = "3.11"
+mypy_path = "server"
+strict = true
+exclude = ["venv", "server/tests"]
+plugins = ["pydantic.mypy"]
+
+[[tool.mypy.overrides]]
+module = ["authlib.*", "apify_client.*", "boto3.*", "botocore.*", "youtube_transcript_api.*"]
+ignore_missing_imports = true
