@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 
-SECONDS_PER_MINUTE = 60
-SECONDS_PER_HOUR = 3600
+from clipnote.constants import (
+    SECONDS_PER_HOUR,
+    SECONDS_PER_MINUTE,
+)
 
 
 def parse_clock(value: str) -> int:

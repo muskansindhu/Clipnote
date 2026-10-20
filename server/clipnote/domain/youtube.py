@@ -2,24 +2,16 @@
 
 from __future__ import annotations
 
-import re
 from urllib.parse import parse_qs, urlparse
 
-VIDEO_ID_PATTERN = re.compile(r"^[A-Za-z0-9_-]{11}$")
-_YOUTUBE_HOSTS = frozenset(
-    {
-        "youtube.com",
-        "www.youtube.com",
-        "m.youtube.com",
-        "music.youtube.com",
-        "youtube-nocookie.com",
-        "www.youtube-nocookie.com",
-    }
+from clipnote.constants import (
+    START_TIME_PARAMS,
+    START_TIME_PATTERN,
+    VIDEO_ID_PATTERN,
+    YOUTUBE_HOSTS,
+    YOUTUBE_ID_PATH_PREFIXES,
+    YOUTUBE_SHORT_HOSTS,
 )
-_SHORT_HOSTS = frozenset({"youtu.be", "www.youtu.be"})
-_ID_PATH_PREFIXES = frozenset({"shorts", "embed", "live", "v"})
-_TIME_PATTERN = re.compile(r"^(?:(\d+)h)?(?:(\d+)m)?(?:(\d+)s?)?$")
-_TIME_PARAMS = ("t", "start", "time_continue")
 
 
 def is_valid_video_id(value: str) -> bool:
@@ -53,12 +45,12 @@ def extract_video_id(url: str) -> str | None:
     segments = [segment for segment in path.split("/") if segment]
     candidate: str | None = None
 
-    if host in _SHORT_HOSTS:
+    if host in YOUTUBE_SHORT_HOSTS:
         candidate = segments[0] if segments else None
-    elif host in _YOUTUBE_HOSTS:
+    elif host in YOUTUBE_HOSTS:
         if segments[:1] == ["watch"]:
             candidate = parse_qs(query).get("v", [None])[0]
-        elif len(segments) > 1 and segments[0] in _ID_PATH_PREFIXES:
+        elif len(segments) > 1 and segments[0] in YOUTUBE_ID_PATH_PREFIXES:
             candidate = segments[1]
 
     if candidate and is_valid_video_id(candidate):
@@ -69,7 +61,7 @@ def extract_video_id(url: str) -> str | None:
 def _parse_start_value(raw: str) -> int | None:
     """Parse ``"754"``, ``"754s"`` or ``"1h2m3s"`` into seconds."""
     value = raw.strip().lower()
-    match = _TIME_PATTERN.match(value)
+    match = START_TIME_PATTERN.match(value)
     if not value or match is None:
         return None
     hours, minutes, seconds = (int(group) if group else 0 for group in match.groups())
@@ -88,7 +80,7 @@ def extract_start_seconds(url: str) -> int | None:
     _, _, query, fragment = _parse(url)
     sources = (parse_qs(query), parse_qs(fragment))
     for params in sources:
-        for name in _TIME_PARAMS:
+        for name in START_TIME_PARAMS:
             for raw in params.get(name, []):
                 seconds = _parse_start_value(raw)
                 if seconds is not None:

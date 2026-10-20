@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import datetime, timedelta
+from datetime import datetime
 
 from clipnote.application.ports import (
     LibraryRepository,
@@ -12,6 +12,14 @@ from clipnote.application.ports import (
     VideoRepository,
 )
 from clipnote.application.services.enrichment import EnrichmentService
+from clipnote.constants import (
+    DEFAULT_VIDEO_TITLE,
+    DUPLICATE_WINDOW_SECONDS,
+    ONE_DAY,
+    PAGE_SIZE,
+    SORT_RECENT,
+    SORT_TITLE,
+)
 from clipnote.domain import (
     EnrichmentStatus,
     NewNote,
@@ -26,12 +34,6 @@ from clipnote.domain import (
     parse_clock,
     watch_url,
 )
-
-PAGE_SIZE = 10
-DUPLICATE_WINDOW_SECONDS = 60
-DEFAULT_VIDEO_TITLE = "YouTube video"
-SORT_RECENT = "recent"
-SORT_TITLE = "title"
 
 
 @dataclass(frozen=True, slots=True)
@@ -149,7 +151,7 @@ class NoteService:
             label_names=label_names or [],
             sort=SORT_TITLE if sort == SORT_TITLE else SORT_RECENT,
             start=start,
-            end=end + timedelta(days=1) if end else None,
+            end=end + ONE_DAY if end else None,
             limit=PAGE_SIZE + 1,
             offset=(page - 1) * PAGE_SIZE,
         )

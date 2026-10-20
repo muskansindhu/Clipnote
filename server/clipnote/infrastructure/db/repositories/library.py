@@ -6,9 +6,9 @@ from collections.abc import Sequence
 from datetime import datetime
 from typing import Any
 
+from clipnote.constants import DEFAULT_VIDEO_TITLE
 from clipnote.domain import VideoListing, watch_url
 from clipnote.infrastructure.db.connection import Database, Row
-from clipnote.infrastructure.db.repositories.videos import DEFAULT_TITLE
 
 _LIKE_ESCAPES = str.maketrans({"\\": "\\\\", "%": "\\%", "_": "\\_"})
 
@@ -17,7 +17,7 @@ def _to_listing(row: Row) -> VideoListing:
     return VideoListing(
         id=row["id"],
         url=row["video_url"] or watch_url(row["id"]),
-        title=row["video_title"] or DEFAULT_TITLE,
+        title=row["video_title"] or DEFAULT_VIDEO_TITLE,
         fav=bool(row["fav"]),
     )
 

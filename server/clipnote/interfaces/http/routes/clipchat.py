@@ -7,6 +7,10 @@ from collections.abc import Iterator
 
 from flask import Blueprint, Response, jsonify, stream_with_context
 
+from clipnote.constants import (
+    CLIPCHAT_ANSWER_FAILED_MESSAGE,
+    CLIPCHAT_STREAM_CHUNK_CHARS,
+)
 from clipnote.domain import ExternalServiceError
 from clipnote.interfaces.http.auth import container, current_user_id, login_required
 from clipnote.interfaces.http.errors import error_response
@@ -14,8 +18,6 @@ from clipnote.interfaces.http.schemas import QuestionBody, parse_body
 from clipnote.interfaces.http.serializers import clipchat_json
 
 blueprint = Blueprint("clipchat", __name__, url_prefix="/clipchat")
-STREAM_CHUNK_CHARS = 28
-ANSWER_FAILED = "Clipchat could not answer right now"
 
 
 @blueprint.get("/<video_id>/context")
@@ -37,13 +39,13 @@ def ask(video_id: str) -> tuple[Response, int]:
     try:
         answer = container().clipchat.ask(current_user_id(), video_id, question)
     except ExternalServiceError:
-        return error_response(ANSWER_FAILED, 502)
+        return error_response(CLIPCHAT_ANSWER_FAILED_MESSAGE, 502)
     return jsonify({"answer": answer}), 200
 
 
 def _server_sent_events(answer: str) -> Iterator[str]:
-    for start in range(0, len(answer), STREAM_CHUNK_CHARS):
-        chunk = json.dumps({"delta": answer[start : start + STREAM_CHUNK_CHARS]})
+    for start in range(0, len(answer), CLIPCHAT_STREAM_CHUNK_CHARS):
+        chunk = json.dumps({"delta": answer[start : start + CLIPCHAT_STREAM_CHUNK_CHARS]})
         yield f"event: chunk\ndata: {chunk}\n\n"
     yield f"event: done\ndata: {json.dumps({'answer': answer})}\n\n"
 
@@ -55,7 +57,7 @@ def stream(video_id: str) -> Response | tuple[Response, int]:
     try:
         answer = container().clipchat.ask(current_user_id(), video_id, question)
     except ExternalServiceError:
-        return error_response(ANSWER_FAILED, 502)
+        return error_response(CLIPCHAT_ANSWER_FAILED_MESSAGE, 502)
     return Response(
         stream_with_context(_server_sent_events(answer)),
         mimetype="text/event-stream",

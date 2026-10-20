@@ -1,7 +1,7 @@
 import pytest
 from support.world import World
 
-from clipnote.application import CAPTURE_SCOPE
+from clipnote.constants import CAPTURE_SCOPE
 from clipnote.domain import AuthenticationError, NotFoundError, ValidationError
 
 

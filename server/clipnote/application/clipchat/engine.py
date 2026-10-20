@@ -14,73 +14,22 @@ from typing import Any
 
 from clipnote.application.ports import LanguageModel
 from clipnote.application.prompts import clipchat_system_prompt
-from clipnote.domain import TranscriptEntry, parse_clock
-
-MAX_CLIPCHAT_CONTEXT_TOKENS = 120_000
-CLIPCHAT_CHUNK_CHAR_BUDGET = 90_000
-CLIPCHAT_CHUNK_OVERLAP_ENTRIES = 3
-MAX_CLIPCHAT_ITERATION_CHUNKS = 5
-RETRIEVAL_CONTEXT_WINDOW = 2
-RETRIEVAL_MAX_HITS = 24
-RETRIEVAL_STOP_WORDS = {
-    "a",
-    "about",
-    "all",
-    "an",
-    "and",
-    "are",
-    "as",
-    "at",
-    "be",
-    "by",
-    "do",
-    "does",
-    "for",
-    "from",
-    "how",
-    "i",
-    "in",
-    "into",
-    "is",
-    "it",
-    "key",
-    "main",
-    "moments",
-    "of",
-    "on",
-    "show",
-    "speaker",
-    "takeaways",
-    "tell",
-    "that",
-    "the",
-    "this",
-    "to",
-    "transcript",
-    "video",
-    "what",
-    "where",
-    "which",
-    "who",
-    "why",
-    "with",
-}
-
-CLIPCHAT_SCHEMA_NAME = "clipchat_response"
-CLIPCHAT_RESPONSE_SCHEMA: dict[str, Any] = {
-    "type": "object",
-    "additionalProperties": False,
-    "required": ["answer"],
-    "properties": {"answer": {"type": "string"}},
-}
-
-CITATION_BLOCK_PATTERN = re.compile(r"\[([^\[\]]+)\]")
-TIMESTAMP_TOKEN_PATTERN = re.compile(r"\d+:\d{1,2}(?::\d{1,2})?|\d+(?:\.\d+)?")
-TIMESTAMP_LABEL_PATTERN = re.compile(
-    r"\(?\s*timestamps?\s*:\s*((?:\[\d+\](?:\s+\[\d+\])*))\s*\)?",
-    re.IGNORECASE,
+from clipnote.constants import (
+    CITATION_BLOCK_PATTERN,
+    CLIPCHAT_CHUNK_CHAR_BUDGET,
+    CLIPCHAT_CHUNK_OVERLAP_ENTRIES,
+    CLIPCHAT_RESPONSE_SCHEMA,
+    CLIPCHAT_SCHEMA_NAME,
+    MAX_CLIPCHAT_CONTEXT_TOKENS,
+    MAX_CLIPCHAT_ITERATION_CHUNKS,
+    PARENTHESISED_CITATION_PATTERN,
+    RETRIEVAL_CONTEXT_WINDOW,
+    RETRIEVAL_MAX_HITS,
+    RETRIEVAL_STOP_WORDS,
+    TIMESTAMP_LABEL_PATTERN,
+    TIMESTAMP_TOKEN_PATTERN,
 )
-PARENTHESISED_CITATION_PATTERN = re.compile(r"\(\s*((?:\[\d+\](?:\s+\[\d+\])*))\s*\)")
+from clipnote.domain import TranscriptEntry, parse_clock
 
 
 def answer_question(

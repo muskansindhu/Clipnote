@@ -1,7 +1,6 @@
 """Use-case services."""
 
 from clipnote.application.services.api_tokens import (
-    CAPTURE_SCOPE,
     ApiTokenService,
     CreatedToken,
 )
@@ -20,7 +19,6 @@ from clipnote.application.services.transcripts import TranscriptService
 from clipnote.application.services.videos import VideoService
 
 __all__ = [
-    "CAPTURE_SCOPE",
     "ApiTokenService",
     "AuthService",
     "CaptureResult",

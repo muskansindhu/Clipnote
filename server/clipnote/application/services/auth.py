@@ -3,8 +3,11 @@
 from __future__ import annotations
 
 from clipnote.application.ports import AccessTokenCodec, PasswordHasher, UserRepository
-from clipnote.domain import (
+from clipnote.constants import (
+    GOOGLE_ONLY_LOGIN_MESSAGE,
     MIN_PASSWORD_LENGTH,
+)
+from clipnote.domain import (
     AuthenticationError,
     ConflictError,
     NotFoundError,
@@ -13,10 +16,6 @@ from clipnote.domain import (
     derive_username_from_email,
     normalise_email,
     normalise_username,
-)
-
-GOOGLE_ONLY_LOGIN_MESSAGE = (
-    "This account uses Google sign-in. Use Google login or add a password first."
 )
 
 

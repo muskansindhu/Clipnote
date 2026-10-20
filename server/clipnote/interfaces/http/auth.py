@@ -8,12 +8,14 @@ from typing import Any, ParamSpec, TypeVar
 
 from flask import current_app, g, request
 
+from clipnote.constants import (
+    API_TOKEN_PREFIX,
+)
 from clipnote.domain import AuthenticationError
 from clipnote.interfaces.http.container import Container
 
 P = ParamSpec("P")
 R = TypeVar("R")
-API_TOKEN_PREFIX = "cn_"  # noqa: S105  # public marker, not a secret
 
 
 def container() -> Container:
