@@ -78,8 +78,8 @@
         </div>
 
         <div class="profile-subsection">
-          <p class="profile-subsection-label">API Token</p>
-          <p class="section-desc">Keep this secret — it grants full access to your account.</p>
+          <p class="profile-subsection-label">Login token</p>
+          <p class="section-desc">Used by the browser extension. Keep this secret — it grants full access to your account.</p>
           <div class="token-input-group">
             <input type="password" id="jwt-token" readonly value="" />
             <button class="icon-btn" id="toggle-token-btn" title="Show/Hide Token">
@@ -111,6 +111,34 @@
               <button type="submit" class="btn btn-primary btn-small">Update Password</button>
             </div>
           </form>
+        </div>
+      </div>
+
+      <!-- Share to Clipnote -->
+      <div class="panel profile-section" id="api-tokens-section">
+        <div class="profile-section-title">
+          <i data-lucide="share-2" style="width:16px;height:16px;"></i>
+          Share to Clipnote (iPhone)
+        </div>
+        <p class="section-desc">
+          Create a token for the iOS Shortcut. It can only save notes, and you can revoke it at any time.
+          Endpoint: <code id="capture-endpoint"></code>
+        </p>
+
+        <form id="api-token-form" class="add-label-form">
+          <input type="text" id="api-token-label" placeholder="Token name, e.g. My iPhone" maxlength="60" />
+          <button type="submit" class="btn btn-primary btn-small">Create</button>
+        </form>
+        <p id="api-token-feedback" class="password-feedback"></p>
+
+        <div id="api-token-secret" class="api-token-secret" style="display: none">
+          <strong>Copy this token now — it will not be shown again.</strong>
+          <code id="api-token-secret-value"></code>
+          <button type="button" class="btn btn-secondary btn-small" id="api-token-copy">Copy token</button>
+        </div>
+
+        <div id="api-token-list" class="labels-list">
+          <div class="loading-spinner">Loading tokens…</div>
         </div>
       </div>
 
