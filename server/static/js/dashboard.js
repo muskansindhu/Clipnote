@@ -104,15 +104,16 @@ document.addEventListener("DOMContentLoaded", function () {
           card.className = "card";
           card.id = video.id;
 
-          const videoId = video.video_url.split('v=')[1]?.split('&')[0] || '';
+          const videoId = video.id;
+          const safeTitle = escapeHtml(video.video_title);
           card.innerHTML = `
             <div class="card-content-wrapper">
               <div class="card-thumbnail">
-                <img src="https://img.youtube.com/vi/${videoId}/hqdefault.jpg" alt="${video.video_title}" />
+                <img src="https://img.youtube.com/vi/${videoId}/hqdefault.jpg" alt="${safeTitle}" />
               </div>
               <div class="card-main">
                 <div class="card-header">
-                  <h3 id="video-title">${video.video_title}</h3>
+                  <h3 id="video-title">${safeTitle}</h3>
                 </div>
               </div>
               <div class="card-actions">
@@ -529,3 +530,13 @@ function insertDashboardIconIfLoggedIn() {
   }
 }
 
+
+
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
