@@ -63,6 +63,11 @@ def test_jwt_codec_rejects_tampered_wrong_secret_and_expired_tokens() -> None:
         codec.decode(expired)
     with pytest.raises(AuthenticationError, match="Invalid token"):
         codec.decode(no_subject)
+    retired_trial = jwt.encode(
+        {"sub": "guest_abc123", "exp": datetime.now(UTC) + timedelta(days=1)}, "secret", "HS256"
+    )
+    with pytest.raises(AuthenticationError, match="Invalid token"):
+        codec.decode(retired_trial)
 
 
 def test_password_hasher_verifies_only_the_right_password() -> None:

@@ -66,10 +66,9 @@ function setupThemeToggle() {
 function insertDashboardIconIfLoggedIn() {
   const token = localStorage.getItem("clipnote_token");
   if (!token) return;
-  const isGuest = isGuestAccessToken(token);
 
   const dashboardBtn = document.getElementById("dashboard-btn");
-  if (dashboardBtn && !isGuest) {
+  if (dashboardBtn) {
     dashboardBtn.style.display = "flex";
     dashboardBtn.addEventListener("click", () => {
       window.location.href = "/dashboard";
@@ -88,7 +87,7 @@ function insertDashboardIconIfLoggedIn() {
   const cancelLogout = document.getElementById("cancel-logout");
   const confirmLogout = document.getElementById("confirm-logout");
 
-  if (profilePlaceholder && !isGuest) {
+  if (profilePlaceholder) {
     profilePlaceholder.style.display = "flex";
 
     // Toggle Dropdown
@@ -144,36 +143,5 @@ function insertDashboardIconIfLoggedIn() {
     });
   }
 
-  if (isGuest && dropdown) {
-    dropdown.classList.remove("show");
-  }
-
-  checkGuestStatus();
 }
 
-function checkGuestStatus() {
-  const badge = document.getElementById("dropdown-guest-info");
-  if (badge) {
-    badge.style.display = "none";
-  }
-}
-
-function isGuestAccessToken(token) {
-  const payload = parseAccessTokenPayload(token);
-  return payload?.sub?.startsWith("guest_") || payload?.account_tier === "clipchat_trial";
-}
-
-function parseAccessTokenPayload(token) {
-  if (!token) return null;
-
-  try {
-    const base64Payload = token.split(".")[1];
-    if (!base64Payload) return null;
-
-    const normalised = base64Payload.replace(/-/g, "+").replace(/_/g, "/");
-    return JSON.parse(atob(normalised));
-  } catch (error) {
-    console.error("Failed to parse access token payload:", error);
-    return null;
-  }
-}
