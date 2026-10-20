@@ -12,6 +12,7 @@ from clipnote.application.services.labels import LabelService
 from clipnote.application.services.notes import (
     CreatedNote,
     NoteService,
+    VideoDetail,
     VideoNotes,
     VideoPage,
 )
@@ -30,6 +31,7 @@ __all__ = [
     "LabelService",
     "NoteService",
     "TranscriptService",
+    "VideoDetail",
     "VideoNotes",
     "VideoPage",
     "VideoService",

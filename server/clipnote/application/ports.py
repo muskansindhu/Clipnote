@@ -11,6 +11,7 @@ from clipnote.domain import (
     ApiToken,
     EnrichmentStatus,
     Label,
+    LibraryStats,
     NewNote,
     Note,
     NoteSource,
@@ -97,6 +98,8 @@ class NoteRepository(Protocol):
 
     def delete_at(self, user_id: str, video_id: str, seconds: int) -> int: ...
 
+    def delete_for_video(self, user_id: str, video_id: str) -> int: ...
+
     def find_recent_duplicate(
         self,
         *,
@@ -140,6 +143,8 @@ class LibraryRepository(Protocol):
     def set_favourite(self, user_id: str, video_id: str, fav: bool) -> None: ...
 
     def is_favourite(self, user_id: str, video_id: str) -> bool: ...
+
+    def stats(self, user_id: str) -> LibraryStats: ...
 
     def find_video_id_by_title(self, user_id: str, title: str) -> str | None: ...
 

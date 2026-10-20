@@ -15,6 +15,7 @@ from clipnote.domain import (
     EnrichmentStatus,
     ExternalServiceError,
     Label,
+    LibraryStats,
     NewNote,
     Note,
     NoteSource,
@@ -154,6 +155,12 @@ class FakeNotes:
             del self.rows[note_id]
         return len(ids)
 
+    def delete_for_video(self, user_id: str, video_id: str) -> int:
+        ids = [n.id for n in self.list_for_video(user_id, video_id)]
+        for note_id in ids:
+            del self.rows[note_id]
+        return len(ids)
+
     def find_recent_duplicate(
         self,
         *,
@@ -217,7 +224,13 @@ class FakeLibrary:
             dict.fromkeys(n.video_id for n in self._notes.rows.values() if n.user_id == user_id)
         )
         listings = [
-            VideoListing(v.id, v.url, v.title, (user_id, v.id) in self.favourites)
+            VideoListing(
+                v.id,
+                v.url,
+                v.title,
+                (user_id, v.id) in self.favourites,
+                note_count=len(self._notes.list_for_video(user_id, v.id)),
+            )
             for v in (self._videos.rows[i] for i in ids)
             if search.lower() in v.title.lower()
         ]
@@ -236,6 +249,16 @@ class FakeLibrary:
 
     def is_favourite(self, user_id: str, video_id: str) -> bool:
         return (user_id, video_id) in self.favourites
+
+    def stats(self, user_id: str) -> LibraryStats:
+        mine = self._notes.list_for_user(user_id)
+        return LibraryStats(
+            videos=len({n.video_id for n in mine}),
+            notes=len(mine),
+            notes_this_week=len(mine),
+            favourites=sum(1 for owner, _ in self.favourites if owner == user_id),
+            pending=sum(1 for n in mine if n.status is EnrichmentStatus.PENDING),
+        )
 
     def find_video_id_by_title(self, user_id: str, title: str) -> str | None:
         for note in self._notes.rows.values():

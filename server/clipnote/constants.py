@@ -57,6 +57,7 @@ API_TOKEN_DISPLAY_PREFIX_LENGTH = 8
 # --- Notes and library ---------------------------------------------------------------
 
 PAGE_SIZE = 10
+STATS_WINDOW_DAYS = 7
 DUPLICATE_WINDOW_SECONDS = 60
 DEFAULT_VIDEO_TITLE = "YouTube video"
 SORT_RECENT = "recent"
