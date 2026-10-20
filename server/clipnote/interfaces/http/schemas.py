@@ -95,6 +95,16 @@ class CaptureBody(_Body):
     note_type: str | None = Field(default=None, alias="type")
 
 
+class CreateNoteBody(_Body):
+    """A note created from the web app, usually at the player's current time."""
+
+    video_id: str = ""
+    seconds: int | None = None
+    text: str | None = None
+    title: str | None = None
+    note_type: str | None = Field(default=None, alias="type")
+
+
 class TokenCreateBody(_Body):
     label: str = ""
 

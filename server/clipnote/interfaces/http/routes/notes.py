@@ -10,15 +10,32 @@ from clipnote.domain import NoteType, ValidationError, extract_video_id, parse_c
 from clipnote.interfaces.http.auth import container, current_user_id, login_required
 from clipnote.interfaces.http.schemas import (
     AddNoteBody,
+    CreateNoteBody,
     DeleteNoteBody,
     FavouriteBody,
     SummarizeBody,
     UpdateNoteBody,
     parse_body,
 )
-from clipnote.interfaces.http.serializers import listing_json, video_notes_json
+from clipnote.interfaces.http.serializers import (
+    listing_json,
+    note_json,
+    stats_json,
+    video_detail_json,
+    video_notes_json,
+)
 
 blueprint = Blueprint("notes", __name__)
+
+
+def _parse_note_type(raw: str | None) -> NoteType:
+    if not raw:
+        return NoteType.NOTE
+    try:
+        return NoteType(raw.strip().lower())
+    except ValueError as exc:
+        allowed = ", ".join(note_type.value for note_type in NoteType)
+        raise ValidationError(f"Unknown note type; use one of: {allowed}") from exc
 
 
 def _parse_date(raw: str | None) -> datetime | None:
@@ -46,6 +63,46 @@ def all_videos() -> Response:
     return jsonify({"videos": [listing_json(v) for v in page.videos], "has_next": page.has_next})
 
 
+@blueprint.get("/api/stats")
+@login_required
+def library_stats() -> Response:
+    return jsonify(stats_json(container().notes.library_stats(current_user_id())))
+
+
+@blueprint.get("/api/videos/<video_id>")
+@login_required
+def video_detail(video_id: str) -> Response:
+    user_id = current_user_id()
+    services = container()
+    detail = services.notes.video_detail(user_id, video_id)
+    return jsonify(video_detail_json(detail, services.labels.name_for_video(user_id, video_id)))
+
+
+@blueprint.delete("/api/videos/<video_id>")
+@login_required
+def remove_video(video_id: str) -> tuple[Response, int]:
+    user_id = current_user_id()
+    services = container()
+    services.notes.remove_video(user_id, video_id)
+    services.labels.unassign(user_id, video_id)
+    return jsonify({"message": "Video removed from your library"}), 200
+
+
+@blueprint.post("/api/notes")
+@login_required
+def create_note() -> tuple[Response, int]:
+    body = parse_body(CreateNoteBody)
+    created = container().notes.create_note(
+        current_user_id(),
+        video_id=body.video_id,
+        title=body.title,
+        text=body.text,
+        seconds=body.seconds,
+        note_type=_parse_note_type(body.note_type),
+    )
+    return jsonify({"note": note_json(created.note), "duplicate": created.duplicate}), 201
+
+
 @blueprint.get("/note/<video_id>")
 @login_required
 def video_notes(video_id: str) -> tuple[Response, int]:
@@ -71,7 +128,7 @@ def add_note() -> tuple[Response, int]:
         title=body.video_title,
         text=body.notes,
         seconds=seconds,
-        note_type=NoteType(body.note_type) if body.note_type else NoteType.NOTE,
+        note_type=_parse_note_type(body.note_type),
     )
     return jsonify(
         {

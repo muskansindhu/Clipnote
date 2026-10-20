@@ -68,6 +68,19 @@ class VideoListing:
     url: str
     title: str
     fav: bool
+    note_count: int = 0
+    last_note_at: datetime | None = None
+
+
+@dataclass(frozen=True, slots=True)
+class LibraryStats:
+    """Headline numbers for one user's library."""
+
+    videos: int
+    notes: int
+    notes_this_week: int
+    favourites: int
+    pending: int
 
 
 @dataclass(frozen=True, slots=True)

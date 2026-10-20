@@ -139,6 +139,13 @@ class PostgresNoteRepository:
             )
         return cur.rowcount
 
+    def delete_for_video(self, user_id: str, video_id: str) -> int:
+        with self._db.connection() as conn:
+            cur = conn.execute(
+                "DELETE FROM notes WHERE user_id = %s AND video_id = %s", (user_id, video_id)
+            )
+        return cur.rowcount
+
     def find_recent_duplicate(
         self,
         *,
