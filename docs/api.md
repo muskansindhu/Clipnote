@@ -1,75 +1,105 @@
-# Clipnote API Documentation
+# Clipnote API
 
-## REST API Endpoints
+All endpoints return JSON unless noted. Errors look like
+`{"message": "...", "error": "..."}` (`error` repeats `message` for older clients).
 
-### Authentication
-- `POST /login` — User login with email and password
-- `GET /login/google` — Google OAuth login
-- `GET /auth/google/callback` — Google OAuth callback
-- `POST /signup` — Register a new user with username, email, and password
-- `POST /guest-login` — Guest login
+| Status | Meaning |
+|---|---|
+| 400 | Invalid input |
+| 401 | Missing, invalid, expired or revoked token; wrong credentials |
+| 404 | Not found (or not yours) |
+| 409 | Conflict, such as a duplicate email or label |
+| 502 | The language model failed |
 
-Accounts support a shared identity model with `username`, unique `email`,
-`password_hash`, and optional `google_sub`. Password login uses email plus
-password, while Google OAuth links by the same unique email address.
+## Authentication
 
-### User
-- `GET /profile` — Render profile page
-- `GET /user-status` — Get user status (guest/registered)
+Protected endpoints take `Authorization: Bearer <token>`. There are two token kinds:
 
-### Notes
-- `GET /all-video` — List all videos with notes (pagination, search, filter, sort)
-- `GET /note/<video_yt_id>` — Get all notes for a video
-- `POST /add-notes` — Add a note (manual or AI-generated)
-- `POST /summarize` — Summarize a video transcript
-- `PATCH /<video_yt_id>` — Update a note
-- `DELETE /<video_yt_id>` — Delete a note
+- **Login token** (JWT, 15 days): returned by `/login`, `/signup` and Google sign-in.
+- **API token** (`cn_...`): created on the profile page, **capture only**. Accepted by
+  `POST /api/capture` and nothing else.
 
-### Favorites
-- `POST /fav-note` — Mark a video as favorite
-- `POST /unfav-note` — Unmark a video as favorite
+| Endpoint | Description |
+|---|---|
+| `POST /login` | `{email, password}` → `{access_token}` |
+| `POST /signup` | `{username, email, password}` → `{access_token}` (201) |
+| `GET /login/google`, `GET /auth/google/callback` | Google OAuth (only when configured) |
+| `POST /change-password` | `{current_password, new_password}` |
 
-### Labels
-- `GET /labels` — List all labels
-- `POST /label` — Add a new label
-- `PATCH /label` — Update a label
-- `DELETE /label` — Delete a label
-- `GET /<label>/note` — Filter notes by label
-- `GET /<video_yt_id>/label` — Get label for a video
-- `POST /video-label` — Assign label to a video
-- `DELETE /video-label` — Remove label from a video
+## Capture (iOS Shortcut)
 
-### Pages
-- `GET /` — Home page
-- `GET /dashboard` — Dashboard page
-- `GET /<video_yt_id>` — Note page for a video
-- `GET /clipchat/<video_yt_id>` — Clipchat page for asking questions about a video
+### `POST /api/capture`
 
-### Clipchat
-- `GET /clipchat/<video_yt_id>/context` — Video title, URL, summary, notes, and metadata for the Clipchat page
-- `POST /clipchat/<video_yt_id>/ask` — Ask a non-streaming Clipchat question
-- `POST /clipchat/<video_yt_id>/stream` — Ask a streaming Clipchat question via server-sent events
-
-Clipchat model responses are requested as a strict JSON object with this shape:
+Saves a note for the video and moment in a shared link. See [ios-shortcut.md](ios-shortcut.md).
 
 ```json
-{
-  "answer": "**The speaker discusses the topic at [159].**"
-}
+{ "url": "https://youtu.be/dQw4w9WgXcQ?t=754", "text": "optional", "type": "idea" }
 ```
 
-Clipchat sends the transcript to the model together with the user query. For shorter transcripts, it uses a single LLM call. For larger transcripts, it processes the transcript in sequential chunks, collects per-chunk findings, and then runs a final synthesis call so long-video questions keep their continuity instead of trimming away context. When the model cites a video moment, it uses raw seconds in square brackets such as `[159]` or `[6238]`. The frontend formats those seconds into `mm:ss` or `hh:mm:ss` for display.
+- The time is read from `t=`, `start=`, `time_continue=` or `#t=` (`754`, `754s`, `1h2m3s`).
+- No time in the link → a **video-level note** (`seconds: null`); nothing is guessed.
+- Empty `text` → an AI note is written in the background (`status: "pending"`).
+- `type` is one of `note` (default), `idea`, `question`, `key_point`, `todo`.
+- The same note saved twice within 60 seconds returns the first one (`duplicate: true`).
 
----
+Response (201): `message`, `note_id`, `video_id`, `video_title`, `seconds`, `display_time`,
+`status`, `duplicate`, `note_url`.
 
-## Chrome Extension Integration
-- Communicates with backend for authentication and note management
-- Uses `chrome.runtime` and `chrome.storage` for token management
-- Injects content script for handshake with web page
-- Popup UI for note-taking, timestamp, and video details
+### API tokens (login token required)
 
----
+| Endpoint | Description |
+|---|---|
+| `GET /api/tokens` | List your tokens (prefix, dates, revoked state; never the secret) |
+| `POST /api/tokens` | `{label}` → `{token, record}`. `token` is shown **once**. Max 10 active |
+| `DELETE /api/tokens/<id>` | Revoke |
 
-## Error Handling
-- All endpoints return JSON with `message` or `error` on failure
-- Auth endpoints return HTTP 401/400 for invalid credentials or missing data
+## Notes
+
+| Endpoint | Description |
+|---|---|
+| `GET /all-video` | Your videos. Query: `page`, `search`, `labels` (comma list), `sort` (`recent`/`title`), `start`, `end` (ISO dates). → `{videos: [{id, video_url, video_title, fav}], has_next}` |
+| `GET /note/<video_id>` | Your notes on a video (list). Each has `id`, `video_timestamp` (`"1:23"` or `null`), `timestamp_seconds`, `note`, `note_source` (`user`/`ai`), `note_type`, `status` (`pending`/`ready`/`failed`), `fav`, `video_title`, `video_url`, `video_summary`, `created_at` |
+| `POST /add-notes` | Used by the Chrome extension. `{videoUrl, videoTitle, currentTimeStamp, notes}`; JSON may be sent as `text/plain`. Returns immediately (201); transcript, summary and AI text are filled in afterwards |
+| `PATCH /<video_id>` | `{note_id, notes}` (preferred) or `{timestamp, notes}` |
+| `DELETE /<video_id>` | `{note_id}` (preferred) or `{timestamp}` |
+| `POST /summarize` | `{video_url}` → `{message}` (five bullets) |
+| `POST /fav-note`, `POST /unfav-note` | `{video_id}` (or legacy `{video_title}`). Favourites are **per user** |
+
+## Labels
+
+`GET /labels`, `POST /label {label_name}`, `PATCH /label {label_id, new_name}`,
+`DELETE /label {label_id}`, `GET /<label_name>/note`, `GET /<video_id>/label`,
+`POST /video-label {label_name, video_id}`, `DELETE /video-label {video_id}`.
+Labels are private to their owner; duplicate names return 409.
+
+## Export
+
+| Endpoint | Description |
+|---|---|
+| `GET /api/export/<video_id>` | Markdown file with front matter and a seek link on every note |
+| `GET /api/export?since=YYYY-MM-DD` | Every video you have notes on (optionally only newer notes) |
+
+Both return `text/markdown` with a `Content-Disposition` attachment header.
+
+## Clipchat
+
+| Endpoint | Description |
+|---|---|
+| `GET /clipchat/<video_id>/context` | Title, URL, summary, your notes, favourite flag, `asset_status` |
+| `POST /clipchat/<video_id>/prepare` | Fetch the transcript and summary if missing |
+| `POST /clipchat/<video_id>/ask` | `{question}` → `{answer}` |
+| `POST /clipchat/<video_id>/stream` | Same, as server-sent events (`chunk`, then `done`) |
+
+Answers cite moments as raw seconds in square brackets, for example `[159]`; the front end
+formats them. Short transcripts use one model call; long ones are indexed by keyword and only
+the relevant windows are sent.
+
+## Pages
+
+`GET /`, `/login`, `/dashboard`, `/profile`, `/clipchat`, `/clipchat/<video_id>` and
+`/<video_id>` (note page; only valid 11-character video ids match).
+
+## Removed
+
+The anonymous Clipchat trial (`/trial-login`, `/guest-login`, `/user-status`) was removed.
+Tokens issued by it no longer authenticate.
