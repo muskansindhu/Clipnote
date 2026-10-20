@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from clipnote.application.ports import LabelRepository, LibraryRepository
-from clipnote.domain import Label, NotFoundError, ValidationError, VideoListing
+from clipnote.domain import ConflictError, Label, NotFoundError, ValidationError, VideoListing
 
 MAX_LABEL_LENGTH = 60
 
@@ -24,8 +24,12 @@ class LabelService:
 
         Raises:
             ValidationError: If the name is empty or too long.
+            ConflictError: If the user already has a label with that name.
         """
-        return self._labels.add(user_id, _clean_name(name))
+        name = _clean_name(name)
+        if self._labels.get_by_name(user_id, name) is not None:
+            raise ConflictError("Label already exists")
+        return self._labels.add(user_id, name)
 
     def rename(self, user_id: str, label_id: int, new_name: str) -> None:
         """Rename a label.

@@ -1,7 +1,7 @@
 import pytest
 from support.world import World
 
-from clipnote.domain import NotFoundError, ValidationError
+from clipnote.domain import ConflictError, NotFoundError, ValidationError
 
 
 def test_assign_and_read_back_a_label(world: World) -> None:
@@ -55,3 +55,11 @@ def test_label_names_are_validated(world: World, name: str) -> None:
 def test_videos_for_unknown_label_is_not_found(world: World) -> None:
     with pytest.raises(NotFoundError):
         world.label_service.videos_for_label("alice", "nope")
+
+
+def test_duplicate_label_names_are_rejected_per_user(world: World) -> None:
+    world.label_service.add("alice", "ml")
+
+    with pytest.raises(ConflictError):
+        world.label_service.add("alice", "ml")
+    world.label_service.add("bob", "ml")
