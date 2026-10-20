@@ -47,6 +47,7 @@ class World:
     llm: FakeLLM
     metadata: FakeMetadata
     runner: QueueRunner
+    codec: FakeCodec
     auth: AuthService
     transcripts: TranscriptService
     enrichment: EnrichmentService
@@ -65,6 +66,7 @@ def build_world() -> World:
     labels, api_tokens, store = FakeLabels(), FakeApiTokens(), FakeTranscriptStore()
     provider = FakeProvider("fake", [{"start": 10, "text": "intro words"}])
     llm, metadata, runner = FakeLLM(), FakeMetadata(), QueueRunner()
+    codec = FakeCodec()
 
     transcripts = TranscriptService(store, [provider])
     enrichment = EnrichmentService(
@@ -85,7 +87,8 @@ def build_world() -> World:
         llm=llm,
         metadata=metadata,
         runner=runner,
-        auth=AuthService(users, PlainHasher(), FakeCodec()),
+        codec=codec,
+        auth=AuthService(users, PlainHasher(), codec),
         transcripts=transcripts,
         enrichment=enrichment,
         note_service=note_service,

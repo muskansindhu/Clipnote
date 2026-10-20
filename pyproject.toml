@@ -17,7 +17,7 @@ ignore = ["S101"]
 
 [tool.ruff.lint.per-file-ignores]
 "server/clipnote/application/prompts.py" = ["E501"]
-"server/tests/**" = ["S", "B"]
+"server/tests/**" = ["S", "B", "E501"]
 # Queries interpolate only module-level column lists and fixed clauses; values are bound.
 "server/clipnote/infrastructure/db/repositories/*" = ["S608"]
 
@@ -29,7 +29,14 @@ exclude = ["venv", "server/tests"]
 plugins = ["pydantic.mypy"]
 
 [[tool.mypy.overrides]]
-module = ["authlib.*", "apify_client.*", "boto3.*", "botocore.*", "youtube_transcript_api.*"]
+module = [
+    "authlib.*",
+    "apify_client.*",
+    "boto3.*",
+    "botocore.*",
+    "flask_cors.*",
+    "youtube_transcript_api.*",
+]
 ignore_missing_imports = true
 
 [[tool.mypy.overrides]]
