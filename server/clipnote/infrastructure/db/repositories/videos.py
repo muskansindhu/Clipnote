@@ -4,17 +4,18 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 
+from clipnote.constants import (
+    DEFAULT_VIDEO_TITLE,
+)
 from clipnote.domain import Video, watch_url
 from clipnote.infrastructure.db.connection import Database, Row
-
-DEFAULT_TITLE = "YouTube video"
 
 
 def _to_video(row: Row) -> Video:
     return Video(
         id=row["id"],
         url=row["video_url"] or watch_url(row["id"]),
-        title=row["video_title"] or DEFAULT_TITLE,
+        title=row["video_title"] or DEFAULT_VIDEO_TITLE,
         summary=row["video_summary"] or None,
     )
 

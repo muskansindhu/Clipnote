@@ -2,12 +2,12 @@
 
 from __future__ import annotations
 
-import re
 from typing import Any
 
-USERNAME_FALLBACK = "user"
-MIN_PASSWORD_LENGTH = 6
-_USERNAME_SANITISE_PATTERN = re.compile(r"[^a-zA-Z0-9_]+")
+from clipnote.constants import (
+    USERNAME_FALLBACK,
+    USERNAME_SANITISE_PATTERN,
+)
 
 
 def normalise_username(raw_username: Any) -> str:
@@ -23,5 +23,5 @@ def normalise_email(raw_email: Any) -> str:
 def derive_username_from_email(email: str) -> str:
     """Build a safe default username candidate from an email address."""
     local_part = email.split("@", 1)[0]
-    sanitised = _USERNAME_SANITISE_PATTERN.sub("_", local_part).strip("_")
+    sanitised = USERNAME_SANITISE_PATTERN.sub("_", local_part).strip("_")
     return sanitised or USERNAME_FALLBACK

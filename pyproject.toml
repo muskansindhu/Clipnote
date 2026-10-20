@@ -16,7 +16,8 @@ select = ["E", "F", "I", "B", "UP", "S", "SIM"]
 ignore = ["S101"]
 
 [tool.ruff.lint.per-file-ignores]
-"server/clipnote/application/prompts.py" = ["E501"]
+# Prompt text and wide regexes read better unwrapped.
+"server/clipnote/constants.py" = ["E501"]
 "server/tests/**" = ["S", "B", "E501"]
 # Queries interpolate only module-level column lists and fixed clauses; values are bound.
 "server/clipnote/infrastructure/db/repositories/*" = ["S608"]

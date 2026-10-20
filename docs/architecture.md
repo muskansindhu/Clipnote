@@ -13,6 +13,7 @@ implements the ports that `application` defines.
 server/
 ├── app.py                         entrypoint: load settings, create_app()
 ├── clipnote/
+│   ├── constants.py               every named constant (stdlib-only, importable by any layer)
 │   ├── domain/                    entities, errors, YouTube URL and clock parsing (stdlib only)
 │   ├── application/
 │   │   ├── ports.py               Protocols: repositories, LLM, transcripts, hashing, tokens...
@@ -39,6 +40,7 @@ server/
 Rules that keep it clean:
 
 - `domain` imports nothing outside the standard library.
+- Named constants live in `clipnote/constants.py`, never next to the code that uses them.
 - Services depend on **ports** (`typing.Protocol`), never on Flask, psycopg, boto3 or OpenAI.
 - Only `interfaces/http/container.py` knows which adapter backs which port.
 - Routes validate input, call one service method and serialise the result. No SQL, no

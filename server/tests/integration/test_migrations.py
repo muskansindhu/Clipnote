@@ -8,7 +8,8 @@ from pathlib import Path
 import psycopg
 import pytest
 
-from clipnote.infrastructure.db.migrate import MIGRATIONS_DIR, apply_migrations
+from clipnote.constants import MIGRATIONS_DIR
+from clipnote.infrastructure.db.migrate import apply_migrations
 
 pytestmark = pytest.mark.integration
 

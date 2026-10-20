@@ -14,6 +14,10 @@ from clipnote.application.ports import (
     VideoRepository,
 )
 from clipnote.application.services.transcripts import TranscriptService
+from clipnote.constants import (
+    DEFAULT_VIDEO_TITLE,
+    VIDEO_SUMMARY_SYSTEM_PROMPT,
+)
 from clipnote.domain import (
     Note,
     NotFoundError,
@@ -23,8 +27,6 @@ from clipnote.domain import (
     transcript_text,
     watch_url,
 )
-
-DEFAULT_TITLE = "YouTube video"
 
 
 @dataclass(frozen=True, slots=True)
@@ -99,7 +101,7 @@ class ClipchatService:
         transcript, _, _ = self._ensure_assets(context)
         response = answer_question(
             self._llm,
-            video_title=context.title or DEFAULT_TITLE,
+            video_title=context.title or DEFAULT_VIDEO_TITLE,
             transcript=transcript,
             question=question,
         )
@@ -112,7 +114,7 @@ class ClipchatService:
         title = (video.title if video else "").strip()
         url = (video.url if video else "").strip() or watch_url(video_id)
 
-        if not title or title == DEFAULT_TITLE:
+        if not title or title == DEFAULT_VIDEO_TITLE:
             found = self._metadata.fetch(video_id)
             if found and found.title:
                 title = found.title
@@ -121,7 +123,7 @@ class ClipchatService:
         return ClipchatContext(
             video_id=video_id,
             url=url,
-            title=title or DEFAULT_TITLE,
+            title=title or DEFAULT_VIDEO_TITLE,
             summary=video.summary if video else None,
             fav=self._library.is_favourite(user_id, video_id),
             notes=self._notes.list_for_video(user_id, video_id),
@@ -139,7 +141,7 @@ class ClipchatService:
         text = transcript_text(transcript)
         summary = (
             self._llm.complete_text(
-                system=prompts.VIDEO_SUMMARY_SYSTEM_PROMPT,
+                system=VIDEO_SUMMARY_SYSTEM_PROMPT,
                 user=prompts.transcript_user_prompt(text),
             )
             if text

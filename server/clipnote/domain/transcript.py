@@ -5,8 +5,11 @@ from __future__ import annotations
 from collections.abc import Sequence
 from typing import Any
 
+from clipnote.constants import (
+    DEFAULT_SNIPPET_WINDOW_SECONDS,
+)
+
 TranscriptEntry = dict[str, Any]
-DEFAULT_SNIPPET_WINDOW_SECONDS = 15
 
 
 def transcript_text(entries: Sequence[TranscriptEntry]) -> str:

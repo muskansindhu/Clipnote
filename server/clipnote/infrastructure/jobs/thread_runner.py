@@ -7,13 +7,15 @@ from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
 from typing import Any
 
+from clipnote.constants import BACKGROUND_WORKERS
+
 logger = logging.getLogger(__name__)
 
 
 class ThreadPoolTaskRunner:
     """Runs tasks off the request thread. Failures are logged, never raised to callers."""
 
-    def __init__(self, max_workers: int = 4) -> None:
+    def __init__(self, max_workers: int = BACKGROUND_WORKERS) -> None:
         self._executor = ThreadPoolExecutor(max_workers=max_workers, thread_name_prefix="clipnote")
 
     def submit(self, task: Callable[..., None], *args: Any) -> None:

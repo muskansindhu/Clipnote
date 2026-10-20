@@ -9,6 +9,11 @@ from typing import Any, TypeVar
 from clipnote.application import prompts
 from clipnote.application.ports import LanguageModel, NoteRepository, TaskRunner, VideoRepository
 from clipnote.application.services.transcripts import TranscriptService
+from clipnote.constants import (
+    AI_NOTE_SYSTEM_PROMPT,
+    RECOVERY_BATCH_SIZE,
+    VIDEO_SUMMARY_SYSTEM_PROMPT,
+)
 from clipnote.domain import (
     EnrichmentStatus,
     Note,
@@ -18,7 +23,6 @@ from clipnote.domain import (
 )
 
 logger = logging.getLogger(__name__)
-RECOVERY_BATCH_SIZE = 100
 T = TypeVar("T")
 
 
@@ -98,7 +102,7 @@ class EnrichmentService:
         if not text:
             return None
         summary = self._llm.complete_text(
-            system=prompts.VIDEO_SUMMARY_SYSTEM_PROMPT, user=prompts.transcript_user_prompt(text)
+            system=VIDEO_SUMMARY_SYSTEM_PROMPT, user=prompts.transcript_user_prompt(text)
         )
         if summary:
             self._videos.set_summary_if_empty(video_id, summary)
@@ -114,6 +118,6 @@ class EnrichmentService:
         if not context.strip():
             return None
         text = self._llm.complete_text(
-            system=prompts.AI_NOTE_SYSTEM_PROMPT, user=prompts.ai_note_user_prompt(context)
+            system=AI_NOTE_SYSTEM_PROMPT, user=prompts.ai_note_user_prompt(context)
         )
         return text.strip() or None

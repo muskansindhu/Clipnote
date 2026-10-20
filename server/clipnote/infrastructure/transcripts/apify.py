@@ -7,11 +7,13 @@ from typing import Any
 
 from apify_client import ApifyClient
 
+from clipnote.constants import (
+    APIFY_ACTOR_ID,
+    APIFY_RUN_TIMEOUT_SECONDS,
+)
 from clipnote.domain import ExternalServiceError, TranscriptEntry, watch_url
 
 logger = logging.getLogger(__name__)
-ACTOR_ID = "pintostudio/youtube-transcript-scraper"
-RUN_TIMEOUT_SECONDS = 20
 
 
 class ApifyTranscriptProvider:
@@ -24,11 +26,11 @@ class ApifyTranscriptProvider:
 
     def fetch(self, video_id: str) -> list[TranscriptEntry]:
         try:
-            run = self._client.actor(ACTOR_ID).call(
+            run = self._client.actor(APIFY_ACTOR_ID).call(
                 run_input={"videoUrl": watch_url(video_id)},
                 logger=None,
                 build="latest",
-                timeout_secs=RUN_TIMEOUT_SECONDS,
+                timeout_secs=APIFY_RUN_TIMEOUT_SECONDS,
                 max_items=1,
             )
             if run is None:

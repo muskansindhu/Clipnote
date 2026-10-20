@@ -7,11 +7,13 @@ import logging
 import requests
 
 from clipnote.application import VideoMetadata
+from clipnote.constants import (
+    OEMBED_TIMEOUT_SECONDS,
+    OEMBED_URL,
+)
 from clipnote.domain import is_valid_video_id, watch_url
 
 logger = logging.getLogger(__name__)
-OEMBED_URL = "https://www.youtube.com/oembed"
-TIMEOUT_SECONDS = 4
 
 
 class OEmbedMetadataProvider:
@@ -24,7 +26,7 @@ class OEmbedMetadataProvider:
             response = requests.get(
                 OEMBED_URL,
                 params={"url": watch_url(video_id), "format": "json"},
-                timeout=TIMEOUT_SECONDS,
+                timeout=OEMBED_TIMEOUT_SECONDS,
             )
             response.raise_for_status()
             payload = response.json()

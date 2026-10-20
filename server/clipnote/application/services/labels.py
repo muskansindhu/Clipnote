@@ -3,9 +3,10 @@
 from __future__ import annotations
 
 from clipnote.application.ports import LabelRepository, LibraryRepository
+from clipnote.constants import (
+    LABEL_NAME_MAX_LENGTH,
+)
 from clipnote.domain import ConflictError, Label, NotFoundError, ValidationError, VideoListing
-
-MAX_LABEL_LENGTH = 60
 
 
 class LabelService:
@@ -85,6 +86,6 @@ def _clean_name(name: str) -> str:
     cleaned = name.strip()
     if not cleaned:
         raise ValidationError("Label name is required")
-    if len(cleaned) > MAX_LABEL_LENGTH:
-        raise ValidationError(f"Label name must be at most {MAX_LABEL_LENGTH} characters")
+    if len(cleaned) > LABEL_NAME_MAX_LENGTH:
+        raise ValidationError(f"Label name must be at most {LABEL_NAME_MAX_LENGTH} characters")
     return cleaned

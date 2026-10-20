@@ -5,13 +5,15 @@ from support.fakes import FakeLLM
 
 from clipnote.application.clipchat import engine
 from clipnote.application.clipchat.engine import (
-    CLIPCHAT_RESPONSE_SCHEMA,
-    MAX_CLIPCHAT_CONTEXT_TOKENS,
-    MAX_CLIPCHAT_ITERATION_CHUNKS,
     answer_question,
     build_inverted_index,
     merge_overlapping_windows,
     retrieve_candidate_chunks,
+)
+from clipnote.constants import (
+    CLIPCHAT_RESPONSE_SCHEMA,
+    MAX_CLIPCHAT_CONTEXT_TOKENS,
+    MAX_CLIPCHAT_ITERATION_CHUNKS,
 )
 
 _normalise = engine._normalise_clipchat_answer
