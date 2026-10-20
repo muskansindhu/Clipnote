@@ -102,3 +102,38 @@ def test_recover_pending_requeues_notes_left_pending(world: World) -> None:
 
     assert world.enrichment.recover_pending() == 1
     assert len(world.runner.tasks) == 1
+
+
+def test_a_note_with_user_text_stays_ready_when_the_transcript_cannot_be_fetched(
+    world: World,
+) -> None:
+    world.provider._fail = True
+    note = world.note_service.create_note(
+        "alice", video_id=VID, title="T", text="my own words", seconds=10
+    ).note
+
+    world.runner.run_all()
+
+    done = world.notes.rows[note.id]
+    assert done.status is EnrichmentStatus.READY
+    assert done.text == "my own words"
+
+
+def test_a_note_with_user_text_stays_ready_when_the_model_is_down(world: World) -> None:
+    world.llm.fail = True
+    note = world.note_service.create_note(
+        "alice", video_id=VID, title="T", text="my own words", seconds=10
+    ).note
+
+    world.runner.run_all()
+
+    assert world.notes.rows[note.id].status is EnrichmentStatus.READY
+
+
+def test_an_ai_note_fails_cleanly_when_the_transcript_cannot_be_fetched(world: World) -> None:
+    world.provider._fail = True
+    note = _pending_ai_note(world)
+
+    world.runner.run_all()
+
+    assert world.notes.rows[note.id].status is EnrichmentStatus.FAILED

@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 import logging
+from xml.etree.ElementTree import ParseError
 
+import requests
 from youtube_transcript_api import (
     AgeRestricted,
     InvalidVideoId,
@@ -48,7 +50,12 @@ class YouTubeTranscriptApiProvider:
         except _NO_TRANSCRIPT:
             logger.info("No transcript available for %s", video_id)
             return []
-        except (YouTubeTranscriptApiException, StopIteration) as exc:
+        except (
+            YouTubeTranscriptApiException,
+            StopIteration,
+            ParseError,  # YouTube answered with an empty or non-XML body (blocked or throttled)
+            requests.RequestException,
+        ) as exc:
             raise ExternalServiceError(f"Could not fetch transcript for {video_id}") from exc
         return [
             {"text": item["text"], "start": item["start"], "dur": item["duration"]}

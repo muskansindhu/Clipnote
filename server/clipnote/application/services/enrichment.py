@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import logging
+from collections.abc import Callable
+from typing import Any, TypeVar
 
 from clipnote.application import prompts
 from clipnote.application.ports import LanguageModel, NoteRepository, TaskRunner, VideoRepository
@@ -17,6 +19,7 @@ from clipnote.domain import (
 
 logger = logging.getLogger(__name__)
 RECOVERY_BATCH_SIZE = 100
+T = TypeVar("T")
 
 
 class EnrichmentService:
@@ -60,8 +63,10 @@ class EnrichmentService:
             self._notes.complete_enrichment(note_id, status=EnrichmentStatus.FAILED)
 
     def _enrich(self, note: Note) -> None:
-        entries = self._transcripts.get_or_fetch(note.video_id)
-        summary = self._ensure_summary(note.video_id, entries)
+        # Transcript and summary are best effort: a note that already has the user's own
+        # text must never be marked failed because they are unavailable.
+        entries = self._best_effort(self._transcripts.get_or_fetch, note.video_id)
+        summary = self._best_effort(self._ensure_summary, note.video_id, entries)
 
         if note.text:
             self._notes.complete_enrichment(note.id, status=EnrichmentStatus.READY)
@@ -74,6 +79,14 @@ class EnrichmentService:
             )
         else:
             self._notes.complete_enrichment(note.id, status=EnrichmentStatus.FAILED)
+
+    @staticmethod
+    def _best_effort(step: Callable[..., T | None], *args: Any) -> T | None:
+        try:
+            return step(*args)
+        except Exception:
+            logger.warning("Enrichment step %s failed", step.__name__, exc_info=True)
+            return None
 
     def _ensure_summary(self, video_id: str, entries: list[dict[str, object]] | None) -> str | None:
         video = self._videos.get(video_id)

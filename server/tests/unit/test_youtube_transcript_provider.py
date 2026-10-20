@@ -1,6 +1,8 @@
 from unittest.mock import MagicMock
+from xml.etree.ElementTree import ParseError
 
 import pytest
+import requests
 from youtube_transcript_api import IpBlocked, NoTranscriptFound, TranscriptsDisabled
 
 from clipnote.domain import ExternalServiceError
@@ -45,9 +47,13 @@ def test_returns_empty_when_the_video_has_no_transcript() -> None:
     assert _provider(api).fetch(VID) == []
 
 
-def test_raises_a_service_error_when_youtube_blocks_us() -> None:
+@pytest.mark.parametrize(
+    "failure",
+    [IpBlocked(VID), ParseError("no element found"), requests.ConnectionError("offline")],
+)
+def test_raises_a_service_error_when_youtube_blocks_or_breaks(failure: Exception) -> None:
     api = MagicMock()
-    api.fetch.side_effect = IpBlocked(VID)
+    api.fetch.side_effect = failure
 
     with pytest.raises(ExternalServiceError):
         _provider(api).fetch(VID)
