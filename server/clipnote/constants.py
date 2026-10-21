@@ -16,6 +16,7 @@ from typing import Any
 
 PACKAGE_DIR = Path(__file__).resolve().parent
 SERVER_DIR = PACKAGE_DIR.parent
+SPA_DIST_DIR = SERVER_DIR / "static" / "app"
 DEFAULT_LOCAL_DATA_DIR = SERVER_DIR / ".local-data"
 MIGRATIONS_DIR = PACKAGE_DIR / "infrastructure" / "db" / "migrations"
 
@@ -27,6 +28,9 @@ BACKGROUND_WORKERS = 4
 TEMP_TOKEN_COOKIE_SECONDS = 60
 CLIPCHAT_STREAM_CHUNK_CHARS = 28
 CLIPCHAT_ANSWER_FAILED_MESSAGE = "Clipchat could not answer right now"
+SPA_NOT_BUILT_MESSAGE = (
+    "The web app has not been built yet. Run `npm install && npm run build` in web/."
+)
 
 # --- Time ----------------------------------------------------------------------------
 

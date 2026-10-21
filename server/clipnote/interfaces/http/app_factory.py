@@ -8,9 +8,7 @@ from authlib.integrations.flask_client import OAuth
 from flask import Flask
 from flask_cors import CORS
 
-from clipnote.constants import (
-    SERVER_DIR,
-)
+from clipnote.constants import SERVER_DIR, SPA_DIST_DIR
 from clipnote.infrastructure.config import Settings, load_settings
 from clipnote.interfaces.http.container import Container, build_container
 from clipnote.interfaces.http.errors import register_error_handlers
@@ -30,13 +28,10 @@ def create_app(settings: Settings | None = None, container: Container | None = N
         The configured application.
     """
     settings = settings or load_settings()
-    app = Flask(
-        __name__,
-        template_folder=str(SERVER_DIR / "templates"),
-        static_folder=str(SERVER_DIR / "static"),
-    )
+    app = Flask(__name__, static_folder=str(SERVER_DIR / "static"))
     app.secret_key = settings.jwt_secret
     app.config["CLIPNOTE_FORCE_HTTPS_CALLBACKS"] = settings.is_production
+    app.config["CLIPNOTE_SPA_DIR"] = SPA_DIST_DIR
     CORS(app)
 
     app.extensions["clipnote"] = container or build_container(settings)

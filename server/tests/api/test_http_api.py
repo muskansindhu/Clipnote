@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 import json
+from pathlib import Path
 
+from flask import Flask
 from flask.testing import FlaskClient
 from support.http import bearer
 from support.world import World
@@ -455,28 +457,46 @@ def test_clipchat_model_failure_is_a_502_with_a_friendly_message(
 # --- pages and routing ----------------------------------------------------------------
 
 
-def test_pages_render(client: FlaskClient) -> None:
-    for path in (
+def test_every_page_route_serves_the_single_page_app(client: FlaskClient) -> None:
+    paths = (
         "/",
         "/login",
         "/dashboard",
+        "/library",
         "/profile",
+        "/settings",
         "/clipchat",
         f"/clipchat/{VID}",
         f"/{VID}",
-    ):
-        assert client.get(path).status_code == 200, path
+    )
+    for path in paths:
+        response = client.get(path)
+        assert response.status_code == 200, path
+        assert b"<div id=root>" in response.data, path
+        assert response.headers["Cache-Control"] == "no-cache", path
 
 
-def test_note_page_only_matches_real_video_ids(client: FlaskClient) -> None:
-    assert client.get("/favicon.ico").status_code == 404
-    assert client.get("/short").status_code == 404
+def test_page_routes_explain_when_the_web_app_is_not_built(
+    client: FlaskClient, app: Flask, tmp_path: Path
+) -> None:
+    app.config["CLIPNOTE_SPA_DIR"] = tmp_path / "missing"
+
+    response = client.get("/dashboard")
+
+    assert response.status_code == 503
+    assert "npm run build" in response.get_data(as_text=True)
 
 
-def test_unknown_routes_return_json_errors(client: FlaskClient) -> None:
-    response = client.get("/api/does-not-exist")
+def test_unknown_browser_paths_get_the_app_404_page_and_api_clients_get_json(
+    client: FlaskClient,
+) -> None:
+    browser = client.get("/short", headers={"Accept": "text/html"})
+    api_client = client.get("/short", headers={"Accept": "application/json"})
+    api_path = client.get("/api/nope", headers={"Accept": "text/html"})
 
-    assert response.status_code == 404 and "message" in response.json
+    assert browser.status_code == 404 and b"<div id=root>" in browser.data
+    assert api_client.status_code == 404 and "message" in api_client.json
+    assert api_path.status_code == 404 and api_path.mimetype == "application/json"
 
 
 def test_removed_guest_trial_endpoints_are_gone(client: FlaskClient) -> None:
