@@ -10,7 +10,7 @@ document.addEventListener("DOMContentLoaded", async function () {
 
   const tabDetails = await getTabDetails();
   if (!tabDetails) {
-    document.getElementById("error-message").style.display = "block";
+    document.getElementById("error-message").hidden = false;
     document.getElementById("content-wrapper").style.display = "none";
     return;
   }
@@ -84,6 +84,10 @@ async function execute(func, id) {
 
 function populateFormDetails(videoURL, videoTitle, currentTimestamp) {
   const urlField = document.getElementById("video-url");
+  const titleLabel = document.getElementById("video-title");
+  if (titleLabel) {
+    titleLabel.textContent = videoTitle || "";
+  }
   const timestampLabel = document.getElementById("timestamp-display");
 
   urlField.value = videoURL;
@@ -93,27 +97,43 @@ function populateFormDetails(videoURL, videoTitle, currentTimestamp) {
   }
 }
 
-document.getElementById("submit").addEventListener("click", function () {
-  showLoader("Saving note...");
+const submitButton = document.getElementById("submit");
+const notesField = document.getElementById("notes");
+
+document.getElementById("open-app").addEventListener("click", (event) => {
+  event.preventDefault();
+  chrome.tabs.create({ url: CONFIG.BASE_URL + "/library" });
+});
+
+notesField.addEventListener("keydown", (event) => {
+  if ((event.metaKey || event.ctrlKey) && event.key === "Enter") {
+    event.preventDefault();
+    submitButton.click();
+  }
+});
+
+submitButton.addEventListener("click", function () {
+  const notes = notesField.value.trim();
+  if (!notes) {
+    showStatus("Write something first.", "error");
+    return;
+  }
+
+  setSaving(true);
 
   chrome.storage.local.get("clipnote_token", function (result) {
     const token = result.clipnote_token;
 
     if (!token) {
-      console.error("No token found in storage");
-      hideLoader();
+      setSaving(false);
+      showStatus("You are signed out. Open Clipnote to sign in.", "error");
       return;
     }
 
-    const currentTimeStamp =
-      document.getElementById("timestamp-display")?.textContent || "";
-    const videoUrl = document.getElementById("video-url").value;
-    const notes = document.getElementById("notes").value;
-
     const data = {
-      videoUrl,
+      videoUrl: document.getElementById("video-url").value,
       videoTitle: cachedVideoTitle,
-      currentTimeStamp,
+      currentTimeStamp: document.getElementById("timestamp-display")?.textContent || "",
       notes,
     };
 
@@ -129,40 +149,35 @@ document.getElementById("submit").addEventListener("click", function () {
         if (!response.ok) {
           throw new Error("Network response was not ok");
         }
-        return response.json();
-      })
-      .then((data) => {
-        console.log("Success:", data);
+        notesField.value = "";
+        showStatus("Saved. The AI summary will follow shortly.", "success");
       })
       .catch((error) => {
         console.error("Error:", error);
+        showStatus("Could not save the note. Try again.", "error");
       })
       .finally(() => {
-        hideLoader();
+        setSaving(false);
       });
   });
 });
 
-function showLoader(message = "") {
-  const loader = document.getElementById("loader-wrapper");
-  if (loader) {
-    loader.classList.add("is-visible");
-  }
-  const messageEl = document.getElementById("loader-message");
-  if (messageEl) {
-    messageEl.textContent = message;
+function setSaving(saving) {
+  submitButton.disabled = saving;
+  submitButton.replaceChildren();
+  if (saving) {
+    const spinner = document.createElement("span");
+    spinner.className = "spinner";
+    submitButton.append(spinner, "Saving…");
+  } else {
+    submitButton.textContent = "Save note";
   }
 }
 
-function hideLoader() {
-  const loader = document.getElementById("loader-wrapper");
-  if (loader) {
-    loader.classList.remove("is-visible");
-  }
-  const messageEl = document.getElementById("loader-message");
-  if (messageEl) {
-    messageEl.textContent = "";
-  }
+function showStatus(message, tone) {
+  const status = document.getElementById("status");
+  status.textContent = message;
+  status.className = `status is-visible is-${tone}`;
 }
 
 async function checkAuthToken() {

@@ -5,7 +5,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (result.clipnote_token) {
       window.location.href = chrome.runtime.getURL("popup.html");
     } else {
-      document.querySelector(".login-container").style.display = "flex";
+      document.querySelector(".login-container").style.display = "block";
     }
   });
 
