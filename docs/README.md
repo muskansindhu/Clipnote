@@ -14,7 +14,7 @@ Think of it as your **second brain for YouTube**.
 - **Database**: PostgreSQL with plain SQL migrations
 - **AI**: OpenAI chat models behind a port, so the provider can be swapped
 - **Transcripts**: `youtube-transcript-api` first, Apify as an optional fallback
-- **Front end**: Jinja templates and vanilla JavaScript; Chrome extension (Manifest V3)
+- **Front end**: React 19 + TypeScript SPA (Vite, Tailwind v4, TanStack Query, Framer Motion); Chrome extension (Manifest V3)
 
 ---
 
@@ -76,6 +76,9 @@ export STORAGE_BACKEND=filesystem LLM_PROVIDER=stub TRANSCRIPT_PROVIDERS=youtube
 # Create the tables (never runs automatically)
 cd server
 python -m clipnote.infrastructure.db.migrate
+
+# Build the web app (outputs to server/static/app)
+(cd ../web && npm install && npm run build)   # or `npm run dev` for hot reload with an API proxy
 
 # Run
 python app.py            # http://localhost:5001
