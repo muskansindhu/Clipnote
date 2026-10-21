@@ -1,42 +1,51 @@
-"""Server-rendered pages. All data is loaded by the page's own JavaScript."""
+"""The single-page web app. Every page route serves the same built ``index.html``."""
 
 from __future__ import annotations
 
-from flask import Blueprint, abort, render_template
+from flask import Blueprint, Response, current_app, request, send_from_directory
+from werkzeug.exceptions import NotFound
 
+from clipnote.constants import SPA_NOT_BUILT_MESSAGE
 from clipnote.domain import is_valid_video_id
+from clipnote.interfaces.http.errors import error_response
 
 blueprint = Blueprint("pages", __name__)
+INDEX_FILE = "index.html"
+
+
+def _spa(status: int = 200) -> Response | tuple[Response, int]:
+    directory = current_app.config["CLIPNOTE_SPA_DIR"]
+    if not (directory / INDEX_FILE).is_file():
+        return Response(SPA_NOT_BUILT_MESSAGE, status=503, mimetype="text/plain")
+    response = send_from_directory(directory, INDEX_FILE)
+    response.headers["Cache-Control"] = "no-cache"
+    response.status_code = status
+    return response
 
 
 @blueprint.get("/")
-def home() -> str:
-    return render_template("home.html")
-
-
 @blueprint.get("/login")
-def login_page() -> str:
-    return render_template("login.html")
-
-
 @blueprint.get("/dashboard")
-def dashboard() -> str:
-    return render_template("dashboard.html")
-
-
+@blueprint.get("/library")
 @blueprint.get("/profile")
-def profile() -> str:
-    return render_template("profile.html")
-
-
+@blueprint.get("/settings")
 @blueprint.get("/clipchat")
+def app_page() -> Response | tuple[Response, int]:
+    return _spa()
+
+
 @blueprint.get("/clipchat/<video_id>")
-def clipchat_page(video_id: str | None = None) -> str:
-    return render_template("clipchat.html")
-
-
 @blueprint.get("/<video_id>")
-def note_page(video_id: str) -> str:
+def video_page(video_id: str) -> Response | tuple[Response, int]:
     if not is_valid_video_id(video_id):
-        abort(404)
-    return render_template("note.html")
+        raise NotFound()
+    return _spa()
+
+
+@blueprint.app_errorhandler(404)
+def not_found(error: NotFound) -> Response | tuple[Response, int]:
+    """Browsers get the app's own 404 page; API clients get JSON."""
+    wants_html = "text/html" in request.headers.get("Accept", "")
+    if request.method == "GET" and wants_html and not request.path.startswith("/api/"):
+        return _spa(404)
+    return error_response(error.description or "Not found", 404)

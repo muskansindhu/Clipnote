@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from pathlib import Path
+
 import pytest
 from flask import Flask
 from flask.testing import FlaskClient
@@ -18,7 +20,7 @@ def api_world() -> World:
 
 
 @pytest.fixture
-def app(api_world: World) -> Flask:
+def app(api_world: World, tmp_path: Path) -> Flask:
     w = api_world
     container = Container(
         codec=w.codec,
@@ -35,6 +37,10 @@ def app(api_world: World) -> Flask:
     settings = load_settings({"DATABASE_URL": "postgresql://unused", "JWT_SECRET": "test-secret"})
     flask_app = create_app(settings, container)
     flask_app.config["TESTING"] = False  # exercise the real error handlers
+    (tmp_path / "index.html").write_text(
+        "<!doctype html><title>Clipnote</title><div id=root></div>"
+    )
+    flask_app.config["CLIPNOTE_SPA_DIR"] = tmp_path
     return flask_app
 
 
