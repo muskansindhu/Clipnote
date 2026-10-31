@@ -1,3 +1,6 @@
+const CLIPCHAT_PROMPT_HINT =
+  "Ask about key ideas, moments, or exact timestamps from the transcript.";
+
 const DEFAULT_CLIPCHAT_QUESTIONS = [
   "Explain the main idea",
   "List key takeaways",
@@ -7,25 +10,19 @@ const DEFAULT_CLIPCHAT_QUESTIONS = [
 document.addEventListener("DOMContentLoaded", function () {
   insertDashboardIconIfLoggedIn();
   setupThemeToggle();
-  setupClipchatLimitModal();
   if (window.lucide) lucide.createIcons();
 
-  let token = localStorage.getItem("clipnote_token");
+  const token = localStorage.getItem("clipnote_token");
   if (!token) {
     window.location.href = "/login";
     return;
   }
 
-  const isGuest = isGuestAccessToken(token);
   let videoId = getClipchatVideoIdFromLocation();
   const backToNoteBtn = document.getElementById("back-to-note-btn");
 
-  if (!isGuest) {
-    const setupEyebrow = document.querySelector("#clipchat-setup-card .section-eyebrow");
-    if (setupEyebrow) setupEyebrow.style.display = "none";
-    const setupCopy = document.querySelector("#clipchat-setup-card .clipchat-setup-copy");
-    if (setupCopy) setupCopy.textContent = "Paste a YouTube URL to chat with the video transcript.";
-  }
+  const setupCopy = document.querySelector("#clipchat-setup-card .clipchat-setup-copy");
+  if (setupCopy) setupCopy.textContent = "Paste a YouTube URL to chat with the video transcript.";
   const form = document.getElementById("clipchat-form");
   const input = document.getElementById("clipchat-input");
   const submitButton = document.getElementById("clipchat-submit");
@@ -38,26 +35,19 @@ document.addEventListener("DOMContentLoaded", function () {
   const defaultQuestionsContainer = document.getElementById(
     "clipchat-default-questions",
   );
-  const limitModal = document.getElementById("clipchat-limit-modal");
-  const limitModalCopy = document.getElementById("clipchat-limit-copy");
 
   const pageSubtitleElem = document.getElementById("clipchat-page-subtitle");
   if (pageSubtitleElem) {
-    pageSubtitleElem.textContent = isGuest
-      ? "Ask about key ideas, moments, or exact timestamps from the transcript. Create an account to save notes and unlock the dashboard."
-      : "Ask about key ideas, moments, or exact timestamps from the transcript.";
+    pageSubtitleElem.textContent = CLIPCHAT_PROMPT_HINT;
   }
 
   const emptyCopyElem = document.getElementById("clipchat-empty-copy");
   if (emptyCopyElem) {
-    emptyCopyElem.textContent = isGuest
-      ? "Ask about key ideas, moments, or exact timestamps from the transcript. Create an account to save notes and unlock the dashboard."
-      : "Ask about key ideas, moments, or exact timestamps from the transcript.";
+    emptyCopyElem.textContent = CLIPCHAT_PROMPT_HINT;
   }
 
   let videoContext = null;
   let conversationStarted = false;
-  let hasShownLimitModal = false;
 
   renderDefaultQuestions(
     defaultQuestionsContainer,
@@ -107,8 +97,6 @@ document.addEventListener("DOMContentLoaded", function () {
   async function handleQuestionSubmit(rawQuestion) {
     const question = String(rawQuestion || "").trim();
     if (!question || !thread || !input || !submitButton || !videoId) return;
-    let nextTrialState = null;
-    let nextTrialOptions = {};
 
     startConversation();
     appendUserMessage(question);
@@ -127,8 +115,6 @@ document.addEventListener("DOMContentLoaded", function () {
         body: JSON.stringify({ question }),
       });
 
-      persistUpdatedToken(response.headers);
-
       if (!response.ok || !response.body) {
         const body = await response.json().catch(() => ({}));
         typingElement.remove();
@@ -138,16 +124,10 @@ document.addEventListener("DOMContentLoaded", function () {
           body.message || "Clipchat could not answer that just now.",
           "#",
         );
-        nextTrialState = body.trial;
-        nextTrialOptions = {
-          lockComposer: response.status === 403,
-          message: body.message,
-        };
         return;
       }
 
       await streamAssistantAnswer(response.body, answerElement, typingElement);
-      nextTrialState = readTrialStateFromHeaders(response.headers);
     } catch (error) {
       typingElement.remove();
       answerElement.style.display = "block";
@@ -159,7 +139,6 @@ document.addEventListener("DOMContentLoaded", function () {
       console.error("Clipchat stream error:", error);
     } finally {
       setComposerLoading(false);
-      applyTrialState(nextTrialState, nextTrialOptions);
     }
   }
 
@@ -191,7 +170,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     if (backToNoteBtn) {
-      if (!hasVideo || isGuest) {
+      if (!hasVideo) {
         backToNoteBtn.style.display = "none";
       } else {
         backToNoteBtn.style.display = "inline-flex";
@@ -228,7 +207,6 @@ document.addEventListener("DOMContentLoaded", function () {
       const data = await response.json();
       videoContext = data;
       renderVideoContext(currentVideoId, data);
-      applyTrialState(data.trial);
       if (needsAssetPreparation(data.asset_status)) {
         setPreparationState(true);
         await prepareClipchatAssets(currentVideoId);
@@ -259,7 +237,6 @@ document.addEventListener("DOMContentLoaded", function () {
       const data = await response.json();
       videoContext = data;
       renderVideoContext(currentVideoId, data);
-      applyTrialState(data.trial);
     } catch (error) {
       console.error("Clipchat preparation error:", error);
       setEmptyStateCopy(
@@ -306,76 +283,8 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     if (videoId && videoContext && !needsAssetPreparation(videoContext.asset_status)) {
-      const placeholderText = isGuest 
-        ? "Ask about key ideas, moments, or exact timestamps from the transcript. Create an account to save notes and unlock the dashboard." 
-        : "Ask about key ideas, moments, or exact timestamps from the transcript.";
-      setComposerAvailability(true, placeholderText);
+      setComposerAvailability(true, CLIPCHAT_PROMPT_HINT);
     }
-  }
-
-  function applyTrialState(trial, options = {}) {
-    if (!isGuest) return;
-
-    const details = trial || videoContext?.trial;
-    if (!details) return;
-
-    const videosUsed = Number(details.videos_used || 0);
-    const videoLimit = Number(details.video_limit || 1);
-    const queriesRemaining = Number(
-      details.queries_remaining_for_video ??
-        details.queries_per_video_limit ??
-        0,
-    );
-
-    if (videoContext) {
-      videoContext.trial = { ...videoContext.trial, ...details };
-    }
-
-    const queriesUsed = Number(details.queries_used_for_video || 0);
-    const hasReachedQuestionLimit = queriesRemaining <= 0;
-    const hasReachedVideoLimit = videosUsed >= videoLimit && queriesUsed === 0;
-
-    if (
-      options.lockComposer ||
-      hasReachedQuestionLimit ||
-      hasReachedVideoLimit
-    ) {
-      setComposerAvailability(
-        false,
-        "GPUs need to eat! Create an account to keep chatting.",
-      );
-
-      if (!hasShownLimitModal) {
-        const fallbackMessage = hasReachedQuestionLimit
-          ? "Beep boop! 🤖 You've used your 5 free questions for this video. GPUs need to eat too, and inference costs are adding up! Please create an account to support us."
-          : "Whoa there! You've hit your 1-video free trial limit. Our GPUs are sweating and inference ain't cheap! 😅 Create an account to support the app and keep chatting.";
-        showClipchatLimitModal(options.message || fallbackMessage);
-        hasShownLimitModal = true;
-      }
-    }
-
-    if (limitModalCopy && !hasReachedQuestionLimit && !hasReachedVideoLimit) {
-      limitModalCopy.textContent =
-        "Whoa there! You've hit your free trial limit. GPUs aren't free! 😅 Create an account to support the app and keep chatting.";
-    }
-  }
-
-  function showClipchatLimitModal(message) {
-    if (!limitModal) return;
-    if (limitModalCopy) {
-      limitModalCopy.textContent =
-        message ||
-        "Whoa there! You've hit your free trial limit. GPUs aren't free! 😅 Create an account to support the app and keep chatting.";
-    }
-    limitModal.style.display = "flex";
-  }
-
-  function persistUpdatedToken(headers) {
-    const refreshedToken = headers.get("X-Clipnote-Access-Token");
-    if (!refreshedToken) return;
-
-    token = refreshedToken;
-    localStorage.setItem("clipnote_token", refreshedToken);
   }
 
   function renderVideoContext(currentVideoId, data) {
@@ -396,10 +305,7 @@ document.addEventListener("DOMContentLoaded", function () {
         data.asset_status?.summary_source === "generated") &&
       emptyState
     ) {
-      const copyText = isGuest
-        ? "Ask about key ideas, moments, or exact timestamps from the transcript. Create an account to save notes and unlock the dashboard."
-        : "Ask about key ideas, moments, or exact timestamps from the transcript.";
-      setEmptyStateCopy(copyText);
+      setEmptyStateCopy(CLIPCHAT_PROMPT_HINT);
     }
     initialiseThumbnail(currentVideoId, data.video_title || "Video thumbnail");
   }
@@ -755,10 +661,9 @@ function setupThemeToggle() {
 function insertDashboardIconIfLoggedIn() {
   const token = localStorage.getItem("clipnote_token");
   if (!token) return;
-  const isGuest = isGuestAccessToken(token);
 
   const dashboardBtn = document.getElementById("dashboard-btn");
-  if (dashboardBtn && !isGuest) {
+  if (dashboardBtn) {
     dashboardBtn.style.display = "flex";
     dashboardBtn.addEventListener("click", () => {
       window.location.href = "/dashboard";
@@ -776,7 +681,7 @@ function insertDashboardIconIfLoggedIn() {
   const cancelLogout = document.getElementById("cancel-logout");
   const confirmLogout = document.getElementById("confirm-logout");
 
-  if (profilePlaceholder && !isGuest) {
+  if (profilePlaceholder) {
     profilePlaceholder.style.display = "flex";
 
     profilePlaceholder.addEventListener("click", (event) => {
@@ -807,10 +712,6 @@ function insertDashboardIconIfLoggedIn() {
     }
   }
 
-  if (isGuest && dropdown) {
-    dropdown.classList.remove("show");
-  }
-
   if (logoutModal) {
     if (cancelLogout) {
       cancelLogout.addEventListener("click", () => {
@@ -832,57 +733,6 @@ function insertDashboardIconIfLoggedIn() {
     });
   }
 
-  checkGuestStatus();
-}
-
-function checkGuestStatus() {
-  const badge = document.getElementById("dropdown-guest-info");
-  if (badge) {
-    badge.style.display = "none";
-  }
-}
-
-function setupClipchatLimitModal() {
-  const limitModal = document.getElementById("clipchat-limit-modal");
-  const cancelLimit = document.getElementById("cancel-clipchat-limit");
-
-  if (!limitModal) return;
-
-  if (cancelLimit) {
-    cancelLimit.addEventListener("click", () => {
-      limitModal.style.display = "none";
-    });
-  }
-
-  limitModal.addEventListener("click", (event) => {
-    if (event.target === limitModal) {
-      limitModal.style.display = "none";
-    }
-  });
-}
-
-function readTrialStateFromHeaders(headers) {
-  if (!headers) return null;
-
-  const videosUsed = Number(headers.get("X-Clipnote-Trial-Videos-Used"));
-  const videoLimit = Number(headers.get("X-Clipnote-Trial-Video-Limit"));
-  const queriesUsed = Number(headers.get("X-Clipnote-Trial-Queries-Used"));
-  const queriesRemaining = Number(
-    headers.get("X-Clipnote-Trial-Queries-Remaining"),
-  );
-
-  if (
-    [videosUsed, videoLimit, queriesUsed, queriesRemaining].some(Number.isNaN)
-  ) {
-    return null;
-  }
-
-  return {
-    videos_used: videosUsed,
-    video_limit: videoLimit,
-    queries_used_for_video: queriesUsed,
-    queries_remaining_for_video: queriesRemaining,
-  };
 }
 
 function getClipchatVideoIdFromLocation() {
@@ -914,25 +764,3 @@ function extractYouTubeVideoId(value) {
   }
 }
 
-function isGuestAccessToken(token) {
-  const payload = parseAccessTokenPayload(token);
-  return (
-    payload?.sub?.startsWith("guest_") ||
-    payload?.account_tier === "clipchat_trial"
-  );
-}
-
-function parseAccessTokenPayload(token) {
-  if (!token) return null;
-
-  try {
-    const base64Payload = token.split(".")[1];
-    if (!base64Payload) return null;
-
-    const normalised = base64Payload.replace(/-/g, "+").replace(/_/g, "/");
-    return JSON.parse(atob(normalised));
-  } catch (error) {
-    console.error("Failed to parse access token payload:", error);
-    return null;
-  }
-}

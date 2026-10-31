@@ -688,14 +688,6 @@ body.light-mode .logo {
   color: var(--accent-secondary);
 }
 
-.dropdown-guest-info {
-  padding: 12px 16px;
-  background: hsla(var(--accent-h), var(--accent-s), var(--accent-l), 0.12);
-  border-bottom: 1px solid var(--border-subtle);
-  color: var(--accent-secondary);
-  font-size: 0.8rem;
-  font-weight: 600;
-}
 
 .hero {
   display: grid;
@@ -3761,17 +3753,6 @@ img.action-item-icon {
   margin: 0;
 }
 
-.guest-badge {
-  margin-top: 6px;
-  display: inline-flex;
-  align-items: center;
-  padding: 3px 10px;
-  border-radius: 20px;
-  background: hsla(var(--accent-h), var(--accent-s), var(--accent-l), 0.12);
-  color: var(--accent-primary);
-  font-size: 0.75rem;
-  font-weight: 600;
-}
 
 .profile-grid {
   display: flex;
@@ -3907,7 +3888,3 @@ img.action-item-icon {
   color: var(--accent-primary);
 }
 
-.tier-trial {
-  background: hsla(var(--warm-h), var(--warm-s), var(--warm-l), 0.12);
-  color: var(--warm);
-}

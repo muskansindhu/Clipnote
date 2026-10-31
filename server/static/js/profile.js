@@ -6,7 +6,6 @@ document.addEventListener("DOMContentLoaded", function () {
     setupTokenControls();
     setupAddLabel();
     setupChangePassword();
-    checkGuestProfileStatus();
 });
 
 const token = localStorage.getItem("clipnote_token");
@@ -15,17 +14,12 @@ if (!token) {
     window.location.href = "/login";
 }
 
-if (isGuestAccessToken(token)) {
-    window.location.href = "/clipchat";
-}
-
 function loadProfileInfo() {
     try {
         const payload = JSON.parse(atob(token.split('.')[1]));
         const username = payload.username || payload.sub || 'User';
         const email = payload.email || '';
         const picture = payload.picture || null;
-        const accountTier = payload.account_tier;
 
         document.getElementById('profile-username-display').textContent = username;
         document.getElementById('profile-email-display').textContent = email;
@@ -43,13 +37,8 @@ function loadProfileInfo() {
         // Subscription tier badge
         const tierBadge = document.getElementById('profile-tier-badge');
         if (tierBadge) {
-            if (accountTier === 'clipchat_trial') {
-                tierBadge.textContent = 'Clipchat Trial';
-                tierBadge.className = 'profile-tier-badge tier-trial';
-            } else {
-                tierBadge.textContent = 'Bring Your Own Key';
-                tierBadge.className = 'profile-tier-badge tier-byok';
-            }
+            tierBadge.textContent = 'Bring Your Own Key';
+            tierBadge.className = 'profile-tier-badge tier-byok';
         }
     } catch (e) {
         console.error("Invalid token", e);
@@ -263,11 +252,10 @@ function setupChangePassword() {
 function insertDashboardIconIfLoggedIn() {
     const token = localStorage.getItem("clipnote_token");
     if (!token) return;
-    const isGuest = isGuestAccessToken(token);
 
     // Clipchat Icon
     const clipchatNavBtn = document.getElementById("clipchat-nav-btn");
-    if (clipchatNavBtn && !isGuest) {
+    if (clipchatNavBtn) {
         clipchatNavBtn.style.display = "flex";
         clipchatNavBtn.addEventListener("click", () => {
             window.location.href = "/clipchat";
@@ -276,7 +264,7 @@ function insertDashboardIconIfLoggedIn() {
 
     // Dashboard Icon
     const dashboardBtn = document.getElementById("dashboard-btn");
-    if (dashboardBtn && !isGuest) {
+    if (dashboardBtn) {
         dashboardBtn.style.display = "flex";
         dashboardBtn.addEventListener("click", () => {
             window.location.href = "/dashboard";
@@ -295,7 +283,7 @@ function insertDashboardIconIfLoggedIn() {
     const cancelLogout = document.getElementById("cancel-logout");
     const confirmLogout = document.getElementById("confirm-logout");
 
-    if (profilePlaceholder && !isGuest) {
+    if (profilePlaceholder) {
         profilePlaceholder.style.display = "flex";
 
         // Toggle Dropdown
@@ -352,26 +340,6 @@ function insertDashboardIconIfLoggedIn() {
     }
 }
 
-function isGuestAccessToken(token) {
-    const payload = parseAccessTokenPayload(token);
-    return payload?.sub?.startsWith("guest_") || payload?.account_tier === "clipchat_trial";
-}
-
-function parseAccessTokenPayload(token) {
-    if (!token) return null;
-
-    try {
-        const base64Payload = token.split(".")[1];
-        if (!base64Payload) return null;
-
-        const normalised = base64Payload.replace(/-/g, "+").replace(/_/g, "/");
-        return JSON.parse(atob(normalised));
-    } catch (error) {
-        console.error("Failed to parse access token payload:", error);
-        return null;
-    }
-}
-
 function setupThemeToggle() {
     const toggleBtn = document.getElementById("theme-toggle-btn");
     const body = document.body;
@@ -409,14 +377,3 @@ function setupThemeToggle() {
     });
 }
 
-function checkGuestProfileStatus() {
-    const info = document.getElementById('guest-profile-info');
-    if (info) {
-        info.style.display = "none";
-    }
-
-    const dropdownBadge = document.getElementById("dropdown-guest-info");
-    if (dropdownBadge) {
-        dropdownBadge.style.display = "none";
-    }
-}

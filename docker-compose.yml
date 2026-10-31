@@ -1,0 +1,20 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: clipnote-db
+    environment:
+      POSTGRES_USER: clipnote
+      POSTGRES_PASSWORD: ${CLIPNOTE_DB_PASSWORD:-clipnote}
+      POSTGRES_DB: clipnote
+    ports:
+      - "5433:5432"
+    volumes:
+      - clipnote-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U clipnote -d clipnote"]
+      interval: 3s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  clipnote-db-data:

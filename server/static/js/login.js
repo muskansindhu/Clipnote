@@ -11,9 +11,16 @@ document.addEventListener("DOMContentLoaded", function () {
     console.log("Extension ID discovered:", EXT_ID);
   });
 
+  // The anonymous Clipchat trial was removed; drop any trial token left in the browser
+  // so the login page does not bounce straight to a dashboard that would reject it.
+  const storedToken = localStorage.getItem("clipnote_token");
+  if (storedToken && isRetiredTrialToken(storedToken)) {
+    localStorage.removeItem("clipnote_token");
+  }
+
   const token = localStorage.getItem("clipnote_token");
-  if (token && !isGuestAccessToken(token)) {
-    window.location.href = getPostLoginDestination(token);
+  if (token) {
+    window.location.href = "/dashboard";
     return;
   }
 
@@ -103,11 +110,11 @@ document.addEventListener("DOMContentLoaded", function () {
           if (chrome.runtime.lastError) {
             console.error("Extension error:", chrome.runtime.lastError);
           }
-          window.location.href = getPostLoginDestination(access_token);
+          window.location.href = "/dashboard";
         },
       );
     } else {
-      window.location.href = getPostLoginDestination(access_token);
+      window.location.href = "/dashboard";
     }
   });
 
@@ -122,50 +129,13 @@ document.addEventListener("DOMContentLoaded", function () {
   const googleToken = urlParams.get("access_token");
   if (googleToken) {
     localStorage.setItem("clipnote_token", googleToken);
-    window.location.href = getPostLoginDestination(googleToken);
-  }
-  const guestBtn = document.getElementById("guest-btn");
-  if (guestBtn) {
-    guestBtn.addEventListener("click", async () => {
-      const res = await fetch("/trial-login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-      });
-
-      if (!res.ok) {
-        errorMsg.style.display = "block";
-        errorMsg.textContent = "Failed to start the Clipchat trial.";
-        return;
-      }
-
-      const { access_token } = await res.json();
-      localStorage.setItem("clipnote_token", access_token);
-
-      if (window.chrome?.runtime?.sendMessage) {
-        chrome.runtime.sendMessage(
-          EXT_ID,
-          { type: "SET_TOKEN", jwt: access_token },
-          (response) => {
-            window.location.href = getPostLoginDestination(access_token);
-          },
-        );
-      } else {
-        window.location.href = getPostLoginDestination(access_token);
-      }
-    });
+    window.location.href = "/dashboard";
   }
 });
 
-function getPostLoginDestination(token) {
-  return isGuestAccessToken(token) ? "/clipchat" : "/dashboard";
-}
-
-function isGuestAccessToken(token) {
+function isRetiredTrialToken(token) {
   const payload = parseAccessTokenPayload(token);
-  return (
-    payload?.sub?.startsWith("guest_") ||
-    payload?.account_tier === "clipchat_trial"
-  );
+  return Boolean(payload?.sub?.startsWith("guest_"));
 }
 
 function parseAccessTokenPayload(token) {
