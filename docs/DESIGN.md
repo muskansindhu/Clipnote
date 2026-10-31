@@ -112,7 +112,7 @@ If a visitor can guess "an LLM built this" in five seconds, we failed. Each item
 
 ## 7. Self-audit of the current build
 
-Honest read of what we have today against section 6. Fix these in order.
+Honest read of what we have today against section 6. Status after the first cleanup pass: gradient text, aurora/glow blobs, grid pattern, glass panels, the "New" pill and 3xl radii are removed (marked done). The rest are still open.
 
 | Tell | Where it appears | Action |
 |---|---|---|

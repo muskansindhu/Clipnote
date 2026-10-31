@@ -73,7 +73,7 @@ export function Dialog({ open, onClose, title, description, children, footer, cl
             exit={{ opacity: 0, y: 8, scale: 0.98 }}
             transition={{ type: "spring", stiffness: 420, damping: 34 }}
             className={cn(
-              "relative w-full max-w-md rounded-3xl border border-line-strong bg-bg-elev p-6 shadow-pop",
+              "relative w-full max-w-md rounded-2xl border border-line-strong bg-bg-elev p-6 shadow-pop",
               className,
             )}
           >

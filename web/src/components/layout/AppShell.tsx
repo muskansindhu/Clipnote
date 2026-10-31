@@ -49,7 +49,7 @@ export function AppShell() {
   };
 
   return (
-    <div className="bg-aurora min-h-dvh lg:pl-64">
+    <div className="min-h-dvh lg:pl-64">
       <a
         href="#main"
         className="sr-only z-[70] rounded-lg bg-surface-3 px-3 py-2 text-sm focus:not-sr-only focus:fixed focus:left-3 focus:top-3"
@@ -132,7 +132,7 @@ export function AppShell() {
       </aside>
 
       {/* Top bar */}
-      <header className="glass sticky top-0 z-20 border-b border-line">
+      <header className="bg-bg-elev sticky top-0 z-20 border-b border-line">
         <div className="mx-auto flex h-16 max-w-6xl items-center gap-3 px-4 sm:px-6">
           <NavLink to="/dashboard" className="lg:hidden" aria-label="Clipnote library">
             <Logo showWordmark={false} />
@@ -168,7 +168,7 @@ export function AppShell() {
       {/* Mobile tab bar */}
       <nav
         aria-label="Main"
-        className="glass safe-bottom fixed inset-x-0 bottom-0 z-30 grid grid-cols-4 border-t border-line pt-1.5 lg:hidden"
+        className="bg-bg-elev safe-bottom fixed inset-x-0 bottom-0 z-30 grid grid-cols-4 border-t border-line pt-1.5 lg:hidden"
       >
         <TabLink to="/dashboard" label="Library" icon={Library} />
         <button

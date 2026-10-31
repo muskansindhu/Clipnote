@@ -55,7 +55,7 @@ export function LoginPage() {
     <div className="grid min-h-dvh lg:grid-cols-[1.05fr_1fr]">
       <ShowcasePanel />
 
-      <div className="bg-aurora relative flex flex-col px-5 py-6 sm:px-10">
+      <div className="relative flex flex-col px-5 py-6 sm:px-10">
         <div className="flex items-center justify-between">
           <Link to="/" aria-label="Clipnote home" className="lg:invisible">
             <Logo />
@@ -171,12 +171,6 @@ function ShowcasePanel() {
   const reduce = useReducedMotion();
   return (
     <div className="relative hidden overflow-hidden border-r border-line bg-bg-elev lg:block">
-      <div className="bg-grid absolute inset-0 opacity-60" aria-hidden="true" />
-      <div
-        className="absolute -left-24 top-1/4 size-[32rem] rounded-full bg-violet/25 blur-[120px]"
-        aria-hidden="true"
-      />
-      <div className="absolute -right-24 bottom-0 size-[28rem] rounded-full bg-brand/20 blur-[120px]" aria-hidden="true" />
 
       <div className="relative flex h-full flex-col justify-between p-12">
         <Link to="/" aria-label="Clipnote home">
@@ -185,7 +179,7 @@ function ShowcasePanel() {
 
         <div>
           <h2 className="max-w-md text-[40px] font-semibold leading-[1.08] tracking-tight">
-            Every video becomes a note <span className="text-gradient">you can search.</span>
+            Every video becomes a note <span className="text-brand">you can search.</span>
           </h2>
           <p className="mt-4 max-w-md text-[15px] leading-relaxed text-fg-muted">
             Capture the moment in two taps. Let AI write what you don't have time to type. Export it all to Markdown.

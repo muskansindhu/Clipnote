@@ -339,8 +339,8 @@ function FirstRun({ onAdd }: { onAdd: () => void }) {
     { title: "Let AI help", body: "Leave a note empty and Clipnote writes it from the transcript." },
   ];
   return (
-    <div className="rounded-3xl border border-dashed border-line-strong bg-surface-1/50 px-6 py-14 text-center">
-      <div className="mx-auto mb-5 grid size-14 place-items-center rounded-2xl bg-brand-gradient text-white shadow-[0_12px_32px_-10px_var(--glow-brand)]">
+    <div className="rounded-2xl border border-dashed border-line-strong bg-surface-1/50 px-6 py-14 text-center">
+      <div className="mx-auto mb-5 grid size-14 place-items-center rounded-2xl bg-brand-gradient text-white">
         <Sparkles className="size-6" />
       </div>
       <h2 className="text-2xl font-semibold tracking-tight">Your library is empty. Let's fix that.</h2>

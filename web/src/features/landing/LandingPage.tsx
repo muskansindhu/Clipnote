@@ -29,9 +29,9 @@ export function LandingPage() {
   const { user } = useSession();
 
   return (
-    <div className="bg-aurora min-h-dvh overflow-x-clip">
+    <div className="min-h-dvh overflow-x-clip">
       {/* Nav */}
-      <header className="glass sticky top-0 z-40 border-b border-line">
+      <header className="bg-bg-elev sticky top-0 z-40 border-b border-line">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-5">
           <Link to="/" aria-label="Clipnote home">
             <Logo />
@@ -65,26 +65,14 @@ export function LandingPage() {
       <main>
         {/* Hero */}
         <section className="relative px-5 pb-24 pt-16 sm:pt-24">
-          <div className="bg-grid pointer-events-none absolute inset-x-0 top-0 h-[40rem]" aria-hidden="true" />
           <div className="relative mx-auto max-w-4xl text-center">
-            <motion.a
-              href="#iphone"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="mb-7 inline-flex items-center gap-2 rounded-full border border-line-strong bg-surface-1/80 py-1.5 pl-2 pr-4 text-[13px] font-medium text-fg-muted backdrop-blur transition-colors hover:text-fg"
-            >
-              <span className="rounded-full bg-brand-gradient px-2 py-0.5 text-[11px] font-semibold text-white">New</span>
-              Share to Clipnote from the YouTube app
-              <ArrowRight className="size-3.5" />
-            </motion.a>
-
             <motion.h1
               initial={{ opacity: 0, y: 18 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.05, duration: 0.6 }}
               className="text-balance text-[44px] font-semibold leading-[1.02] tracking-tight sm:text-7xl"
             >
-              Your second brain for <span className="text-gradient">everything you watch.</span>
+              Your second brain for everything you watch.
             </motion.h1>
 
             <motion.p
@@ -248,7 +236,7 @@ export function LandingPage() {
               ["Reuse", "Search everything, filter by label, and export to the tools you already use."],
             ].map(([title, body], index) => (
               <Reveal key={title} delay={index * 0.08}>
-                <div className="h-full rounded-3xl border border-line bg-surface-1 p-7 shadow-card">
+                <div className="h-full rounded-2xl border border-line bg-surface-1 p-7 shadow-card">
                   <span className="font-mono text-sm text-violet">0{index + 1}</span>
                   <h3 className="mt-4 text-2xl font-semibold tracking-tight">{title}</h3>
                   <p className="mt-2 leading-relaxed text-fg-muted">{body}</p>
@@ -262,8 +250,6 @@ export function LandingPage() {
         <section className="px-5 pb-28">
           <Reveal>
             <div className="relative mx-auto max-w-5xl overflow-hidden rounded-[2rem] border border-line-strong bg-surface-1 px-6 py-16 text-center shadow-pop sm:px-16 sm:py-20">
-              <div className="absolute -left-20 -top-20 size-80 rounded-full bg-violet/25 blur-[100px]" aria-hidden="true" />
-              <div className="absolute -bottom-24 -right-16 size-80 rounded-full bg-brand/25 blur-[100px]" aria-hidden="true" />
               <h2 className="relative text-balance text-4xl font-semibold leading-tight tracking-tight sm:text-5xl">
                 Start remembering what you watch.
               </h2>
@@ -296,7 +282,7 @@ export function LandingPage() {
 
 function Tile({ icon, title, body, children, className }: { icon: ReactNode; title: string; body: string; children?: ReactNode; className?: string }) {
   return (
-    <Reveal className={cn("rounded-3xl border border-line bg-surface-1 p-7 shadow-card transition-colors hover:border-line-strong", className)}>
+    <Reveal className={cn("rounded-2xl border border-line bg-surface-1 p-7 shadow-card transition-colors hover:border-line-strong", className)}>
       <span className="grid size-10 place-items-center rounded-xl bg-violet/12 text-violet [&_svg]:size-5">{icon}</span>
       <h3 className="mt-5 text-xl font-semibold leading-snug tracking-tight">{title}</h3>
       <p className="mt-2 leading-relaxed text-fg-muted">{body}</p>

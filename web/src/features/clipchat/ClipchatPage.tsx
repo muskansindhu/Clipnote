@@ -176,7 +176,7 @@ export function ClipchatPage() {
         <section
           aria-label="Chat"
           className={cn(
-            "flex min-h-[70dvh] flex-col overflow-hidden rounded-3xl border border-line-strong bg-surface-1 shadow-card lg:h-[calc(100dvh-8.5rem)]",
+            "flex min-h-[70dvh] flex-col overflow-hidden rounded-2xl border border-line-strong bg-surface-1 shadow-card lg:h-[calc(100dvh-8.5rem)]",
             tab !== "chat" && "hidden lg:flex",
           )}
         >
