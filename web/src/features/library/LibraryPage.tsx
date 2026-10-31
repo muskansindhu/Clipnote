@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { Bookmark, CalendarRange, Film, Flame, Grid2x2, Library, Plus, Rows3, Search, Sparkles, Star, X } from "lucide-react";
+import { Bookmark, CalendarRange, Flame, Plus, Search, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { AddVideoDialog } from "@/components/layout/AddVideoDialog";
@@ -13,29 +13,16 @@ import { VideoCard, VideoCardSkeleton } from "@/features/library/VideoCard";
 import { cn } from "@/lib/cn";
 import { SEARCH_DEBOUNCE_MS } from "@/lib/constants";
 import { useLabels, useLibrary, useRemoveVideo, useStats, useToggleFavourite } from "@/lib/queries";
-import { useSession } from "@/lib/session";
 import type { LibraryFilters, LibraryVideo, SortOption } from "@/lib/types";
 
-type Layout = "grid" | "list";
-const LAYOUT_KEY = "clipnote:library-layout";
-
-function greeting(): string {
-  const hour = new Date().getHours();
-  if (hour < 5) return "Burning the midnight oil";
-  if (hour < 12) return "Good morning";
-  if (hour < 18) return "Good afternoon";
-  return "Good evening";
-}
 
 export function LibraryPage() {
-  const { user } = useSession();
   const toast = useToast();
   const [search, setSearch] = useState("");
   const [debounced, setDebounced] = useState("");
   const [sort, setSort] = useState<SortOption>("recent");
   const [labels, setLabels] = useState<string[]>([]);
   const [range, setRange] = useState({ start: "", end: "" });
-  const [layout, setLayout] = useState<Layout>(() => (localStorage.getItem(LAYOUT_KEY) === "list" ? "list" : "grid"));
   const [addOpen, setAddOpen] = useState(false);
   const [removing, setRemoving] = useState<LibraryVideo | null>(null);
 
@@ -70,10 +57,6 @@ export function LibraryPage() {
     return () => observer.disconnect();
   }, [library.hasNextPage, library.isFetchingNextPage, library.fetchNextPage, library]);
 
-  const changeLayout = (next: Layout) => {
-    setLayout(next);
-    localStorage.setItem(LAYOUT_KEY, next);
-  };
   const toggleLabel = (name: string) =>
     setLabels((current) => (current.includes(name) ? current.filter((item) => item !== name) : [...current, name]));
   const clearFilters = () => {
@@ -95,25 +78,23 @@ export function LibraryPage() {
 
   return (
     <div className="space-y-8">
-      <header className="flex flex-wrap items-end justify-between gap-4">
+      <header className="flex flex-wrap items-end justify-between gap-4 border-b border-line pb-6">
         <div>
-          <p className="text-sm font-medium text-violet">{greeting()}, {user?.username}</p>
-          <h1 className="mt-1 text-[32px] font-semibold leading-tight tracking-tight">Your library</h1>
+          <h1 className="font-serif text-[44px] font-medium leading-none tracking-tight">Library</h1>
+          <p className="mt-3 text-sm text-fg-muted">
+            {stats.data
+              ? `${stats.data.videos} videos · ${stats.data.notes} notes · ${stats.data.notes_this_week} this week`
+              : "\u00a0"}
+          </p>
         </div>
-        <Button variant="primary" onClick={() => setAddOpen(true)} className="sm:hidden">
-          <Plus className="size-4" /> Add video
-        </Button>
       </header>
-
-      <StatsStrip stats={stats.data} loading={stats.isPending} />
 
       {stats.data && stats.data.pending > 0 && (
         <motion.div
           initial={{ opacity: 0, y: -6 }}
           animate={{ opacity: 1, y: 0 }}
-          className="flex items-center gap-3 rounded-2xl border border-violet/25 bg-violet/8 px-4 py-3 text-sm"
+          className="flex items-center gap-3 border-l-2 border-ai pl-3 text-sm"
         >
-          <Sparkles className="size-4 shrink-0 text-violet" />
           <span>
             <strong className="font-semibold">{stats.data.pending}</strong> note{stats.data.pending === 1 ? " is" : "s are"} being
             written in the background. They'll fill in on their own.
@@ -155,15 +136,6 @@ export function LibraryPage() {
               { value: "title", label: "A–Z" },
             ]}
           />
-          <Segmented
-            label="Layout"
-            value={layout}
-            onChange={changeLayout}
-            options={[
-              { value: "grid", label: <Grid2x2 className="size-4" />, ariaLabel: "Grid view" },
-              { value: "list", label: <Rows3 className="size-4" />, ariaLabel: "List view" },
-            ]}
-          />
         </div>
 
         {(labelList.data?.length ?? 0) > 0 && (
@@ -177,10 +149,10 @@ export function LibraryPage() {
                   aria-pressed={selected}
                   onClick={() => toggleLabel(label.label_name)}
                   className={cn(
-                    "inline-flex h-8 items-center gap-1.5 rounded-full border px-3.5 text-[13px] font-medium transition-colors",
+                    "inline-flex h-8 items-center gap-1.5 rounded-md border px-3 text-[13px] font-medium transition-colors",
                     selected
-                      ? "border-violet/40 bg-violet/14 text-violet"
-                      : "border-line bg-surface-1 text-fg-muted hover:border-line-strong hover:text-fg",
+                      ? "border-fg bg-fg text-bg"
+                      : "border-line text-fg-muted hover:border-line-strong hover:text-fg",
                   )}
                 >
                   <Bookmark className="size-3" /> {label.label_name}
@@ -198,9 +170,9 @@ export function LibraryPage() {
 
       {/* Results */}
       {library.isPending ? (
-        <div className={cn("grid gap-5", layout === "grid" ? "sm:grid-cols-2 xl:grid-cols-3" : "grid-cols-1")}>
+        <div className="divide-y divide-line">
           {Array.from({ length: 6 }, (_, index) => (
-            <VideoCardSkeleton key={index} layout={layout} />
+            <VideoCardSkeleton key={index} />
           ))}
         </div>
       ) : library.isError ? (
@@ -223,23 +195,19 @@ export function LibraryPage() {
         )
       ) : (
         <>
-          <motion.div
-            layout
-            className={cn("grid gap-5", layout === "grid" ? "sm:grid-cols-2 xl:grid-cols-3" : "grid-cols-1 gap-3")}
-          >
+          <div className="divide-y divide-line">
             <AnimatePresence mode="popLayout">
               {videos.map((video, index) => (
                 <VideoCard
                   key={video.id}
                   video={video}
-                  layout={layout}
                   index={index}
                   onToggleFavourite={(item) => toggleFav.mutate({ videoId: item.id, fav: !item.fav })}
                   onRemove={setRemoving}
                 />
               ))}
             </AnimatePresence>
-          </motion.div>
+          </div>
           <div ref={sentinel} className="flex justify-center py-6">
             {library.isFetchingNextPage ? (
               <span className="text-sm text-fg-subtle">Loading more…</span>
@@ -266,43 +234,13 @@ export function LibraryPage() {
   );
 }
 
-function StatsStrip({ stats, loading }: { stats: ReturnType<typeof useStats>["data"]; loading: boolean }) {
-  const items = [
-    { label: "Videos", value: stats?.videos, icon: Film, tone: "text-violet" },
-    { label: "Notes", value: stats?.notes, icon: Library, tone: "text-brand" },
-    { label: "This week", value: stats?.notes_this_week, icon: Flame, tone: "text-warning" },
-    { label: "Favourites", value: stats?.favourites, icon: Star, tone: "text-warning" },
-  ];
-  return (
-    <section aria-label="Library stats" className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-      {items.map((item, index) => (
-        <motion.div
-          key={item.label}
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: index * 0.05 }}
-          className="rounded-2xl border border-line bg-surface-1 p-4 shadow-card"
-        >
-          <div className="flex items-center justify-between text-fg-subtle">
-            <span className="text-[13px] font-medium">{item.label}</span>
-            <item.icon className={cn("size-4", item.tone)} aria-hidden="true" />
-          </div>
-          <p className="mt-3 font-mono text-3xl font-semibold tabular-nums tracking-tight">
-            {loading ? <span className="inline-block h-8 w-10 animate-pulse rounded bg-surface-3/70" /> : item.value ?? 0}
-          </p>
-        </motion.div>
-      ))}
-    </section>
-  );
-}
-
 function DateRange({ range, onChange }: { range: { start: string; end: string }; onChange: (range: { start: string; end: string }) => void }) {
   const active = Boolean(range.start || range.end);
   return (
     <Popover
       className="w-72 p-4"
       trigger={({ toggle }) => (
-        <Button variant="secondary" onClick={toggle} className={cn("h-11", active && "border-violet/40 text-violet")} aria-label="Filter by date">
+        <Button variant="secondary" onClick={toggle} className={cn("h-11", active && "border-fg")} aria-label="Filter by date">
           <CalendarRange className="size-4" />
           <span className="hidden sm:inline">{active ? "Date set" : "Any time"}</span>
         </Button>
@@ -334,18 +272,14 @@ function DateRange({ range, onChange }: { range: { start: string; end: string };
 
 function FirstRun({ onAdd }: { onAdd: () => void }) {
   const steps = [
-    { title: "Paste a video", body: "Open any YouTube link and add your first note at the moment that matters." },
+    { title: "Paste a video", body: "Open any YouTube link and write a note at the moment that matters." },
     { title: "Capture on the go", body: "Use the Chrome extension, or share from the YouTube app on your iPhone." },
     { title: "Let AI help", body: "Leave a note empty and Clipnote writes it from the transcript." },
   ];
   return (
-    <div className="rounded-2xl border border-dashed border-line-strong bg-surface-1/50 px-6 py-14 text-center">
-      <div className="mx-auto mb-5 grid size-14 place-items-center rounded-2xl bg-brand-gradient text-white">
-        <Sparkles className="size-6" />
-      </div>
-      <h2 className="text-2xl font-semibold tracking-tight">Your library is empty. Let's fix that.</h2>
-      <p className="mx-auto mt-2 max-w-md text-fg-muted">Add your first video and Clipnote starts remembering for you.</p>
-      <div className="mt-6 flex flex-wrap justify-center gap-3">
+    <div className="py-16">
+      <h2 className="max-w-xl font-serif text-4xl font-medium leading-tight tracking-tight">Nothing here yet. Add the first video you want to remember.</h2>
+      <div className="mt-6 flex flex-wrap gap-3">
         <Button variant="primary" size="lg" onClick={onAdd}>
           <Plus className="size-4" /> Add a video
         </Button>
@@ -353,11 +287,11 @@ function FirstRun({ onAdd }: { onAdd: () => void }) {
           Set up iPhone sharing
         </Link>
       </div>
-      <ol className="mx-auto mt-12 grid max-w-3xl gap-4 text-left sm:grid-cols-3">
+      <ol className="mt-14 grid max-w-4xl gap-x-10 gap-y-6 border-t border-line pt-8 sm:grid-cols-3">
         {steps.map((step, index) => (
-          <li key={step.title} className="rounded-2xl border border-line bg-surface-1 p-5">
-            <span className="font-mono text-xs text-violet">0{index + 1}</span>
-            <h3 className="mt-2 font-semibold">{step.title}</h3>
+          <li key={step.title}>
+            <span className="font-mono text-xs text-brand">0{index + 1}</span>
+            <h3 className="mt-2 font-medium">{step.title}</h3>
             <p className="mt-1 text-sm leading-relaxed text-fg-muted">{step.body}</p>
           </li>
         ))}

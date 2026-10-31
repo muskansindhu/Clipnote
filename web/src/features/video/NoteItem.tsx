@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Bot, Check, Pencil, Sparkles, Trash2, TriangleAlert, User, X } from "lucide-react";
+import { Check, Pencil, Trash2, TriangleAlert, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { Textarea } from "@/components/ui/Field";
@@ -54,89 +54,84 @@ export function NoteItem({ note, active, onSeek, onSave, onDelete }: NoteItemPro
   return (
     <motion.li
       layout="position"
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
       exit={{ opacity: 0, height: 0 }}
       data-note-id={note.id}
       className={cn(
-        "group relative rounded-2xl border bg-surface-1 p-4 transition-colors",
-        active ? "border-violet/50 shadow-[0_0_0_3px_var(--glow-violet)]" : "border-line hover:border-line-strong",
+        "group relative grid grid-cols-[3.75rem_1fr] gap-x-4 border-l-2 py-4 pl-4 transition-colors",
+        active ? "border-brand" : "border-transparent",
       )}
     >
-      <div className="flex items-center gap-2">
+      <div className="pt-1">
         {seconds === null ? (
-          <span className="rounded-lg bg-surface-3 px-2.5 py-1 text-xs font-medium text-fg-muted">Whole video</span>
+          <span className="text-xs text-fg-subtle">Whole video</span>
         ) : (
           <button
             type="button"
             onClick={() => onSeek(seconds)}
             title="Jump to this moment"
-            className="rounded-lg bg-violet/14 px-2.5 py-1 font-mono text-xs font-semibold tabular-nums text-violet transition-colors hover:bg-violet/25"
+            className="font-mono text-[13px] font-medium tabular-nums text-brand hover:underline"
           >
             {formatClock(seconds)}
           </button>
         )}
-        <span className={cn("inline-flex items-center gap-1 text-xs font-medium", meta.tone)}>
-          {meta.icon} {note.note_type !== "note" && meta.label}
-        </span>
-        <span className="ml-auto flex items-center gap-1">
-          <span
-            className="grid size-6 place-items-center rounded-full bg-surface-2 text-fg-subtle"
-            title={isAi ? "Written by AI" : "Written by you"}
-          >
-            {isAi ? <Bot className="size-3.5 text-violet" /> : <User className="size-3.5" />}
-          </span>
+      </div>
+
+      <div className="min-w-0">
+        <div className="flex h-5 items-center gap-2 text-xs">
+          {note.note_type !== "note" && <span className={cn("font-medium", meta.tone)}>{meta.label}</span>}
+          {isAi && <span className="rounded border border-ai/40 px-1 text-[10px] font-semibold uppercase tracking-wide text-ai">AI</span>}
           {!editing && (
-            <span className="flex gap-0.5 opacity-100 transition-opacity sm:opacity-0 sm:group-focus-within:opacity-100 sm:group-hover:opacity-100">
-              <Button variant="ghost" size="icon-sm" onClick={startEdit} aria-label="Edit note">
+            <span className="ml-auto flex gap-0.5 opacity-100 transition-opacity sm:opacity-0 sm:group-focus-within:opacity-100 sm:group-hover:opacity-100">
+              <Button variant="ghost" size="icon-sm" className="size-6" onClick={startEdit} aria-label="Edit note">
                 <Pencil className="size-3.5" />
               </Button>
-              <Button variant="ghost" size="icon-sm" onClick={() => onDelete(note)} aria-label="Delete note">
+              <Button variant="ghost" size="icon-sm" className="size-6" onClick={() => onDelete(note)} aria-label="Delete note">
                 <Trash2 className="size-3.5" />
               </Button>
             </span>
           )}
-        </span>
-      </div>
-
-      {editing ? (
-        <div className="mt-3 space-y-2">
-          <Textarea
-            ref={areaRef}
-            value={draft}
-            onChange={(event) => setDraft(event.target.value)}
-            onKeyDown={(event) => {
-              if (event.key === "Escape") setEditing(false);
-              if (event.key === "Enter" && (event.metaKey || event.ctrlKey)) void save();
-            }}
-            aria-label="Edit note text"
-            className="min-h-20"
-          />
-          <div className="flex justify-end gap-2">
-            <Button size="sm" variant="ghost" onClick={() => setEditing(false)}>
-              <X className="size-3.5" /> Cancel
-            </Button>
-            <Button size="sm" variant="primary" onClick={() => void save()} loading={saving} disabled={!draft.trim()}>
-              <Check className="size-3.5" /> Save
-            </Button>
-          </div>
         </div>
-      ) : pending ? (
-        <p className="shimmer mt-3 rounded-lg py-1 text-sm italic text-fg-muted" role="status">
-          <Sparkles className="mr-1.5 inline size-3.5 text-violet" />
-          Writing your note…
-        </p>
-      ) : failed ? (
-        <p className="mt-3 flex items-center gap-2 text-sm italic text-warning">
-          <TriangleAlert className="size-3.5 shrink-0" />
-          AI couldn't write this one.
-          <button type="button" onClick={startEdit} className="font-medium not-italic text-violet hover:underline">
-            Write your own
-          </button>
-        </p>
-      ) : (
-        <p className="mt-3 whitespace-pre-wrap break-words text-[15px] leading-relaxed">{note.note}</p>
-      )}
+
+        {editing ? (
+          <div className="mt-1 space-y-2">
+            <Textarea
+              ref={areaRef}
+              value={draft}
+              onChange={(event) => setDraft(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === "Escape") setEditing(false);
+                if (event.key === "Enter" && (event.metaKey || event.ctrlKey)) void save();
+              }}
+              aria-label="Edit note text"
+              className="min-h-20"
+            />
+            <div className="flex justify-end gap-2">
+              <Button size="sm" variant="ghost" onClick={() => setEditing(false)}>
+                <X className="size-3.5" /> Cancel
+              </Button>
+              <Button size="sm" variant="primary" onClick={() => void save()} loading={saving} disabled={!draft.trim()}>
+                <Check className="size-3.5" /> Save
+              </Button>
+            </div>
+          </div>
+        ) : pending ? (
+          <p className="shimmer mt-1 py-1 font-serif text-lg italic text-fg-muted" role="status">
+            Writing your note…
+          </p>
+        ) : failed ? (
+          <p className="mt-1 flex items-center gap-2 text-sm italic text-warning">
+            <TriangleAlert className="size-3.5 shrink-0" />
+            AI couldn't write this one.
+            <button type="button" onClick={startEdit} className="font-medium not-italic text-fg underline underline-offset-2">
+              Write your own
+            </button>
+          </p>
+        ) : (
+          <p className="mt-0.5 whitespace-pre-wrap break-words font-serif text-[19px] leading-snug">{note.note}</p>
+        )}
+      </div>
     </motion.li>
   );
 }

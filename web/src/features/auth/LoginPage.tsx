@@ -1,5 +1,5 @@
-import { motion, useReducedMotion } from "framer-motion";
-import { ArrowRight, Eye, EyeOff, Lightbulb, MessageSquareQuote, Star } from "lucide-react";
+import { motion } from "framer-motion";
+import { ArrowRight, Eye, EyeOff } from "lucide-react";
 import { useState, type FormEvent } from "react";
 import { Link, Navigate, useSearchParams } from "react-router-dom";
 import { GoogleIcon } from "@/components/icons";
@@ -52,20 +52,18 @@ export function LoginPage() {
   const isSignup = mode === "signup";
 
   return (
-    <div className="grid min-h-dvh lg:grid-cols-[1.05fr_1fr]">
-      <ShowcasePanel />
-
-      <div className="relative flex flex-col px-5 py-6 sm:px-10">
+    <div className="min-h-dvh">
+      <div className="relative flex min-h-dvh flex-col px-5 py-6 sm:px-10">
         <div className="flex items-center justify-between">
-          <Link to="/" aria-label="Clipnote home" className="lg:invisible">
+          <Link to="/" aria-label="Clipnote home" >
             <Logo />
           </Link>
           <ThemeToggle />
         </div>
 
         <div className="mx-auto flex w-full max-w-sm flex-1 flex-col justify-center py-10">
-          <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.45 }}>
-            <h1 className="text-[32px] font-semibold leading-tight tracking-tight">
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
+            <h1 className="font-serif text-[40px] font-medium leading-tight tracking-tight">
               {isSignup ? "Create your account" : "Welcome back"}
             </h1>
             <p className="mt-2 text-[15px] text-fg-muted">
@@ -76,7 +74,7 @@ export function LoginPage() {
 
             <a
               href="/login/google"
-              className="mt-8 flex h-12 w-full items-center justify-center gap-3 rounded-xl border border-line-strong bg-surface-1 text-sm font-medium transition-colors hover:bg-surface-2"
+              className="mt-8 flex h-12 w-full items-center justify-center gap-3 rounded-lg border border-line-strong text-sm font-medium transition-colors hover:bg-surface-2"
             >
               <GoogleIcon className="size-[18px]" />
               Continue with Google
@@ -150,61 +148,12 @@ export function LoginPage() {
 
             <p className="mt-6 text-center text-sm text-fg-muted">
               {isSignup ? "Already have an account?" : "New to Clipnote?"}{" "}
-              <button type="button" onClick={switchMode} className="font-medium text-violet hover:underline">
+              <button type="button" onClick={switchMode} className="font-medium text-fg underline underline-offset-2">
                 {isSignup ? "Sign in" : "Create an account"}
               </button>
             </p>
           </motion.div>
         </div>
-      </div>
-    </div>
-  );
-}
-
-const SAMPLE_NOTES = [
-  { time: "1:02", icon: Star, tone: "text-warning", text: "Review right before you forget. That is the whole trick." },
-  { time: "1:10", icon: MessageSquareQuote, tone: "text-violet", text: "Each successful review doubles the interval.", ai: true },
-  { time: "3:32", icon: Lightbulb, tone: "text-brand", text: "Is there an app that schedules this for me?" },
-];
-
-function ShowcasePanel() {
-  const reduce = useReducedMotion();
-  return (
-    <div className="relative hidden overflow-hidden border-r border-line bg-bg-elev lg:block">
-
-      <div className="relative flex h-full flex-col justify-between p-12">
-        <Link to="/" aria-label="Clipnote home">
-          <Logo />
-        </Link>
-
-        <div>
-          <h2 className="max-w-md text-[40px] font-semibold leading-[1.08] tracking-tight">
-            Every video becomes a note <span className="text-brand">you can search.</span>
-          </h2>
-          <p className="mt-4 max-w-md text-[15px] leading-relaxed text-fg-muted">
-            Capture the moment in two taps. Let AI write what you don't have time to type. Export it all to Markdown.
-          </p>
-
-          <div className="mt-10 max-w-md space-y-3">
-            {SAMPLE_NOTES.map((note, index) => (
-              <motion.div
-                key={note.time}
-                initial={reduce ? false : { opacity: 0, y: 18 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3 + index * 0.18, duration: 0.5 }}
-                className="flex items-start gap-3 rounded-2xl border border-line-strong bg-surface-1/80 p-4 shadow-card backdrop-blur"
-              >
-                <span className="mt-0.5 rounded-md bg-violet/14 px-2 py-0.5 font-mono text-xs font-medium text-violet">
-                  {note.time}
-                </span>
-                <p className="flex-1 text-sm leading-relaxed">{note.text}</p>
-                <note.icon className={`mt-0.5 size-4 shrink-0 ${note.tone}`} aria-hidden="true" />
-              </motion.div>
-            ))}
-          </div>
-        </div>
-
-        <p className="text-xs text-fg-subtle">Open source · self-hostable · your notes stay yours.</p>
       </div>
     </div>
   );

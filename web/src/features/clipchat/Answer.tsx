@@ -10,7 +10,7 @@ interface AnswerProps {
 /** Renders a Clipchat answer with **bold** text and clickable `[seconds]` citations. */
 export function Answer({ text, onSeek }: AnswerProps) {
   return (
-    <p className="whitespace-pre-wrap break-words text-[15px] leading-relaxed">
+    <p className="whitespace-pre-wrap break-words text-[16px] leading-relaxed">
       {parseAnswer(text).map((segment, index) => (
         <Fragment key={index}>
           {segment.type === "text" && segment.value}
@@ -20,7 +20,7 @@ export function Answer({ text, onSeek }: AnswerProps) {
               type="button"
               onClick={() => onSeek(segment.seconds)}
               title="Jump to this moment"
-              className="mx-0.5 inline-flex items-center rounded-md bg-violet/14 px-1.5 py-0.5 align-baseline font-mono text-xs font-semibold tabular-nums text-violet transition-colors hover:bg-violet/28"
+              className="mx-0.5 align-baseline font-mono text-xs font-medium tabular-nums text-brand underline-offset-2 hover:underline"
             >
               {formatClock(segment.seconds)}
             </button>

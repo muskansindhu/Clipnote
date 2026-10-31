@@ -6,8 +6,6 @@ import {
   Download,
   ExternalLink,
   MessagesSquare,
-  Plus,
-  Sparkles,
   Star,
   Trash2,
 } from "lucide-react";
@@ -15,7 +13,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { Button, buttonStyles } from "@/components/ui/Button";
 import { ConfirmDialog } from "@/components/ui/Dialog";
-import { Badge, Kbd, Skeleton } from "@/components/ui/Misc";
+import { Kbd, Skeleton } from "@/components/ui/Misc";
 import { MenuItem, Popover } from "@/components/ui/Popover";
 import { useToast } from "@/components/ui/Toast";
 import { NoteComposer, type ComposerHandle } from "@/features/video/NoteComposer";
@@ -161,94 +159,97 @@ export function VideoPage() {
   const counts = (type: Filter) => (type === "all" ? sorted.length : sorted.filter((note) => note.note_type === type).length);
 
   return (
-    <div className="grid gap-8 lg:grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)]">
+    <div className="space-y-8">
+      <header className="border-b border-line pb-6">
+        <div>
+        {detail ? (
+          <h1 className="max-w-4xl font-serif text-[34px] font-medium leading-[1.1] tracking-tight sm:text-[44px]">{detail.video.title}</h1>
+        ) : (
+          <Skeleton className="h-8 w-3/4" />
+        )}
+        <div className="mt-5 flex flex-wrap items-center gap-2">
+          <Button
+            variant="secondary"
+            size="sm"
+            aria-pressed={detail?.fav}
+            disabled={!detail || sorted.length === 0}
+            onClick={() => actions.setFavourite.mutate(!detail?.fav)}
+            title={sorted.length === 0 ? "Add a note to favourite this video" : undefined}
+          >
+            <Star className={cn("size-3.5", detail?.fav && "fill-warning text-warning")} />
+            {detail?.fav ? "Favourite" : "Favourite"}
+          </Button>
+
+          <Popover
+            align="start"
+            className="w-60"
+            trigger={({ toggle }) => (
+              <Button variant="secondary" size="sm" onClick={toggle} disabled={sorted.length === 0}>
+                <Bookmark className="size-3.5" />
+                {detail?.label ?? "Label"}
+                <ChevronDown className="size-3.5 text-fg-subtle" />
+              </Button>
+            )}
+          >
+            {({ close }) => (
+              <div role="menu">
+                <MenuItem
+                  icon={detail?.label ? undefined : <Check />}
+                  onClick={() => {
+                    actions.setLabel.mutate(null);
+                    close();
+                  }}
+                >
+                  No label
+                </MenuItem>
+                {labels.data?.map((label) => (
+                  <MenuItem
+                    key={label.id}
+                    icon={detail?.label === label.label_name ? <Check /> : undefined}
+                    onClick={() => {
+                      actions.setLabel.mutate(label.label_name);
+                      close();
+                    }}
+                  >
+                    {label.label_name}
+                  </MenuItem>
+                ))}
+                {labels.data?.length === 0 && (
+                  <p className="px-3 py-2 text-xs text-fg-subtle">
+                    No labels yet. Create some in <Link to="/profile" className="underline underline-offset-2">Settings</Link>.
+                  </p>
+                )}
+              </div>
+            )}
+          </Popover>
+
+          <Button variant="secondary" size="sm" onClick={() => void exportMarkdown()} disabled={sorted.length === 0}>
+            <Download className="size-3.5" /> Export
+          </Button>
+          <Link to={`/clipchat/${videoId}`} className={buttonStyles("secondary", "sm")}>
+            <MessagesSquare className="size-3.5" /> Chat
+          </Link>
+          <a href={watchUrl(videoId)} target="_blank" rel="noreferrer" className={buttonStyles("ghost", "sm")}>
+            YouTube <ExternalLink className="size-3.5" />
+          </a>
+          {sorted.length > 0 && (
+            <Button variant="ghost" size="sm" className="ml-auto hover:text-danger" onClick={() => setRemoving(true)}>
+              <Trash2 className="size-3.5" /> Remove
+            </Button>
+          )}
+        </div>
+      </div>
+      </header>
+
+    <div className="grid gap-10 lg:grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)]">
       {/* Player column */}
       <section className="space-y-5 lg:sticky lg:top-24 lg:self-start">
         <Player ref={playerRef} videoId={videoId} onTick={setNow} onReadyChange={setPlayerReady} />
 
-        <div>
-          {detail ? (
-            <h1 className="text-xl font-semibold leading-snug tracking-tight sm:text-2xl">{detail.video.title}</h1>
-          ) : (
-            <Skeleton className="h-8 w-3/4" />
-          )}
-          <div className="mt-4 flex flex-wrap items-center gap-2">
-            <Button
-              variant="secondary"
-              size="sm"
-              aria-pressed={detail?.fav}
-              disabled={!detail || sorted.length === 0}
-              onClick={() => actions.setFavourite.mutate(!detail?.fav)}
-              title={sorted.length === 0 ? "Add a note to favourite this video" : undefined}
-            >
-              <Star className={cn("size-3.5", detail?.fav && "fill-warning text-warning")} />
-              {detail?.fav ? "Favourite" : "Favourite"}
-            </Button>
-
-            <Popover
-              align="start"
-              className="w-60"
-              trigger={({ toggle }) => (
-                <Button variant="secondary" size="sm" onClick={toggle} disabled={sorted.length === 0}>
-                  <Bookmark className="size-3.5" />
-                  {detail?.label ?? "Label"}
-                  <ChevronDown className="size-3.5 text-fg-subtle" />
-                </Button>
-              )}
-            >
-              {({ close }) => (
-                <div role="menu">
-                  <MenuItem
-                    icon={detail?.label ? undefined : <Check />}
-                    onClick={() => {
-                      actions.setLabel.mutate(null);
-                      close();
-                    }}
-                  >
-                    No label
-                  </MenuItem>
-                  {labels.data?.map((label) => (
-                    <MenuItem
-                      key={label.id}
-                      icon={detail?.label === label.label_name ? <Check /> : undefined}
-                      onClick={() => {
-                        actions.setLabel.mutate(label.label_name);
-                        close();
-                      }}
-                    >
-                      {label.label_name}
-                    </MenuItem>
-                  ))}
-                  {labels.data?.length === 0 && (
-                    <p className="px-3 py-2 text-xs text-fg-subtle">
-                      No labels yet. Create some in <Link to="/profile" className="text-violet hover:underline">Settings</Link>.
-                    </p>
-                  )}
-                </div>
-              )}
-            </Popover>
-
-            <Button variant="secondary" size="sm" onClick={() => void exportMarkdown()} disabled={sorted.length === 0}>
-              <Download className="size-3.5" /> Export
-            </Button>
-            <Link to={`/clipchat/${videoId}`} className={buttonStyles("secondary", "sm")}>
-              <MessagesSquare className="size-3.5 text-violet" /> Chat
-            </Link>
-            <a href={watchUrl(videoId)} target="_blank" rel="noreferrer" className={buttonStyles("ghost", "sm")}>
-              YouTube <ExternalLink className="size-3.5" />
-            </a>
-            {sorted.length > 0 && (
-              <Button variant="ghost" size="sm" className="ml-auto hover:text-danger" onClick={() => setRemoving(true)}>
-                <Trash2 className="size-3.5" /> Remove
-              </Button>
-            )}
-          </div>
-        </div>
-
         {detail?.video.summary && (
-          <details className="group rounded-2xl border border-line bg-surface-1 p-4 open:shadow-card">
+          <details className="group border-t border-line pt-4">
             <summary className="flex cursor-pointer list-none items-center gap-2 text-sm font-semibold">
-              <Sparkles className="size-4 text-violet" /> AI summary
+              AI summary
               <ChevronDown className="ml-auto size-4 text-fg-subtle transition-transform group-open:rotate-180" />
             </summary>
             <p className="mt-3 whitespace-pre-line text-sm leading-relaxed text-fg-muted">{detail.video.summary}</p>
@@ -259,8 +260,8 @@ export function VideoPage() {
       {/* Notes column */}
       <section aria-label="Notes" className="min-w-0 space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="flex items-center gap-2 text-lg font-semibold tracking-tight">
-            Notes <Badge tone="violet">{sorted.length}</Badge>
+          <h2 className="flex items-baseline gap-2 font-serif text-2xl font-medium tracking-tight">
+            Notes <span className="font-mono text-sm text-fg-subtle">{sorted.length}</span>
           </h2>
           <span className="hidden items-center gap-1.5 text-xs text-fg-subtle sm:flex">
             <Kbd>N</Kbd> new <Kbd>M</Kbd> mark
@@ -280,9 +281,9 @@ export function VideoPage() {
                   aria-pressed={filter === type}
                   onClick={() => setFilter(type)}
                   className={cn(
-                    "inline-flex h-7 items-center gap-1.5 rounded-full border px-3 text-xs font-medium transition-colors",
+                    "inline-flex h-7 items-center gap-1.5 rounded-md border px-2.5 text-xs font-medium transition-colors",
                     filter === type
-                      ? "border-violet/40 bg-violet/14 text-violet"
+                      ? "border-fg bg-fg text-bg"
                       : "border-line text-fg-muted hover:border-line-strong hover:text-fg",
                   )}
                 >
@@ -300,12 +301,9 @@ export function VideoPage() {
             ))}
           </div>
         ) : sorted.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-line-strong px-6 py-12 text-center">
-            <div className="mx-auto mb-4 grid size-12 place-items-center rounded-2xl bg-violet/12 text-violet">
-              <Plus className="size-5" />
-            </div>
-            <p className="font-medium">No notes yet</p>
-            <p className="mx-auto mt-1 max-w-xs text-sm text-fg-muted">
+          <div className="border-t border-line py-10">
+            <p className="font-serif text-2xl font-medium">No notes yet</p>
+            <p className="mt-1 max-w-xs text-sm text-fg-muted">
               Play the video and write your first note above. It's stamped with the time you're watching.
             </p>
           </div>
@@ -313,7 +311,7 @@ export function VideoPage() {
           <p className="py-8 text-center text-sm text-fg-muted">No notes of this type.</p>
         ) : (
           <>
-            <ul className="space-y-3">
+            <ul className="divide-y divide-line">
               <AnimatePresence initial={false}>
                 {timed.map((note) => (
                   <NoteItem key={note.id} note={note} active={note.id === activeId} onSeek={seek} onSave={saveEdit} onDelete={setDeleting} />
@@ -323,7 +321,7 @@ export function VideoPage() {
             {untimed.length > 0 && (
               <>
                 <h3 className="pt-2 text-xs font-semibold uppercase tracking-wider text-fg-subtle">About the whole video</h3>
-                <ul className="space-y-3">
+                <ul className="divide-y divide-line">
                   <AnimatePresence initial={false}>
                     {untimed.map((note) => (
                       <NoteItem key={note.id} note={note} active={false} onSeek={seek} onSave={saveEdit} onDelete={setDeleting} />
@@ -335,6 +333,7 @@ export function VideoPage() {
           </>
         )}
       </section>
+    </div>
 
       <ConfirmDialog
         open={deleting !== null}

@@ -1,4 +1,4 @@
-import { Clock, CornerDownLeft, Sparkles } from "lucide-react";
+import { Clock, CornerDownLeft } from "lucide-react";
 import { forwardRef, useImperativeHandle, useRef, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { Kbd } from "@/components/ui/Misc";
@@ -55,7 +55,7 @@ export const NoteComposer = forwardRef<ComposerHandle, NoteComposerProps>(functi
   const shown = wholeVideo ? null : seconds ?? (playerReady ? getTime() : null);
 
   return (
-    <div className="rounded-2xl border border-line-strong bg-surface-1 p-3 shadow-card focus-within:border-violet/50 focus-within:ring-4 focus-within:ring-violet/10">
+    <div className="rounded-lg border border-line-strong bg-surface-1 p-3 focus-within:border-fg">
       <textarea
         ref={areaRef}
         value={text}
@@ -73,7 +73,7 @@ export const NoteComposer = forwardRef<ComposerHandle, NoteComposerProps>(functi
         }}
         placeholder="What's worth remembering?"
         aria-label="New note"
-        className="w-full resize-none bg-transparent px-2 py-1.5 text-[15px] leading-relaxed placeholder:text-fg-subtle focus:outline-none"
+        className="w-full resize-none bg-transparent px-2 py-1.5 font-serif text-[19px] leading-snug placeholder:text-fg-subtle focus:outline-none"
       />
 
       <div className="mt-2 flex flex-wrap items-center gap-1.5 border-t border-line pt-3">
@@ -85,12 +85,11 @@ export const NoteComposer = forwardRef<ComposerHandle, NoteComposerProps>(functi
             aria-pressed={type === value}
             title={NOTE_META[value].label}
             className={cn(
-              "inline-flex h-7 items-center gap-1 rounded-full px-2.5 text-xs font-medium transition-colors",
-              type === value ? "bg-surface-3 text-fg" : "text-fg-subtle hover:bg-surface-2 hover:text-fg",
+              "inline-flex h-7 items-center gap-1 rounded-md px-2 text-xs font-medium transition-colors",
+              type === value ? "bg-surface-2 text-fg" : "text-fg-subtle hover:bg-surface-2 hover:text-fg",
             )}
           >
-            <span className={NOTE_META[value].tone}>{NOTE_META[value].icon}</span>
-            <span className={cn(type !== value && "hidden sm:inline")}>{NOTE_META[value].label}</span>
+            <span>{NOTE_META[value].label}</span>
           </button>
         ))}
       </div>
@@ -108,7 +107,7 @@ export const NoteComposer = forwardRef<ComposerHandle, NoteComposerProps>(functi
               setWholeVideo(true);
             }
           }}
-          className="inline-flex h-8 items-center gap-1.5 rounded-lg bg-violet/12 px-3 font-mono text-xs font-semibold tabular-nums text-violet hover:bg-violet/20"
+          className="inline-flex h-8 items-center gap-1.5 rounded-md border border-line px-2.5 font-mono text-xs font-medium tabular-nums text-brand hover:bg-surface-2"
           title={wholeVideo ? "Switch back to a moment" : "Re-stamp with the current time; click again for the whole video"}
         >
           <Clock className="size-3.5" />
@@ -123,7 +122,7 @@ export const NoteComposer = forwardRef<ComposerHandle, NoteComposerProps>(functi
             onClick={() => void submit({ text: "", seconds: stamp() })}
             title="Save this moment and let AI write the note from the transcript"
           >
-            <Sparkles className="size-3.5 text-violet" /> Mark & let AI write
+            Mark & let AI write
             <Kbd className="ml-1 hidden sm:inline-flex">M</Kbd>
           </Button>
           <Button variant="primary" size="sm" loading={busy} disabled={!text.trim()} onClick={() => void submit()}>

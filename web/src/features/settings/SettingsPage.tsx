@@ -43,10 +43,9 @@ export function SettingsPage() {
   }, [hash]);
 
   return (
-    <div className="mx-auto max-w-3xl space-y-8">
-      <header>
-        <p className="text-sm font-medium text-violet">Account</p>
-        <h1 className="mt-1 text-[32px] font-semibold leading-tight tracking-tight">Settings</h1>
+    <div className="max-w-3xl space-y-10">
+      <header className="border-b border-line pb-6">
+        <h1 className="font-serif text-[44px] font-medium leading-none tracking-tight">Settings</h1>
       </header>
 
       <ProfileCard />
@@ -59,17 +58,14 @@ export function SettingsPage() {
   );
 }
 
-function Section({ id, icon, title, description, children }: { id?: string; icon: ReactNode; title: string; description?: string; children: ReactNode }) {
+function Section({ id, title, description, children }: { id?: string; icon?: ReactNode; title: string; description?: string; children: ReactNode }) {
   return (
-    <section id={id} className="scroll-mt-24 rounded-2xl border border-line bg-surface-1 p-6 shadow-card sm:p-7">
-      <div className="mb-5 flex items-start gap-3">
-        <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-violet/12 text-violet [&_svg]:size-[18px]">{icon}</span>
-        <div>
-          <h2 className="text-lg font-semibold tracking-tight">{title}</h2>
-          {description && <p className="mt-0.5 text-sm text-fg-muted">{description}</p>}
-        </div>
+    <section id={id} className="scroll-mt-24 grid gap-6 border-b border-line pb-10 md:grid-cols-[14rem_1fr]">
+      <div>
+        <h2 className="font-serif text-2xl font-medium tracking-tight">{title}</h2>
+        {description && <p className="mt-1 text-sm leading-relaxed text-fg-muted">{description}</p>}
       </div>
-      {children}
+      <div className="min-w-0">{children}</div>
     </section>
   );
 }
@@ -77,12 +73,12 @@ function Section({ id, icon, title, description, children }: { id?: string; icon
 function ProfileCard() {
   const { user } = useSession();
   return (
-    <div className="flex items-center gap-4 rounded-2xl border border-line bg-surface-1 p-6 shadow-card">
+    <div className="flex items-center gap-4 border-b border-line pb-10">
       <Avatar name={user?.username ?? ""} picture={user?.picture} className="size-16 text-lg" />
       <div className="min-w-0">
-        <p className="truncate text-xl font-semibold tracking-tight">{user?.username}</p>
+        <p className="truncate font-serif text-2xl font-medium tracking-tight">{user?.username}</p>
         <p className="truncate text-sm text-fg-muted">{user?.email}</p>
-        <Badge tone="violet" className="mt-2">Bring your own key</Badge>
+        <Badge tone="ai" className="mt-2">Bring your own key</Badge>
       </div>
     </div>
   );
@@ -107,11 +103,11 @@ function AppearanceSection() {
             aria-checked={theme === value}
             onClick={() => setTheme(value)}
             className={cn(
-              "flex flex-col items-center gap-2 rounded-2xl border px-3 py-4 text-sm font-medium transition-colors",
-              theme === value ? "border-violet/50 bg-violet/10 text-fg" : "border-line text-fg-muted hover:border-line-strong",
+              "flex flex-col items-center gap-2 rounded-lg border px-3 py-4 text-sm font-medium transition-colors",
+              theme === value ? "border-fg text-fg" : "border-line text-fg-muted hover:border-line-strong",
             )}
           >
-            <Icon className={cn("size-5", theme === value && "text-violet")} />
+            <Icon className="size-5" />
             {label}
           </button>
         ))}
@@ -181,7 +177,7 @@ function CaptureSection() {
             </Button>
           </form>
           {secret && (
-            <div className="mt-4 rounded-2xl border border-violet/40 bg-violet/8 p-4">
+            <div className="mt-4 rounded-lg border border-line-strong bg-surface-2 p-4">
               <p className="mb-3 text-sm font-semibold">Copy it now. It won't be shown again.</p>
               <CopyField value={secret} label="new token" />
               <button type="button" onClick={() => setSecret(null)} className="mt-3 text-xs text-fg-subtle hover:text-fg">
@@ -197,7 +193,7 @@ function CaptureSection() {
             <code className="rounded bg-surface-3 px-1 font-mono text-xs">Authorization</code> header.
           </p>
           <CopyField value={`${window.location.origin}/api/capture`} label="capture endpoint" />
-          <a href={SHORTCUT_DOCS_URL} target="_blank" rel="noreferrer" className="mt-3 inline-block text-sm font-medium text-violet hover:underline">
+          <a href={SHORTCUT_DOCS_URL} target="_blank" rel="noreferrer" className="mt-3 inline-block text-sm font-medium text-ai hover:underline">
             Step-by-step guide →
           </a>
         </Step>
@@ -253,7 +249,7 @@ function CaptureSection() {
 function Step({ n, title, children }: { n: number; title: string; children: ReactNode }) {
   return (
     <li className="flex gap-4">
-      <span className="grid size-7 shrink-0 place-items-center rounded-full bg-surface-3 font-mono text-xs font-semibold text-violet">{n}</span>
+      <span className="grid size-7 shrink-0 place-items-center rounded-full bg-surface-3 font-mono text-xs font-semibold text-ai">{n}</span>
       <div className="min-w-0 flex-1">
         <h3 className="mb-1.5 text-[15px] font-semibold">{title}</h3>
         {children}

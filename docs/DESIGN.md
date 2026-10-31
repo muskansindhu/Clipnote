@@ -32,20 +32,21 @@ Clipnote is a **tool people use while watching something else**. Every screen sh
 ## 3. Visual language
 
 ### Colour
-- Neutral surfaces carry ~90% of the UI. Dark is default; light must be equally polished.
-- **One accent: coral** for the single primary action per view (Save, Add video).
-- **Violet is reserved for AI** (Mark & let AI write, summaries, Clipchat). Never decorative.
-- Semantic colours (success, danger, warning) are used only for state.
+- The look is **paper and ink**: warm off-white surfaces (`#f6f3ec`) with near-black text in light; warm charcoal (`#151412`) in dark. Light is the default.
+- **One accent: vermilion** (`--brand`), used for timestamps (the "margin annotation"), counts and the current-moment marker. Never for large fills.
+- The **primary button is solid ink** (`--fg` on `--bg`). No gradients anywhere.
+- **Ink blue** (`--ai`) marks AI-written text only (the small "AI" tag, Questions). Never decorative.
+- Semantic colours (success, danger, warning) only for state.
 - Tokens live in `web/src/styles/index.css`; the extension mirrors them in `extension/style.css`. Never introduce a hex value outside the tokens.
 
 ### Typography
-- Inter for UI, JetBrains Mono for timestamps and kbd hints only.
-- Max three sizes per screen: page title, body, caption. Weight 500/600 for emphasis; avoid 700+.
-- Note text is the largest body text on the page.
+- **Newsreader (serif)** for page titles, video titles, note text and chat answers: the user's words are set like a book.
+- **Inter** for controls and metadata. **JetBrains Mono** for timestamps and key hints only.
+- Page titles are large (44px) and sit on a hairline rule; everything else is small and quiet.
 
 ### Shape, borders, shadow
 - Borders at low contrast define regions; shadows only on floating layers (menus, dialogs, palette).
-- Radius scale by role: controls 10px, cards 14px, dialogs 18px. Not everything is "as round as possible".
+- Radius scale: 8px controls, 12px floating layers. Avatars are the only fully round element.
 - No coloured accent stripes on cards.
 
 ### Icons
@@ -58,9 +59,9 @@ Clipnote is a **tool people use while watching something else**. Every screen sh
 
 ## 4. Layout patterns
 
-- **App shell:** left sidebar (Library, Clipchat, Settings), top bar with search/palette and the one primary action.
-- **Video page:** player and video actions on the left; notes on the right. The notes list is the timeline, so no second timeline.
-- **Lists:** one row style, hover reveals secondary actions, selected row is obvious, keyboard-navigable.
+- **App shell:** one top bar: wordmark, three text links (Library, Clipchat, Settings), search/palette, theme, Add video, avatar. No sidebar.
+- **Video page:** serif title and actions across the top; player on the left; notes on the right as a ruled list with the timestamp in a left gutter. Notes are not cards. The notes list is the timeline, so no second timeline.
+- **Lists:** hairline-separated rows, not cards. Hover reveals secondary actions; keyboard-navigable. The library is a single list, not a grid.
 - **Empty states:** one sentence on what goes here, one action to fill it, optionally a real example.
 - **Extension popup:** 360 px wide; video title, timestamp, a text area, Save. Nothing else.
 
@@ -110,22 +111,11 @@ If a visitor can guess "an LLM built this" in five seconds, we failed. Each item
 - Do not animate everything on load.
 - Do not make dark mode a mechanical inversion; check contrast and elevation separately.
 
-## 7. Self-audit of the current build
+## 7. Status of the AI-tell audit
 
-Honest read of what we have today against section 6. Status after the first cleanup pass: gradient text, aurora/glow blobs, grid pattern, glass panels, the "New" pill and 3xl radii are removed (marked done). The rest are still open.
+Removed in the redesign: gradient text and brand gradients, aurora/glow blobs, grid backgrounds, glass panels, floating mockups, the "New" pill, the sidebar with a promo card, stat tiles, icon-in-tile empty states, three-card feature rows, chat bubbles, rounded-3xl everywhere, and the purple accent.
 
-| Tell | Where it appears | Action |
-|---|---|---|
-| Gradient text and violet-to-coral gradient identity | Landing headline, logo mark, `text-gradient` utility | Keep the logo mark; drop gradient text from headings; use solid fg with one coral word at most or none |
-| Aurora glow backgrounds | App shell top bar/page background, landing, login, 404 (`bg-aurora`) | Remove from the app shell entirely; flat `--bg` inside the product; at most one subtle accent on the landing page |
-| Grid pattern behind hero | `bg-grid` on landing | Remove |
-| Glassmorphism | Top bar and palette (`glass`) | Solid `--bg-elev` with a border; blur only if content scrolls underneath and it helps |
-| Floating animated mockups | `HeroMock`, `PhoneMock`, `animate-float` | Replace with a static screenshot of the real video page; no float animation |
-| Same-radius rounded-2xl everywhere | 40+ uses | Apply the radius scale in section 3; cards 14px, controls 10px |
-| Hero + feature-cards template | Landing page | Rewrite around one real demo (video + notes), then a short list of three concrete behaviours with real screenshots |
-| Icon on every row/label | Sidebar, buttons, note meta | Remove icons that do not aid recognition; keep type icons on notes only if the label is dropped, not both |
-| Generic copy | Landing and empty states | Rewrite in the voice of section 5 |
-| Duplicate information | Removed: "Jump to a moment" repeated the notes | Rule 2 above; review the video page for anything else shown twice (e.g. repeated type badges and filter counts) |
+Still to watch: icons beside every action in the video header, and the centred layout of the 404 page. Any new screen must pass section 8.
 
 ## 8. Definition of done for a UI change
 
