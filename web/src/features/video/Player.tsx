@@ -42,6 +42,18 @@ export const Player = forwardRef<PlayerHandle, PlayerProps>(function Player({ vi
     },
   }));
 
+  // Clicking the embedded player moves keyboard focus into the cross-origin iframe, where the
+  // page can no longer see key presses. Hand focus straight back so shortcuts keep working.
+  useEffect(() => {
+    const reclaimFocus = () =>
+      window.setTimeout(() => {
+        const active = document.activeElement;
+        if (active instanceof HTMLIFrameElement) active.blur();
+      }, 0);
+    window.addEventListener("blur", reclaimFocus);
+    return () => window.removeEventListener("blur", reclaimFocus);
+  }, []);
+
   useEffect(() => {
     let cancelled = false;
     let timer: number | undefined;
