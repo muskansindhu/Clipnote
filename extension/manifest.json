@@ -47,10 +47,10 @@
   "commands": {
     "mark-moment": {
       "suggested_key": {
-        "default": "Ctrl+Shift+Y",
-        "mac": "Command+Shift+Y"
+        "default": "Ctrl+Shift+S",
+        "mac": "Command+Shift+S"
       },
-      "description": "Save this moment and let AI write the note"
+      "description": "Add a note at this moment (leave it empty to let AI write it)"
     }
   }
 }
