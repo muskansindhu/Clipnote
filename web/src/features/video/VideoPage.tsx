@@ -158,7 +158,6 @@ export function VideoPage() {
   }
 
   const detail = video.data;
-  const moments = sorted.filter((note) => note.timestamp_seconds !== null);
   const counts = (type: Filter) => (type === "all" ? sorted.length : sorted.filter((note) => note.note_type === type).length);
 
   return (
@@ -245,28 +244,6 @@ export function VideoPage() {
             )}
           </div>
         </div>
-
-        {moments.length > 0 && (
-          <div className="rounded-2xl border border-line bg-surface-1 p-4">
-            <h3 className="mb-3 text-sm font-semibold">Jump to a moment</h3>
-            <ul className="max-h-64 space-y-1 overflow-y-auto pr-1">
-              {moments.map((note) => (
-                <li key={note.id}>
-                  <button
-                    type="button"
-                    onClick={() => seek(note.timestamp_seconds ?? 0)}
-                    className="flex w-full items-center gap-3 rounded-lg px-2 py-1.5 text-left text-sm transition-colors hover:bg-surface-2"
-                  >
-                    <span className="rounded-md bg-violet/12 px-1.5 py-0.5 font-mono text-xs text-violet">
-                      {formatClock(note.timestamp_seconds ?? 0)}
-                    </span>
-                    <span className="truncate text-fg-muted">{note.note}</span>
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
 
         {detail?.video.summary && (
           <details className="group rounded-2xl border border-line bg-surface-1 p-4 open:shadow-card">
