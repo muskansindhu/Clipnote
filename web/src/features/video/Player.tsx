@@ -86,7 +86,7 @@ export const Player = forwardRef<PlayerHandle, PlayerProps>(function Player({ vi
 
   if (failure) {
     return (
-      <div className="relative aspect-video overflow-hidden rounded-2xl border border-line bg-surface-2">
+      <div className="relative aspect-video overflow-hidden rounded-lg border border-line bg-surface-2">
         <img src={thumbnailUrl(videoId, "hq")} alt="" className="absolute inset-0 size-full object-cover opacity-30 blur-sm" />
         <div className="relative flex size-full flex-col items-center justify-center gap-3 p-6 text-center">
           <WifiOff className="size-6 text-fg-muted" />
@@ -104,7 +104,7 @@ export const Player = forwardRef<PlayerHandle, PlayerProps>(function Player({ vi
   }
 
   return (
-    <div className="relative aspect-video overflow-hidden rounded-2xl border border-line bg-black shadow-card [&_iframe]:size-full">
+    <div className="relative aspect-video overflow-hidden rounded-lg bg-black [&_iframe]:size-full">
       <div ref={mountRef} className="size-full" />
     </div>
   );

@@ -2,7 +2,7 @@ import { forwardRef, useId, type InputHTMLAttributes, type ReactNode, type Texta
 import { cn } from "@/lib/cn";
 
 const control =
-  "w-full rounded-xl border border-line-strong bg-surface-1 px-3.5 text-sm text-fg placeholder:text-fg-subtle transition-colors hover:border-[color-mix(in_oklab,var(--fg)_24%,transparent)] focus:border-violet focus:outline-none focus:ring-4 focus:ring-violet/15 disabled:opacity-60";
+  "w-full rounded-xl border border-line-strong bg-surface-1 px-3.5 text-sm text-fg placeholder:text-fg-subtle transition-colors hover:border-[color-mix(in_oklab,var(--fg)_24%,transparent)] focus:border-ai focus:outline-none focus:ring-4 focus:ring-ai/15 disabled:opacity-60";
 
 export const Input = forwardRef<HTMLInputElement, InputHTMLAttributes<HTMLInputElement>>(function Input(
   { className, ...rest },

@@ -1,6 +1,6 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowUp, Bot, NotebookText, Sparkles, User } from "lucide-react";
+import { ArrowUp } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { Button, buttonStyles } from "@/components/ui/Button";
@@ -129,9 +129,9 @@ export function ClipchatPage() {
           <Player ref={playerRef} videoId={videoId} />
           {data ? (
             <div>
-              <h1 className="text-xl font-semibold leading-snug tracking-tight">{data.video_title}</h1>
-              <Link to={`/${videoId}`} className="mt-2 inline-flex items-center gap-1.5 text-sm text-violet hover:underline">
-                <NotebookText className="size-3.5" /> Open notes ({data.notes.length})
+              <h1 className="font-serif text-3xl font-medium leading-tight tracking-tight">{data.video_title}</h1>
+              <Link to={`/${videoId}`} className="mt-2 inline-flex items-center gap-1.5 text-sm underline underline-offset-2">
+                Open notes ({data.notes.length})
               </Link>
             </div>
           ) : (
@@ -139,17 +139,15 @@ export function ClipchatPage() {
           )}
 
           {data?.video_summary && (
-            <div className="rounded-2xl border border-line bg-surface-1 p-4">
-              <p className="mb-2 flex items-center gap-2 text-sm font-semibold">
-                <Sparkles className="size-4 text-violet" /> Summary
-              </p>
+            <div className="border-t border-line pt-4">
+              <p className="mb-2 text-sm font-medium">Summary</p>
               <p className="whitespace-pre-line text-sm leading-relaxed text-fg-muted">{data.video_summary}</p>
             </div>
           )}
 
           {notes.length > 0 && (
-            <div className="rounded-2xl border border-line bg-surface-1 p-4">
-              <p className="mb-3 text-sm font-semibold">Your notes</p>
+            <div className="border-t border-line pt-4">
+              <p className="mb-3 text-sm font-medium">Your notes</p>
               <ul className="max-h-56 space-y-2 overflow-y-auto pr-1">
                 {notes.map((note) => (
                   <li key={note.id} className="flex gap-3 text-sm">
@@ -157,12 +155,12 @@ export function ClipchatPage() {
                       <button
                         type="button"
                         onClick={() => seek(note.timestamp_seconds ?? 0)}
-                        className="h-fit rounded-md bg-violet/14 px-1.5 py-0.5 font-mono text-xs font-semibold text-violet hover:bg-violet/28"
+                        className="h-fit font-mono text-xs font-medium text-brand hover:underline"
                       >
                         {formatClock(note.timestamp_seconds)}
                       </button>
                     ) : (
-                      <span className="h-fit rounded-md bg-surface-3 px-1.5 py-0.5 text-xs text-fg-muted">Video</span>
+                      <span className="h-fit text-xs text-fg-subtle">Video</span>
                     )}
                     <span className="text-fg-muted">{note.note}</span>
                   </li>
@@ -176,25 +174,20 @@ export function ClipchatPage() {
         <section
           aria-label="Chat"
           className={cn(
-            "flex min-h-[70dvh] flex-col overflow-hidden rounded-2xl border border-line-strong bg-surface-1 shadow-card lg:h-[calc(100dvh-8.5rem)]",
+            "flex min-h-[70dvh] flex-col overflow-hidden rounded-lg border border-line-strong lg:h-[calc(100dvh-8.5rem)]",
             tab !== "chat" && "hidden lg:flex",
           )}
         >
-          <div className="flex items-center gap-3 border-b border-line px-5 py-4">
-            <span className="grid size-9 place-items-center rounded-xl bg-violet/14 text-violet">
-              <Sparkles className="size-[18px]" />
-            </span>
-            <div>
-              <h2 className="text-[15px] font-semibold leading-tight">Clipchat</h2>
-              <p className="text-xs text-fg-subtle">Answers come only from this video's transcript</p>
-            </div>
+          <div className="border-b border-line px-5 py-3">
+            <h2 className="font-serif text-xl font-medium leading-tight">Ask this video</h2>
+            <p className="text-xs text-fg-subtle">Answers come only from its transcript</p>
           </div>
 
           <div className="flex-1 space-y-5 overflow-y-auto px-5 py-5" aria-live="polite">
             {!data || (!ready && !prepareFailed) ? (
               <div className="grid h-full place-items-center text-center">
                 <div>
-                  <div className="mx-auto mb-4 size-10 animate-spin rounded-full border-2 border-violet/30 border-t-violet" />
+                  <div className="mx-auto mb-4 size-10 animate-spin rounded-full border-2 border-line-strong border-t-fg" />
                   <p className="font-medium">Reading the transcript…</p>
                   <p className="mt-1 text-sm text-fg-muted">This takes a few seconds the first time.</p>
                 </div>
@@ -214,10 +207,7 @@ export function ClipchatPage() {
             ) : messages.length === 0 ? (
               <div className="grid h-full place-items-center">
                 <div className="text-center">
-                  <div className="mx-auto mb-4 grid size-12 place-items-center rounded-2xl bg-violet/14 text-violet">
-                    <Sparkles className="size-6" />
-                  </div>
-                  <p className="text-lg font-semibold tracking-tight">Ask anything about this video</p>
+                  <p className="font-serif text-2xl font-medium tracking-tight">Ask anything about this video</p>
                   <p className="mx-auto mt-1 max-w-xs text-sm text-fg-muted">
                     Every answer cites exact moments. Tap a timestamp to jump there.
                   </p>
@@ -227,7 +217,7 @@ export function ClipchatPage() {
                         key={question}
                         type="button"
                         onClick={() => void ask(question)}
-                        className="rounded-full border border-line-strong bg-surface-2 px-3.5 py-2 text-[13px] font-medium text-fg-muted transition-colors hover:border-violet/40 hover:text-fg"
+                        className="rounded-md border border-line-strong px-3 py-1.5 text-[13px] text-fg-muted transition-colors hover:bg-surface-2 hover:text-fg"
                       >
                         {question}
                       </button>
@@ -240,44 +230,27 @@ export function ClipchatPage() {
                 {messages.map((message) => (
                   <motion.div
                     key={message.id}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className={cn("flex gap-3", message.role === "user" && "flex-row-reverse")}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className={cn(message.role === "assistant" && "border-l-2 border-line-strong pl-4")}
                   >
-                    <span
-                      className={cn(
-                        "mt-0.5 grid size-8 shrink-0 place-items-center rounded-full",
-                        message.role === "user" ? "bg-surface-3 text-fg-muted" : "bg-violet/14 text-violet",
-                      )}
-                    >
-                      {message.role === "user" ? <User className="size-4" /> : <Bot className="size-4" />}
-                    </span>
-                    <div
-                      className={cn(
-                        "max-w-[85%] rounded-2xl px-4 py-3",
-                        message.role === "user"
-                          ? "rounded-tr-md bg-brand-gradient text-white"
-                          : message.state === "error"
-                            ? "rounded-tl-md border border-danger/30 bg-danger/8"
-                            : "rounded-tl-md border border-line bg-surface-2",
-                      )}
-                    >
-                      {message.role === "user" ? (
-                        <p className="whitespace-pre-wrap break-words text-[15px] leading-relaxed">{message.text}</p>
-                      ) : message.text ? (
+                    {message.role === "user" ? (
+                      <p className="whitespace-pre-wrap break-words font-serif text-xl font-medium leading-snug">{message.text}</p>
+                    ) : message.text ? (
+                      <div className={cn(message.state === "error" && "text-danger")}>
                         <Answer text={message.text} onSeek={seek} />
-                      ) : (
-                        <span className="flex h-6 items-center gap-1" aria-label="Clipchat is thinking">
-                          {[0, 1, 2].map((dot) => (
-                            <span
-                              key={dot}
-                              className="size-1.5 animate-bounce rounded-full bg-fg-subtle"
-                              style={{ animationDelay: `${dot * 120}ms` }}
-                            />
-                          ))}
-                        </span>
-                      )}
-                    </div>
+                      </div>
+                    ) : (
+                      <span className="flex h-6 items-center gap-1" aria-label="Clipchat is thinking">
+                        {[0, 1, 2].map((dot) => (
+                          <span
+                            key={dot}
+                            className="size-1.5 animate-bounce rounded-full bg-fg-subtle"
+                            style={{ animationDelay: `${dot * 120}ms` }}
+                          />
+                        ))}
+                      </span>
+                    )}
                   </motion.div>
                 ))}
               </AnimatePresence>
@@ -292,7 +265,7 @@ export function ClipchatPage() {
             }}
             className="border-t border-line p-3"
           >
-            <div className="flex items-end gap-2 rounded-2xl border border-line-strong bg-surface-2 p-2 focus-within:border-violet/50 focus-within:ring-4 focus-within:ring-violet/10">
+            <div className="flex items-end gap-2 rounded-lg border border-line-strong p-2 focus-within:border-fg">
               <textarea
                 value={draft}
                 rows={1}
@@ -308,7 +281,7 @@ export function ClipchatPage() {
                 aria-label="Your question"
                 className="max-h-32 min-h-10 flex-1 resize-none bg-transparent px-2 py-2 text-[15px] placeholder:text-fg-subtle focus:outline-none disabled:opacity-60"
               />
-              <Button type="submit" variant="violet" size="icon" disabled={!ready || !draft.trim()} loading={busy} aria-label="Send question">
+              <Button type="submit" variant="primary" size="icon" disabled={!ready || !draft.trim()} loading={busy} aria-label="Send question">
                 {!busy && <ArrowUp className="size-[18px]" />}
               </Button>
             </div>
