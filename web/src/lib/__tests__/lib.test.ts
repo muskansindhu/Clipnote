@@ -3,6 +3,7 @@ import { ApiError, api, clearToken, setToken, streamClipchat } from "@/lib/api";
 import { decodeToken, userFromToken } from "@/lib/auth";
 import { parseAnswer } from "@/lib/citations";
 import { UNAUTHORIZED_EVENT } from "@/lib/constants";
+import { matchesShortcut } from "@/lib/shortcuts";
 import { formatClock, parseClock, relativeTime } from "@/lib/time";
 import { extractVideoId, watchUrl } from "@/lib/youtube";
 
@@ -149,5 +150,28 @@ describe("api", () => {
 
     expect(deltas).toEqual(["Hel", "lo"]);
     expect(answer).toBe("Hello");
+  });
+});
+
+describe("shortcuts", () => {
+  const press = (init: KeyboardEventInit) => new KeyboardEvent("keydown", init);
+
+  it("matches a shift chord by physical key, ignoring Option remapping", () => {
+    expect(matchesShortcut(press({ metaKey: true, shiftKey: true, code: "KeyL", key: "¬" }), "library")).toBe(true);
+  });
+
+  it("accepts Ctrl in place of Cmd", () => {
+    expect(matchesShortcut(press({ ctrlKey: true, code: "KeyK" }), "palette")).toBe(true);
+  });
+
+  it("rejects a bare key and a chord with the wrong modifiers", () => {
+    expect(matchesShortcut(press({ code: "KeyK" }), "palette")).toBe(false);
+    expect(matchesShortcut(press({ metaKey: true, code: "KeyL" }), "library")).toBe(false);
+    expect(matchesShortcut(press({ metaKey: true, altKey: true, code: "KeyK" }), "palette")).toBe(false);
+  });
+
+  it("keeps save (Cmd Enter) distinct from mark moment (Cmd Shift Enter)", () => {
+    expect(matchesShortcut(press({ metaKey: true, code: "Enter" }), "markMoment")).toBe(false);
+    expect(matchesShortcut(press({ metaKey: true, shiftKey: true, code: "Enter" }), "markMoment")).toBe(true);
   });
 });

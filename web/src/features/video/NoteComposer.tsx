@@ -5,6 +5,7 @@ import { Kbd } from "@/components/ui/Misc";
 import { NOTE_META } from "@/features/video/noteMeta";
 import { cn } from "@/lib/cn";
 import { NOTE_TYPES } from "@/lib/constants";
+import { formatShortcut } from "@/lib/shortcuts";
 import { formatClock } from "@/lib/time";
 import type { NoteType } from "@/lib/types";
 
@@ -66,7 +67,7 @@ export const NoteComposer = forwardRef<ComposerHandle, NoteComposerProps>(functi
           if (seconds === null) setSeconds(stamp());
         }}
         onKeyDown={(event) => {
-          if (event.key === "Enter" && (event.metaKey || event.ctrlKey) && text.trim()) {
+          if (event.key === "Enter" && (event.metaKey || event.ctrlKey) && !event.shiftKey && text.trim()) {
             event.preventDefault();
             void submit();
           }
@@ -123,7 +124,7 @@ export const NoteComposer = forwardRef<ComposerHandle, NoteComposerProps>(functi
             title="Save this moment and let AI write the note from the transcript"
           >
             Mark & let AI write
-            <Kbd className="ml-1 hidden sm:inline-flex">M</Kbd>
+            <Kbd className="ml-1 hidden sm:inline-flex">{formatShortcut("markMoment")}</Kbd>
           </Button>
           <Button variant="primary" size="sm" loading={busy} disabled={!text.trim()} onClick={() => void submit()}>
             Add note <CornerDownLeft className="size-3.5" />

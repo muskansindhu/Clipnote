@@ -26,6 +26,7 @@ import { NOTE_TYPES } from "@/lib/constants";
 import { useLabels, useVideo, useVideoActions } from "@/lib/queries";
 import { formatClock } from "@/lib/time";
 import type { Note, NoteType } from "@/lib/types";
+import { formatShortcut, matchesShortcut } from "@/lib/shortcuts";
 import { watchUrl } from "@/lib/youtube";
 
 type Filter = "all" | NoteType;
@@ -70,19 +71,12 @@ export function VideoPage() {
   const getTime = useCallback(() => playerRef.current?.currentTime() ?? null, []);
   const seek = useCallback((seconds: number) => playerRef.current?.seek(seconds), []);
 
-  // Keyboard shortcuts: N focuses the composer, M marks the moment.
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
-      const target = event.target as HTMLElement;
-      if (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable) return;
-      if (event.metaKey || event.ctrlKey || event.altKey) return;
-      if (event.key === "n") {
-        event.preventDefault();
-        composerRef.current?.focus();
-      } else if (event.key === "m") {
-        event.preventDefault();
-        composerRef.current?.markMoment();
-      }
+      if (matchesShortcut(event, "newNote")) composerRef.current?.focus();
+      else if (matchesShortcut(event, "markMoment")) composerRef.current?.markMoment();
+      else return;
+      event.preventDefault();
     };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
@@ -264,7 +258,7 @@ export function VideoPage() {
             Notes <span className="font-mono text-sm text-fg-subtle">{sorted.length}</span>
           </h2>
           <span className="hidden items-center gap-1.5 text-xs text-fg-subtle sm:flex">
-            <Kbd>N</Kbd> new <Kbd>M</Kbd> mark
+            <Kbd>{formatShortcut("newNote")}</Kbd> new <Kbd>{formatShortcut("markMoment")}</Kbd> mark
           </span>
         </div>
 
