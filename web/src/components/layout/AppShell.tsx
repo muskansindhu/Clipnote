@@ -29,7 +29,19 @@ export function AppShell() {
   const [addOpen, setAddOpen] = useState(false);
 
   useEffect(() => {
+    // "g" then a letter jumps to a page, e.g. G L for the library.
+    const GO: Record<string, string> = { l: "/dashboard", c: "/clipchat", s: "/profile" };
+    let armedUntil = 0;
     const onKey = (event: KeyboardEvent) => {
+      const plain = !isTyping(event.target) && !event.metaKey && !event.ctrlKey && !event.altKey;
+      const destination = GO[event.key];
+      if (plain && Date.now() < armedUntil && destination) {
+        event.preventDefault();
+        armedUntil = 0;
+        navigate(destination);
+        return;
+      }
+      armedUntil = plain && event.key === "g" ? Date.now() + 1200 : 0;
       if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
         event.preventDefault();
         setPaletteOpen((open) => !open);
@@ -40,7 +52,7 @@ export function AppShell() {
     };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
-  }, []);
+  }, [navigate]);
 
   const logout = () => {
     signOut();
