@@ -6,6 +6,10 @@ everything to Markdown for Obsidian, Notion or plain files.
 
 Think of it as your **second brain for YouTube**.
 
+<p align="center">
+  <img src="../assets/clipnote-video-light.png" alt="A video with its timestamped notes" width="90%">
+</p>
+
 ---
 
 ## 🛠️ Tech Stack
@@ -25,6 +29,11 @@ Think of it as your **second brain for YouTube**.
 - Save a note from the YouTube app through the share sheet, without leaving it and without
   giving up YouTube Premium. See [ios-shortcut.md](ios-shortcut.md).
 
+🎬 **Capture without leaving full screen**
+
+- Press **⌘⇧S** on a YouTube video. The video pauses and a small panel appears over it, even in
+  full screen. Type a note, or leave it empty and let AI write it from the transcript.
+
 ⚡ **Instant capture**
 
 - Notes save immediately. Transcripts, summaries and AI text are filled in in the background.
@@ -37,9 +46,10 @@ Think of it as your **second brain for YouTube**.
 - Markdown per video or for everything, with a seek link (`youtu.be/<id>?t=<seconds>`) on
   every note.
 
-📊 **Dashboard**
+📚 **Library**
 
-- Search, labels, per-user favourites, edit and delete.
+- Search, labels, per-user favourites, edit and delete. A command palette (⌘K) jumps anywhere.
+  Light and dark themes.
 
 💬 **Clipchat**
 
@@ -47,7 +57,7 @@ Think of it as your **second brain for YouTube**.
 
 🧩 **Chrome extension**
 
-- Capture notes from the toolbar on any `youtube.com/watch` page.
+- Capture notes from the toolbar, or with ⌘⇧S, on any `youtube.com/watch` page.
 
 🔒 **Privacy-first**
 
@@ -126,36 +136,68 @@ Follow [ios-shortcut.md](ios-shortcut.md).
 
 ## ✅ Usage
 
-- **Chrome:** open a YouTube video, open the Clipnote popup, add a note. The timestamp and
-  title are captured; an empty note becomes an AI note.
+- **Chrome:** open a YouTube video and press ⌘⇧S (or open the Clipnote popup) to add a note.
+  The timestamp and title are captured; an empty note becomes an AI note.
 - **iPhone:** pause in the YouTube app → Share → turn on **Start at** → Send to Clipnote.
-- **Dashboard:** `/dashboard` lists your videos; open one to edit notes, export Markdown or
-  open Clipchat.
+- **Library:** `/library` lists your videos; open one to write and edit notes, export Markdown
+  or open Clipchat.
 
 ---
 
 ## 📸 Screenshots
 
-### Extension Popup
+### Library
 
 <p align="center">
-  <img src="../assets/clipnote-extension.png" alt="Extension Popup" width="40%">
+  <img src="../assets/clipnote-library.png" alt="Library" width="90%">
 </p>
 
-### Dashboard View
+### A video and its notes
+
+Notes sit in a ruled list with the timestamp in the margin. Click a time to jump the player there.
 
 <p align="center">
-  <img src="../assets/clipnote-dashboard.png" alt="Dashboard" width="40%">
+  <img src="../assets/clipnote-video-light.png" alt="Video page, light theme" width="90%">
 </p>
 <p align="center">
-  <img src="../assets/clipnote-notepage.png" alt="Note Page" width="40%">
+  <img src="../assets/clipnote-video-dark.png" alt="Video page, dark theme" width="90%">
 </p>
 
-### Mobile View
+### Command palette
 
 <p align="center">
-  <img src="../assets/clipnote-mobileview-dashboard-lightmode.png" alt="Mobile Dashboard" width="30%">
-  <img src="../assets/clipnote-mobileview-notepage-darkmode.png" alt="Mobile Note Page" width="30%">
+  <img src="../assets/clipnote-palette.png" alt="Command palette" width="90%">
+</p>
+
+### Capture over a full-screen video (⌘⇧S)
+
+<p align="center">
+  <img src="../assets/clipnote-fullscreen-capture.jpg" alt="Note panel over a full-screen video" width="90%">
+</p>
+
+### Chrome extension popup
+
+<p align="center">
+  <img src="../assets/clipnote-extension.png" alt="Extension popup" width="40%">
+</p>
+
+### Settings
+
+<p align="center">
+  <img src="../assets/clipnote-settings.png" alt="Settings" width="90%">
+</p>
+
+### Landing page
+
+<p align="center">
+  <img src="../assets/clipnote-landing.png" alt="Landing page" width="90%">
+</p>
+
+### Mobile
+
+<p align="center">
+  <img src="../assets/clipnote-mobile-library.png" alt="Mobile library" width="30%">
+  <img src="../assets/clipnote-mobile-video.png" alt="Mobile video page" width="30%">
 </p>
 
 ---
