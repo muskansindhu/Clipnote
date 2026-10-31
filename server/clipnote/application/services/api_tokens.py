@@ -7,13 +7,14 @@ import secrets
 from dataclasses import dataclass
 
 from clipnote.application.ports import ApiTokenRepository
+from clipnote.constants import (
+    API_TOKEN_DISPLAY_PREFIX_LENGTH,
+    API_TOKEN_LABEL_MAX_LENGTH,
+    API_TOKEN_PREFIX,
+    CAPTURE_SCOPE,
+    MAX_ACTIVE_TOKENS,
+)
 from clipnote.domain import ApiToken, AuthenticationError, NotFoundError, ValidationError
-
-TOKEN_PREFIX = "cn_"  # noqa: S105  # public marker, not a secret
-CAPTURE_SCOPE = "capture"
-MAX_ACTIVE_TOKENS = 10
-MAX_LABEL_LENGTH = 60
-DISPLAY_PREFIX_LENGTH = 8
 
 
 @dataclass(frozen=True, slots=True)
@@ -42,19 +43,19 @@ class ApiTokenService:
             ValidationError: If the label is invalid or the user has too many tokens.
         """
         label = label.strip() or "Shortcut"
-        if len(label) > MAX_LABEL_LENGTH:
-            raise ValidationError(f"Label must be at most {MAX_LABEL_LENGTH} characters")
+        if len(label) > API_TOKEN_LABEL_MAX_LENGTH:
+            raise ValidationError(f"Label must be at most {API_TOKEN_LABEL_MAX_LENGTH} characters")
         active = sum(token.is_active for token in self._tokens.list_for_user(user_id))
         if active >= MAX_ACTIVE_TOKENS:
             raise ValidationError(f"You can have at most {MAX_ACTIVE_TOKENS} active tokens")
 
-        secret = TOKEN_PREFIX + secrets.token_urlsafe(32)
+        secret = API_TOKEN_PREFIX + secrets.token_urlsafe(32)
         record = self._tokens.add(
             user_id=user_id,
             label=label,
             scope=CAPTURE_SCOPE,
             token_hash=hash_token(secret),
-            prefix=secret[:DISPLAY_PREFIX_LENGTH],
+            prefix=secret[:API_TOKEN_DISPLAY_PREFIX_LENGTH],
         )
         return CreatedToken(secret=secret, record=record)
 

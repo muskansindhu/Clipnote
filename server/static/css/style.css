@@ -3444,8 +3444,10 @@ img.action-item-icon {
 
 .pricing-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 20px;
+  max-width: 760px;
+  margin-inline: auto;
 }
 
 .pricing-card {
@@ -3888,3 +3890,83 @@ img.action-item-icon {
   color: var(--accent-primary);
 }
 
+
+
+/* Note types, background enrichment states and video-level notes */
+.note-type-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 10px;
+  border-radius: 20px;
+  background: hsla(var(--accent-h), var(--accent-s), var(--accent-l), 0.12);
+  color: var(--accent-primary);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.note-timestamp.no-time {
+  color: var(--text-muted);
+  cursor: default;
+}
+
+.note-entry.is-pending .note-copy {
+  color: var(--text-muted);
+  font-style: italic;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    hsla(var(--accent-h), var(--accent-s), var(--accent-l), 0.14) 50%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: note-pending-shimmer 1.6s ease-in-out infinite;
+  border-radius: 6px;
+}
+
+.note-entry.is-failed .note-copy {
+  color: var(--warm);
+  font-style: italic;
+}
+
+@keyframes note-pending-shimmer {
+  from { background-position: 200% 0; }
+  to { background-position: -200% 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .note-entry.is-pending .note-copy { animation: none; }
+}
+
+.api-token-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.api-token-row:last-child { border-bottom: 0; }
+.api-token-row.is-revoked { opacity: 0.55; }
+.api-token-meta { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.api-token-name { font-weight: 600; }
+.api-token-detail { color: var(--text-muted); font-size: 0.8rem; }
+
+.api-token-secret {
+  margin-top: 12px;
+  padding: 12px;
+  border: 1px solid var(--accent-primary);
+  border-radius: 10px;
+  background: var(--surface-2);
+}
+
+.api-token-secret code {
+  display: block;
+  margin: 8px 0;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: var(--surface-1);
+  word-break: break-all;
+  user-select: all;
+}

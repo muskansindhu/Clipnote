@@ -14,9 +14,11 @@ from pathlib import Path
 
 import psycopg
 
+from clipnote.constants import (
+    MIGRATIONS_DIR,
+)
 from clipnote.infrastructure.config import load_settings
 
-MIGRATIONS_DIR = Path(__file__).parent / "migrations"
 logger = logging.getLogger(__name__)
 
 _CREATE_TRACKING_TABLE = """

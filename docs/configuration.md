@@ -1,38 +1,51 @@
 # Clipnote Configuration
 
-## Backend Environment Variables
+Set these in `server/.env` or the process environment. Variables already set in the
+environment win over `.env`. See `server/.env.example`.
 
-Set these in your `.env` file:
+## Required
 
-- `SUPABASE_CONNECTION_STRING`: PostgreSQL connection string
-- `GOOGLE_CLIENT_ID`: Google OAuth client ID
-- `GOOGLE_CLIENT_SECRET`: Google OAuth client secret
-- `GOOGLE_DISCOVERY_URL`: Google OAuth discovery URL (default provided)
-- `GEMINI_API_KEY`: Google Gemini API key
-- `APIFY_TOKEN`: Apify API token
-- `S3_BUCKET`: AWS S3 bucket name
-- `ADMIN_USERNAME`, `ADMIN_PASSWORD`: Admin credentials
-- `JWT_SECRET`: JWT signing secret
-- `ACCESS_KEY`, `SECRET_KEY`: AWS credentials
+| Variable | Purpose |
+|---|---|
+| `DATABASE_URL` | Postgres connection string. Falls back to `IPv6_SUPABASE_CONNECTION_STRING` (development), `IPv4_SUPABASE_CONNECTION_STRING` (when `FLASK_ENV=production`), then `SUPABASE_CONNECTION_STRING` |
+| `JWT_SECRET` | Signs login tokens and Flask sessions. Use a long random value |
 
-## Extension Configuration
+## Language model
 
-- `extension/config.js`: Set `BASE_URL` to backend API (e.g., `https://clipnote.muskansindhu.tech`)
-- `manifest.json`: Permissions for tabs, scripting, storage; content scripts for backend URLs
+| Variable | Default | Purpose |
+|---|---|---|
+| `LLM_PROVIDER` | `openai` | `openai`, or `stub` for offline placeholder text (local demos, no key needed) |
+| `OPENAI_API_KEY` | | Required when `LLM_PROVIDER=openai` |
+| `OPENAI_MODEL` | `gpt-4o-mini` | Chat model used for notes, summaries and Clipchat |
 
-## Requirements
+The old `GEMINI_API_KEY` is **not read** by the code; remove it.
 
-- Python dependencies in `requirements.txt`
-- Chrome browser for extension
+## Transcripts
 
-## Deployment
+| Variable | Default | Purpose |
+|---|---|---|
+| `TRANSCRIPT_PROVIDERS` | `youtube_transcript_api,apify` | Sources, tried in order. `youtube_transcript_api` is free and keyless; `apify` is a paid fallback |
+| `APIFY_TOKEN` | | Needed for the `apify` provider (skipped with a warning if missing) |
+| `STORAGE_BACKEND` | `s3` | `s3` or `filesystem` |
+| `S3_BUCKET`, `ACCESS_KEY`, `SECRET_KEY` | | S3 credentials when `STORAGE_BACKEND=s3` |
+| `LOCAL_DATA_DIR` | `server/.local-data` | Where `filesystem` stores transcripts |
 
-- Backend: Render
-- Extension: Load unpacked extension in Chrome (navigate to `extension/` folder)
+## Sign-in
 
-## Static Assets
+`GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, optional `GOOGLE_DISCOVERY_URL`. Google sign-in is
+disabled when the first two are unset.
 
-- Place CSS/JS in `server/static/`
-- HTML templates in `server/templates/`
+## Other
 
----
+| Variable | Purpose |
+|---|---|
+| `FLASK_ENV` | `production` disables the debugger and switches the legacy database variable |
+
+## Extension
+
+`extension/config.js` sets `BASE_URL` to the backend; `manifest.json` lists the allowed hosts.
+
+## Tooling
+
+`pyproject.toml` configures pytest, ruff and mypy. `docker-compose.yml` starts a local
+Postgres on port 5433 (`clipnote` / `clipnote`, override with `CLIPNOTE_DB_PASSWORD`).

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import datetime, timedelta
+from datetime import datetime
 
 from clipnote.application.ports import (
     LibraryRepository,
@@ -12,8 +12,17 @@ from clipnote.application.ports import (
     VideoRepository,
 )
 from clipnote.application.services.enrichment import EnrichmentService
+from clipnote.constants import (
+    DEFAULT_VIDEO_TITLE,
+    DUPLICATE_WINDOW_SECONDS,
+    ONE_DAY,
+    PAGE_SIZE,
+    SORT_RECENT,
+    SORT_TITLE,
+)
 from clipnote.domain import (
     EnrichmentStatus,
+    LibraryStats,
     NewNote,
     Note,
     NoteSource,
@@ -27,12 +36,6 @@ from clipnote.domain import (
     watch_url,
 )
 
-PAGE_SIZE = 10
-DUPLICATE_WINDOW_SECONDS = 60
-DEFAULT_VIDEO_TITLE = "YouTube video"
-SORT_RECENT = "recent"
-SORT_TITLE = "title"
-
 
 @dataclass(frozen=True, slots=True)
 class VideoPage:
@@ -45,6 +48,15 @@ class VideoPage:
 @dataclass(frozen=True, slots=True)
 class VideoNotes:
     """A video with the requesting user's notes on it."""
+
+    video: Video
+    notes: list[Note]
+    fav: bool
+
+
+@dataclass(frozen=True, slots=True)
+class VideoDetail:
+    """Everything the video page needs, whether or not the user has notes yet."""
 
     video: Video
     notes: list[Note]
@@ -149,7 +161,7 @@ class NoteService:
             label_names=label_names or [],
             sort=SORT_TITLE if sort == SORT_TITLE else SORT_RECENT,
             start=start,
-            end=end + timedelta(days=1) if end else None,
+            end=end + ONE_DAY if end else None,
             limit=PAGE_SIZE + 1,
             offset=(page - 1) * PAGE_SIZE,
         )
@@ -169,6 +181,45 @@ class NoteService:
             notes=self._notes.list_for_video(user_id, video_id),
             fav=self._library.is_favourite(user_id, video_id),
         )
+
+    def video_detail(self, user_id: str, video_id: str) -> VideoDetail:
+        """Return a video with the user's notes, even for a video not yet saved.
+
+        An unknown (but well-formed) id yields a placeholder from public metadata, so the
+        user can start taking notes on any YouTube video. Nothing is stored until a note is.
+
+        Raises:
+            NotFoundError: If ``video_id`` is not a valid YouTube video id.
+        """
+        if not is_valid_video_id(video_id):
+            raise NotFoundError("Video not found")
+        video = self._videos.get(video_id)
+        if video is None:
+            found = self._metadata.fetch(video_id)
+            video = Video(
+                video_id, watch_url(video_id), found.title if found else DEFAULT_VIDEO_TITLE, None
+            )
+        return VideoDetail(
+            video=video,
+            notes=self._notes.list_for_video(user_id, video_id),
+            fav=self._library.is_favourite(user_id, video_id),
+        )
+
+    def library_stats(self, user_id: str) -> LibraryStats:
+        """Headline numbers for the user's library."""
+        return self._library.stats(user_id)
+
+    def remove_video(self, user_id: str, video_id: str) -> None:
+        """Remove a video from the user's library by deleting their notes on it.
+
+        The shared video record is kept, since other users may have notes on it.
+
+        Raises:
+            NotFoundError: If the user has no notes on the video.
+        """
+        if not self._notes.delete_for_video(user_id, video_id):
+            raise NotFoundError("Video not found in your library")
+        self._library.set_favourite(user_id, video_id, False)
 
     def update_text(
         self,

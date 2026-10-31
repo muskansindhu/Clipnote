@@ -1,7 +1,8 @@
 # Clipnote
 
-Clipnote is a lightweight Chrome extension + backend that makes learning from YouTube videos 10x easier.  
-Instead of juggling between watching and taking notes, Clipnote lets you **capture timestamp-linked notes** right inside the video — and even uses AI to generate summaries and insights.
+Clipnote makes learning from YouTube easier. Capture **timestamp-linked notes** while you
+watch, let AI write the ones you do not have time to type, chat with the video, and export
+everything to Markdown for Obsidian, Notion or plain files.
 
 Think of it as your **second brain for YouTube**.
 
@@ -9,106 +10,108 @@ Think of it as your **second brain for YouTube**.
 
 ## 🛠️ Tech Stack
 
-- **Frontend (Extension)**: HTML5, CSS3, Vanilla JavaScript
-- **Backend**: Flask (Python) REST API
-- **Database**: PostgreSQL for persistent note storage
-- **AI Integration**: Gemini LLMs (pluggable — you can hook in your own provider)
+- **Backend**: Flask (Python) with a clean-architecture layout, see [architecture.md](architecture.md)
+- **Database**: PostgreSQL with plain SQL migrations
+- **AI**: OpenAI chat models behind a port, so the provider can be swapped
+- **Transcripts**: `youtube-transcript-api` first, Apify as an optional fallback
+- **Front end**: Jinja templates and vanilla JavaScript; Chrome extension (Manifest V3)
 
 ---
 
 ## ✨ Features
 
-🌍 **Cross-Browser Support**
+📱 **Share to Clipnote (iPhone)**
 
-- Runs smoothly on all Chromium-based browsers (Chrome, Brave, Edge).
+- Save a note from the YouTube app through the share sheet, without leaving it and without
+  giving up YouTube Premium. See [ios-shortcut.md](ios-shortcut.md).
 
-📊 **Interactive Dashboard**
+⚡ **Instant capture**
 
-- Modern UI to view and manage your notes.
-- Full-text search across videos.
-- Edit or delete notes with one click.
-- Create labels to categorize related video notes together.
-- Filter notes by labels for easier organization and quick retrieval.
+- Notes save immediately. Transcripts, summaries and AI text are filled in in the background.
+- Leave a note empty and an **AI note** is written from the transcript at that moment.
+- Note types: 💡 idea, ❓ question, ⭐ key point, ✅ to do. A link with no time becomes a
+  video-level note.
 
-🤖 **AI-Powered Notes**
+📤 **Export**
 
-- Generate context-aware notes for any video timestamp.
-- Configure your own AI provider via API key.
+- Markdown per video or for everything, with a seek link (`youtu.be/<id>?t=<seconds>`) on
+  every note.
 
-⚡ **Quick Video Summaries**
+📊 **Dashboard**
 
-- With one click, get a **5-point summary** of the entire video.
-- Perfect for grabbing the gist before deep-diving.
+- Search, labels, per-user favourites, edit and delete.
 
-🔒 **Privacy-First**
+💬 **Clipchat**
 
-- Backend is self-hosted, so your data stays with you.
-- No third-party servers snooping on your notes.
+- Ask questions about a video; answers cite exact timestamps.
+
+🧩 **Chrome extension**
+
+- Capture notes from the toolbar on any `youtube.com/watch` page.
+
+🔒 **Privacy-first**
+
+- Self-hostable. Your notes are private to your account. Personal API tokens are hashed,
+  capture-only and revocable.
 
 ---
 
 ## 🔧 Setup
 
-### 1. Extension Setup
-
-1. Open `chrome://extensions/` in your Chromium browser.
-2. Enable **Developer mode**.
-3. Click **Load unpacked** and select the `extension/` folder.
-
-### 2. Backend Setup
+### 1. Local development
 
 ```bash
-# Clone the repo
-git clone https://github.com/muskansindhu/clipnote.git
-cd clipnote/server
+# Postgres on localhost:5433
+docker compose up -d db
 
-# Install dependencies
+# Python environment
+python3 -m venv venv && source venv/bin/activate
 pip install -r requirements.txt
 
-# Run the server
-python3 app.py
+# Configure (see server/.env.example); for a no-keys local run:
+export DATABASE_URL=postgresql://clipnote:clipnote@localhost:5433/clipnote
+export JWT_SECRET=local-dev-secret
+export STORAGE_BACKEND=filesystem LLM_PROVIDER=stub TRANSCRIPT_PROVIDERS=youtube_transcript_api
+
+# Create the tables (never runs automatically)
+cd server
+python -m clipnote.infrastructure.db.migrate
+
+# Run
+python app.py            # http://localhost:5001
 ```
 
-By default, the backend runs at http://localhost:5001.
-
-### 3. Backend Setup (Docker Quick Start)
+### 2. Tests and checks
 
 ```bash
-# Clone the repo
-git clone https://github.com/muskansindhu/clipnote.git
-cd clipnote
-
-# Build the image
-docker build -t clipnote-server .
-
-# Run the container
-docker run -d -p 5001:5001 --name clipnote clipnote-server
+pytest                   # unit + API tests; integration tests use the docker Postgres
+ruff check . && mypy server/clipnote
 ```
 
-### 4. Configure Extension & Login
+### 3. Docker image
 
-1. Open extension/config.js.
-2. Update the BASE_URL to point to your backend.
-3. Visit http://localhost:5001/dashboard and log in.
+```bash
+docker build -t clipnote-server .
+docker run -d -p 5001:5001 --env-file server/.env --name clipnote clipnote-server
+```
 
-This generates a JWT token, automatically stored in both the dashboard’s and extension’s local storage for seamless authentication.
+### 4. Chrome extension
 
-### 5. Dashboard
+1. Open `chrome://extensions/` and enable **Developer mode**.
+2. **Load unpacked** and select the `extension/` folder.
+3. Set `BASE_URL` in `extension/config.js` to your backend, then log in at `/login`.
 
-- Once logged in, use the dashboard to manage, search, label, and filter your notes.
+### 5. iPhone
+
+Follow [ios-shortcut.md](ios-shortcut.md).
 
 ## ✅ Usage
 
-- While watching a YouTube video:
-  - Open Clipnote popup.
-
-  - Add a note → It captures the **timestamp + video title**.
-
-  - If the note field is left empty → An **AI-generated note** will be created automatically.
-
-  - (Optional) Click **Summary** → Get the entire video summarized in 5 points.
-
-- All notes instantly sync to your dashboard.
+- **Chrome:** open a YouTube video, open the Clipnote popup, add a note. The timestamp and
+  title are captured; an empty note becomes an AI note.
+- **iPhone:** pause in the YouTube app → Share → turn on **Start at** → Send to Clipnote.
+- **Dashboard:** `/dashboard` lists your videos; open one to edit notes, export Markdown or
+  open Clipchat.
 
 ---
 

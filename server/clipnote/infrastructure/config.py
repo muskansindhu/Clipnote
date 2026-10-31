@@ -9,11 +9,12 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
+from clipnote.constants import (
+    DEFAULT_GOOGLE_DISCOVERY_URL,
+    DEFAULT_LOCAL_DATA_DIR,
+    DEFAULT_OPENAI_MODEL,
+)
 from clipnote.infrastructure.errors import ConfigurationError
-
-DEFAULT_GOOGLE_DISCOVERY_URL = "https://accounts.google.com/.well-known/openid-configuration"
-DEFAULT_OPENAI_MODEL = "gpt-4o-mini"
-DEFAULT_LOCAL_DATA_DIR = Path(__file__).resolve().parents[2] / ".local-data"
 
 
 @dataclass(frozen=True)

@@ -20,7 +20,6 @@ from clipnote.application.ports import (
     VideoRepository,
 )
 from clipnote.application.services import (
-    CAPTURE_SCOPE,
     ApiTokenService,
     AuthService,
     CaptureResult,
@@ -32,13 +31,13 @@ from clipnote.application.services import (
     LabelService,
     NoteService,
     TranscriptService,
+    VideoDetail,
     VideoNotes,
     VideoPage,
     VideoService,
 )
 
 __all__ = [
-    "CAPTURE_SCOPE",
     "AccessClaims",
     "AccessTokenCodec",
     "ApiTokenRepository",
@@ -65,6 +64,7 @@ __all__ = [
     "TranscriptStore",
     "UserRepository",
     "VideoMetadata",
+    "VideoDetail",
     "VideoMetadataProvider",
     "VideoNotes",
     "VideoPage",

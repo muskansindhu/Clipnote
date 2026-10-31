@@ -16,12 +16,14 @@ from flask import (
 )
 from werkzeug.wrappers import Response as WerkzeugResponse
 
+from clipnote.constants import (
+    TEMP_TOKEN_COOKIE_SECONDS,
+)
 from clipnote.domain import AuthenticationError
 from clipnote.interfaces.http.auth import container, current_user_id, login_required
 from clipnote.interfaces.http.schemas import ChangePasswordBody, LoginBody, SignupBody, parse_body
 
 blueprint = Blueprint("accounts", __name__)
-TEMP_TOKEN_COOKIE_SECONDS = 60
 
 
 @blueprint.post("/login")

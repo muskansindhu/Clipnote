@@ -3,19 +3,20 @@
 from __future__ import annotations
 
 import logging
-from pathlib import Path
 
 from authlib.integrations.flask_client import OAuth
 from flask import Flask
 from flask_cors import CORS
 
+from clipnote.constants import (
+    SERVER_DIR,
+)
 from clipnote.infrastructure.config import Settings, load_settings
 from clipnote.interfaces.http.container import Container, build_container
 from clipnote.interfaces.http.errors import register_error_handlers
 from clipnote.interfaces.http.routes import BLUEPRINTS
 
 logger = logging.getLogger(__name__)
-SERVER_DIR = Path(__file__).resolve().parents[3]
 
 
 def create_app(settings: Settings | None = None, container: Container | None = None) -> Flask:

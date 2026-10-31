@@ -284,3 +284,35 @@ def test_api_tokens_round_trip_and_revoke_once(db: Database) -> None:
     assert not tokens.revoke("alice", token.id)
     assert tokens.list_for_user("alice")[0].is_active is False
     assert tokens.list_for_user("bob") == []
+
+
+def test_library_counts_stats_and_removal(db: Database, videos: PostgresVideoRepository) -> None:
+    notes, library = PostgresNoteRepository(db), PostgresLibraryRepository(db)
+    notes.add(_new("alice", VID_A, 1))
+    notes.add(_new("alice", VID_A, 2))
+    notes.add(_new("alice", VID_B, 3, None))
+    notes.add(_new("bob", VID_A, 1))
+    library.set_favourite("alice", VID_A, True)
+
+    def listing(user: str) -> dict[str, tuple[int, bool]]:
+        rows = library.list_videos(
+            user_id=user,
+            search="",
+            label_names=[],
+            sort="recent",
+            start=None,
+            end=None,
+            limit=10,
+            offset=0,
+        )
+        return {v.id: (v.note_count, v.last_note_at is not None) for v in rows}
+
+    assert listing("alice") == {VID_A: (2, True), VID_B: (1, True)}
+    assert listing("bob") == {VID_A: (1, True)}
+    stats = library.stats("alice")
+    assert (stats.videos, stats.notes, stats.notes_this_week) == (2, 3, 3)
+    assert (stats.favourites, stats.pending) == (1, 1)
+    assert library.stats("nobody") == library.stats("nobody")
+    assert notes.delete_for_video("alice", VID_A) == 2
+    assert notes.delete_for_video("alice", VID_A) == 0
+    assert [n.user_id for n in notes.list_for_video("bob", VID_A)] == ["bob"]

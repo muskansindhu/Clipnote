@@ -4,6 +4,7 @@ document.addEventListener("DOMContentLoaded", function () {
     loadProfileInfo();
     loadLabels();
     setupTokenControls();
+    setupApiTokens();
     setupAddLabel();
     setupChangePassword();
 });
@@ -377,3 +378,114 @@ function setupThemeToggle() {
     });
 }
 
+
+
+function authHeaders() {
+    return { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' };
+}
+
+function formatTokenDate(value) {
+    if (!value) return 'never';
+    const date = new Date(value);
+    return Number.isNaN(date.getTime()) ? 'unknown' : date.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+}
+
+function setupApiTokens() {
+    const form = document.getElementById('api-token-form');
+    if (!form) return;
+
+    const labelInput = document.getElementById('api-token-label');
+    const feedback = document.getElementById('api-token-feedback');
+    const secretBox = document.getElementById('api-token-secret');
+    const secretValue = document.getElementById('api-token-secret-value');
+    const copyBtn = document.getElementById('api-token-copy');
+    const endpoint = document.getElementById('capture-endpoint');
+    if (endpoint) endpoint.textContent = `${window.location.origin}/api/capture`;
+
+    form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        feedback.textContent = '';
+        try {
+            const response = await fetch('/api/tokens', {
+                method: 'POST',
+                headers: authHeaders(),
+                body: JSON.stringify({ label: labelInput.value }),
+            });
+            const data = await response.json();
+            if (!response.ok) {
+                feedback.textContent = data.message || 'Could not create the token.';
+                return;
+            }
+            labelInput.value = '';
+            secretValue.textContent = data.token;
+            secretBox.style.display = 'block';
+            loadApiTokens();
+        } catch (error) {
+            feedback.textContent = 'Something went wrong. Please try again.';
+        }
+    });
+
+    copyBtn.addEventListener('click', () => {
+        navigator.clipboard.writeText(secretValue.textContent).then(() => {
+            copyBtn.textContent = 'Copied';
+            setTimeout(() => { copyBtn.textContent = 'Copy token'; }, 2000);
+        });
+    });
+
+    loadApiTokens();
+}
+
+async function loadApiTokens() {
+    const list = document.getElementById('api-token-list');
+    if (!list) return;
+    try {
+        const response = await fetch('/api/tokens', { headers: authHeaders() });
+        if (!response.ok) throw new Error('Failed to load tokens.');
+        renderApiTokens(list, await response.json());
+    } catch (error) {
+        list.textContent = 'Could not load tokens.';
+    }
+}
+
+function renderApiTokens(list, tokens) {
+    list.replaceChildren();
+    if (tokens.length === 0) {
+        const empty = document.createElement('p');
+        empty.className = 'section-desc';
+        empty.textContent = 'No tokens yet.';
+        list.appendChild(empty);
+        return;
+    }
+
+    tokens.forEach((item) => {
+        const row = document.createElement('div');
+        row.className = 'api-token-row' + (item.revoked_at ? ' is-revoked' : '');
+
+        const meta = document.createElement('div');
+        meta.className = 'api-token-meta';
+        const name = document.createElement('span');
+        name.className = 'api-token-name';
+        name.textContent = item.label;
+        const detail = document.createElement('span');
+        detail.className = 'api-token-detail';
+        detail.textContent = item.revoked_at
+            ? `${item.prefix}… · revoked ${formatTokenDate(item.revoked_at)}`
+            : `${item.prefix}… · created ${formatTokenDate(item.created_at)} · last used ${formatTokenDate(item.last_used_at)}`;
+        meta.append(name, detail);
+        row.appendChild(meta);
+
+        if (!item.revoked_at) {
+            const revoke = document.createElement('button');
+            revoke.type = 'button';
+            revoke.className = 'btn btn-danger btn-small';
+            revoke.textContent = 'Revoke';
+            revoke.addEventListener('click', async () => {
+                revoke.disabled = true;
+                await fetch(`/api/tokens/${item.id}`, { method: 'DELETE', headers: authHeaders() });
+                loadApiTokens();
+            });
+            row.appendChild(revoke);
+        }
+        list.appendChild(row);
+    });
+}

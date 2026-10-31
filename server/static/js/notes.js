@@ -37,63 +37,26 @@ document.addEventListener("DOMContentLoaded", function () {
         <div class="note-content">
         <div class="video-thumbnail-wrapper">
           <img src="https://img.youtube.com/vi/${videoId}/maxresdefault.jpg"
-               alt="${note.video_title}"
+               alt="${escapeHtml(note.video_title)}"
                class="video-thumbnail"
                onerror="this.src='https://img.youtube.com/vi/${videoId}/hqdefault.jpg'" />
         </div>
-        <h2><a href="${note.video_url}" target="_blank" class="video-title">${note.video_title
-        }</a></h2>
+        <h2><a href="${escapeHtml(note.video_url)}" target="_blank" rel="noopener" class="video-title">${escapeHtml(note.video_title)}</a></h2>
       <div class="video-tag">
         <div class="video-tag-label-area"></div>
+        <button type="button" class="btn btn-secondary btn-small video-tag-export-btn" id="export-note-btn">Export .md</button>
         <a href="/clipchat/${videoId}" class="btn btn-secondary btn-small video-tag-clipchat-btn">Open Clipchat</a>
       </div>
           ${note.video_summary ? `
           <details class="video-summary-details">
             <summary class="video-summary-title">Summary</summary>
             <div class="video-summary-content">
-              <p>${note.video_summary.replace(/\n/g, "<br>")}</p>
+              <p>${escapeHtml(note.video_summary).replace(/\n/g, "<br>")}</p>
             </div>
           </details>
           ` : ""}
           <div class="note-list">
-            ${data
-          .map((item, index) => {
-            const parts = item.video_timestamp.split(":").map(Number);
-            const seconds =
-              parts.length === 3
-                ? parts[0] * 3600 + parts[1] * 60 + parts[2]
-                : parts.length === 2
-                  ? parts[0] * 60 + parts[1]
-                  : parts[0];
-
-            return `
-                  <div class="note-entry ${item.note_source?.toLowerCase() === "ai"
-                ? "ai-note"
-                : "user-note"
-              }" data-index="${index}" data-seconds="${seconds}" data-timestamp="${item.video_timestamp}">
-                    <div class="note-meta">
-                      <div class="note-source-indicator ${item.note_source?.toLowerCase() === "ai" ? "ai" : "user"}" 
-                           title="${item.note_source?.toLowerCase() === "ai" ? "AI Generated" : "User Note"}">
-                        <i data-lucide="${item.note_source?.toLowerCase() === "ai" ? "bot" : "user"}" 
-                           class="source-icon"></i>
-                      </div>
-                      <a href="${note.video_url}&t=${seconds}s" target="_blank" class="note-timestamp">
-                        <strong class="timestamp">${item.video_timestamp}</strong>
-                      </a>
-                    </div>
-                    <p class="note-copy">${item.note || "(No note)"}</p>
-                    <div class="action-items">
-                      <button type="button" class="action-btn action-item-icon edit-btn" aria-label="Edit note">
-                        <i data-lucide="pencil"></i>
-                      </button>
-                      <button type="button" class="action-btn action-item-icon trash-btn" aria-label="Delete note">
-                        <i data-lucide="trash-2"></i>
-                      </button>
-                    </div>
-                  </div>
-                `;
-          })
-          .join("")}
+            ${data.map((item, index) => renderNoteEntry(item, index, note.video_url)).join("")}
           </div>
         </div>
       `;
@@ -107,16 +70,18 @@ document.addEventListener("DOMContentLoaded", function () {
       if (window.lucide) lucide.createIcons();
       applyThemeToIconImages();
       getVideoLabel(videoId, token);
+      setupExport(videoId, token);
+      pollPendingNotes(videoId, token, data, container);
 
       const deleteModal = document.getElementById("delete-note-modal");
       const cancelDeleteBtn = document.getElementById("cancel-delete-note");
       const confirmDeleteBtn = document.getElementById("confirm-delete-note");
-      let pendingDeleteTimestamp = null;
+      let pendingDeleteId = null;
 
       const closeDeleteModal = () => {
         if (!deleteModal) return;
         deleteModal.style.display = "none";
-        pendingDeleteTimestamp = null;
+        pendingDeleteId = null;
       };
 
       if (deleteModal) {
@@ -126,7 +91,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         if (confirmDeleteBtn) {
           confirmDeleteBtn.addEventListener("click", () => {
-            if (!pendingDeleteTimestamp) return;
+            if (pendingDeleteId === null) return;
 
             fetch(`/${videoId}`, {
               method: "DELETE",
@@ -134,7 +99,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 Authorization: "Bearer " + token,
                 "Content-Type": "application/json",
               },
-              body: JSON.stringify({ timestamp: pendingDeleteTimestamp }),
+              body: JSON.stringify({ note_id: pendingDeleteId }),
             })
               .then((res) => {
                 if (!res.ok) throw new Error("Failed to delete note.");
@@ -167,9 +132,8 @@ document.addEventListener("DOMContentLoaded", function () {
           if (!item) return;
 
           if (button.classList.contains("trash-btn")) {
-            const timestamp = noteEntry.dataset.timestamp || item.video_timestamp;
             if (deleteModal) {
-              pendingDeleteTimestamp = timestamp;
+              pendingDeleteId = item.id;
               deleteModal.style.display = "flex";
             } else {
               fetch(`/${videoId}`, {
@@ -178,7 +142,7 @@ document.addEventListener("DOMContentLoaded", function () {
                   Authorization: "Bearer " + token,
                   "Content-Type": "application/json",
                 },
-                body: JSON.stringify({ timestamp }),
+                body: JSON.stringify({ note_id: item.id }),
               })
                 .then((res) => {
                   if (!res.ok) throw new Error("Failed to delete note.");
@@ -264,8 +228,6 @@ document.addEventListener("DOMContentLoaded", function () {
             const updatedNote = textarea.value.trim();
             if (updatedNote === "") return;
 
-            const timestamp = item.video_timestamp;
-
             fetch(`/${videoId}`, {
               method: "PATCH",
               headers: {
@@ -273,7 +235,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 "Content-Type": "application/json",
               },
               body: JSON.stringify({
-                timestamp,
+                note_id: item.id,
                 notes: updatedNote,
               }),
             })
@@ -535,3 +497,122 @@ function getVideoLabel(videoId, token) {
     });
 }
 
+
+
+const NOTE_TYPE_BADGES = {
+  idea: { icon: "💡", label: "Idea" },
+  question: { icon: "❓", label: "Question" },
+  key_point: { icon: "⭐", label: "Key point" },
+  todo: { icon: "✅", label: "To do" },
+};
+const POLL_INTERVAL_MS = 3000;
+const POLL_MAX_ATTEMPTS = 20;
+
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function noteCopyHtml(item) {
+  if (item.note) return escapeHtml(item.note);
+  if (item.status === "pending") return "Writing your note…";
+  if (item.status === "failed") return "AI note unavailable. Edit to write your own.";
+  return "(No note)";
+}
+
+function renderNoteEntry(item, index, videoUrl) {
+  const isAi = item.note_source?.toLowerCase() === "ai";
+  const seconds = item.timestamp_seconds;
+  const badge = NOTE_TYPE_BADGES[item.note_type];
+  const stateClass = item.status === "pending" ? " is-pending" : item.status === "failed" && !item.note ? " is-failed" : "";
+  const time =
+    seconds === null || seconds === undefined
+      ? `<span class="note-timestamp no-time" title="Saved to the whole video"><strong class="timestamp">Video</strong></span>`
+      : `<a href="${escapeHtml(videoUrl)}&t=${seconds}s" target="_blank" rel="noopener" class="note-timestamp"><strong class="timestamp">${escapeHtml(item.video_timestamp)}</strong></a>`;
+
+  return `
+    <div class="note-entry ${isAi ? "ai-note" : "user-note"}${stateClass}" data-index="${index}" data-note-id="${item.id}">
+      <div class="note-meta">
+        <div class="note-source-indicator ${isAi ? "ai" : "user"}" title="${isAi ? "AI Generated" : "User Note"}">
+          <i data-lucide="${isAi ? "bot" : "user"}" class="source-icon"></i>
+        </div>
+        ${time}
+        ${badge ? `<span class="note-type-badge" title="${badge.label}">${badge.icon} ${badge.label}</span>` : ""}
+      </div>
+      <p class="note-copy">${noteCopyHtml(item)}</p>
+      <div class="action-items">
+        <button type="button" class="action-btn action-item-icon edit-btn" aria-label="Edit note">
+          <i data-lucide="pencil"></i>
+        </button>
+        <button type="button" class="action-btn action-item-icon trash-btn" aria-label="Delete note">
+          <i data-lucide="trash-2"></i>
+        </button>
+      </div>
+    </div>
+  `;
+}
+
+function setupExport(videoId, token) {
+  const button = document.getElementById("export-note-btn");
+  if (!button) return;
+
+  button.addEventListener("click", async () => {
+    button.disabled = true;
+    try {
+      const response = await fetch(`/api/export/${videoId}`, {
+        headers: { Authorization: "Bearer " + token },
+      });
+      if (!response.ok) throw new Error("Export failed.");
+      const disposition = response.headers.get("Content-Disposition") || "";
+      const fileName = /filename="([^"]+)"/.exec(disposition)?.[1] || "clipnote.md";
+      const url = URL.createObjectURL(await response.blob());
+      const link = Object.assign(document.createElement("a"), { href: url, download: fileName });
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Export failed:", error);
+    } finally {
+      button.disabled = false;
+    }
+  });
+}
+
+// Notes saved from the share sheet are completed in the background; refresh them in place.
+function pollPendingNotes(videoId, token, data, container) {
+  let attempts = 0;
+
+  const tick = async () => {
+    if (!data.some((item) => item.status === "pending") || attempts >= POLL_MAX_ATTEMPTS) return;
+    attempts += 1;
+    try {
+      const response = await fetch(`/note/${videoId}`, {
+        headers: { Authorization: "Bearer " + token },
+      });
+      if (response.ok) {
+        const fresh = await response.json();
+        fresh.forEach((item) => {
+          const index = data.findIndex((existing) => existing.id === item.id);
+          const entry = container.querySelector(`.note-entry[data-note-id="${item.id}"]`);
+          if (index === -1 || !entry || data[index].status !== "pending" || item.status === "pending") return;
+          data[index] = item;
+          entry.classList.remove("is-pending");
+          entry.classList.toggle("is-failed", item.status === "failed" && !item.note);
+          entry.classList.toggle("ai-note", item.note_source?.toLowerCase() === "ai");
+          const copy = entry.querySelector(".note-copy");
+          if (copy) copy.innerHTML = noteCopyHtml(item);
+        });
+      }
+    } catch (error) {
+      console.error("Polling notes failed:", error);
+    }
+    setTimeout(tick, POLL_INTERVAL_MS);
+  };
+
+  setTimeout(tick, POLL_INTERVAL_MS);
+}

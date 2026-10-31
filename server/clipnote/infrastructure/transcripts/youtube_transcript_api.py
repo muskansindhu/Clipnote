@@ -17,10 +17,12 @@ from youtube_transcript_api import (
     YouTubeTranscriptApiException,
 )
 
+from clipnote.constants import (
+    TRANSCRIPT_PREFERRED_LANGUAGES,
+)
 from clipnote.domain import ExternalServiceError, TranscriptEntry
 
 logger = logging.getLogger(__name__)
-PREFERRED_LANGUAGES = ("en", "en-US", "en-GB")
 # Errors that mean "this video has no transcript", as opposed to "we could not ask".
 _NO_TRANSCRIPT = (
     AgeRestricted,
@@ -43,7 +45,7 @@ class YouTubeTranscriptApiProvider:
     def fetch(self, video_id: str) -> list[TranscriptEntry]:
         try:
             try:
-                fetched = self._api.fetch(video_id, languages=PREFERRED_LANGUAGES)
+                fetched = self._api.fetch(video_id, languages=TRANSCRIPT_PREFERRED_LANGUAGES)
             except NoTranscriptFound:
                 # Fall back to whatever language the video has.
                 fetched = next(iter(self._api.list(video_id))).fetch()

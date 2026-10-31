@@ -6,9 +6,9 @@ from collections.abc import Sequence
 from datetime import datetime
 from typing import Any
 
-from clipnote.domain import VideoListing, watch_url
+from clipnote.constants import DEFAULT_VIDEO_TITLE, STATS_WINDOW_DAYS
+from clipnote.domain import LibraryStats, VideoListing, watch_url
 from clipnote.infrastructure.db.connection import Database, Row
-from clipnote.infrastructure.db.repositories.videos import DEFAULT_TITLE
 
 _LIKE_ESCAPES = str.maketrans({"\\": "\\\\", "%": "\\%", "_": "\\_"})
 
@@ -17,8 +17,10 @@ def _to_listing(row: Row) -> VideoListing:
     return VideoListing(
         id=row["id"],
         url=row["video_url"] or watch_url(row["id"]),
-        title=row["video_title"] or DEFAULT_TITLE,
+        title=row["video_title"] or DEFAULT_VIDEO_TITLE,
         fav=bool(row["fav"]),
+        note_count=int(row.get("note_count") or 0),
+        last_note_at=row.get("last_note_at"),
     )
 
 
@@ -60,11 +62,11 @@ class PostgresLibraryRepository:
                 )"""
             )
             params += [user_id, list(label_names)]
-        order_by = "LOWER(v.video_title) ASC" if sort == "title" else "last_note_date DESC"
+        order_by = "LOWER(v.video_title) ASC" if sort == "title" else "last_note_at DESC"
 
         query = f"""
             SELECT v.id, v.video_url, v.video_title, COALESCE(uv.fav, false) AS fav,
-                   MAX(n.created_at) AS last_note_date
+                   COUNT(n.id) AS note_count, MAX(n.created_at) AS last_note_at
             FROM video v
             JOIN notes n ON n.video_id = v.id
             LEFT JOIN user_video uv ON uv.video_id = v.id AND uv.user_id = n.user_id
@@ -87,13 +89,17 @@ class PostgresLibraryRepository:
                 return None
             rows = conn.execute(
                 """
-                SELECT v.id, v.video_url, v.video_title, COALESCE(uv.fav, false) AS fav
+                SELECT v.id, v.video_url, v.video_title, COALESCE(uv.fav, false) AS fav,
+                       (SELECT COUNT(*) FROM notes n
+                        WHERE n.video_id = v.id AND n.user_id = %s) AS note_count,
+                       (SELECT MAX(n.created_at) FROM notes n
+                        WHERE n.video_id = v.id AND n.user_id = %s) AS last_note_at
                 FROM video_label vl
                 JOIN video v ON v.id = vl.yt_video_id
                 LEFT JOIN user_video uv ON uv.video_id = v.id AND uv.user_id = %s
                 WHERE vl.label_id = %s
                 """,
-                (user_id, label["id"]),
+                (user_id, user_id, user_id, label["id"]),
             ).fetchall()
         return [_to_listing(row) for row in rows]
 
@@ -114,6 +120,30 @@ class PostgresLibraryRepository:
                 (user_id, video_id),
             ).fetchone()
         return bool(row and row["fav"])
+
+    def stats(self, user_id: str) -> LibraryStats:
+        with self._db.connection() as conn:
+            row = conn.execute(
+                """
+                SELECT
+                  (SELECT COUNT(DISTINCT video_id) FROM notes WHERE user_id = %(u)s) AS videos,
+                  (SELECT COUNT(*) FROM notes WHERE user_id = %(u)s) AS notes,
+                  (SELECT COUNT(*) FROM notes WHERE user_id = %(u)s
+                     AND created_at >= now() - make_interval(days => %(days)s)) AS notes_this_week,
+                  (SELECT COUNT(*) FROM user_video WHERE user_id = %(u)s AND fav) AS favourites,
+                  (SELECT COUNT(*) FROM notes WHERE user_id = %(u)s
+                     AND status = 'pending') AS pending
+                """,
+                {"u": user_id, "days": STATS_WINDOW_DAYS},
+            ).fetchone()
+        assert row is not None  # noqa: S101  # an aggregate query always yields a row
+        return LibraryStats(
+            videos=row["videos"],
+            notes=row["notes"],
+            notes_this_week=row["notes_this_week"],
+            favourites=row["favourites"],
+            pending=row["pending"],
+        )
 
     def find_video_id_by_title(self, user_id: str, title: str) -> str | None:
         with self._db.connection() as conn:

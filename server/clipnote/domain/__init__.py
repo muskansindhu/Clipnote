@@ -1,7 +1,6 @@
 """Business entities and rules. Depends on nothing outside the standard library."""
 
 from clipnote.domain.accounts import (
-    MIN_PASSWORD_LENGTH,
     derive_username_from_email,
     normalise_email,
     normalise_username,
@@ -10,6 +9,7 @@ from clipnote.domain.entities import (
     ApiToken,
     EnrichmentStatus,
     Label,
+    LibraryStats,
     NewNote,
     Note,
     NoteSource,
@@ -38,7 +38,6 @@ from clipnote.domain.youtube import (
 )
 
 __all__ = [
-    "MIN_PASSWORD_LENGTH",
     "ApiToken",
     "AuthenticationError",
     "ConflictError",
@@ -46,6 +45,7 @@ __all__ = [
     "EnrichmentStatus",
     "ExternalServiceError",
     "Label",
+    "LibraryStats",
     "NewNote",
     "Note",
     "NoteSource",

@@ -5,6 +5,7 @@ from __future__ import annotations
 from clipnote.application import prompts
 from clipnote.application.ports import LanguageModel
 from clipnote.application.services.transcripts import TranscriptService
+from clipnote.constants import SUMMARY_SYSTEM_PROMPT
 from clipnote.domain import NotFoundError, transcript_text
 
 
@@ -25,6 +26,6 @@ class VideoService:
         if not entries:
             raise NotFoundError("Transcript not available for this video")
         return self._llm.complete_text(
-            system=prompts.SUMMARY_SYSTEM_PROMPT,
+            system=SUMMARY_SYSTEM_PROMPT,
             user=prompts.transcript_user_prompt(transcript_text(entries)),
         )
