@@ -115,7 +115,7 @@ If a visitor can guess "an LLM built this" in five seconds, we failed. Each item
 
 Removed in the redesign: gradient text and brand gradients, aurora/glow blobs, grid backgrounds, glass panels, floating mockups, the "New" pill, the sidebar with a promo card, stat tiles, icon-in-tile empty states, three-card feature rows, chat bubbles, rounded-3xl everywhere, and the purple accent.
 
-Still to watch: icons beside every action in the video header, and the centred layout of the 404 page. Any new screen must pass section 8.
+Video-header actions are now text-only. Any new screen must pass section 8.
 
 ## 8. Definition of done for a UI change
 
