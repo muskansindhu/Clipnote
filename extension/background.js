@@ -230,7 +230,14 @@ async function saveMoment(moment, notes) {
 }
 
 chrome.commands.onCommand.addListener((command, tab) => {
-  if (command === "mark-moment") void openCapture(tab);
+  if (command !== "capture-note") return;
+  openCapture(tab).catch((error) => {
+    // Visible even when nothing can be drawn on the page.
+    console.error("Clipnote capture failed:", error);
+    chrome.action.setBadgeBackgroundColor({ color: "#b3261e" });
+    chrome.action.setBadgeText({ text: "!" });
+    setTimeout(() => chrome.action.setBadgeText({ text: "" }), 4000);
+  });
 });
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {

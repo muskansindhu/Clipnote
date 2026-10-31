@@ -1,6 +1,6 @@
 {
   "name": "clipnote",
-  "version": "2.1.0",
+  "version": "2.2.0",
   "description": "saves timestamp notes for youtube videos and provide summaries",
   "manifest_version": 3,
   "author": "Muskan Sindhu",
@@ -16,7 +16,8 @@
   "host_permissions": [
     "http://127.0.0.1:5001/*",
     "http://localhost:5001/*",
-    "https://clipnote.muskansindhu.in/*"
+    "https://clipnote.muskansindhu.in/*",
+    "https://www.youtube.com/*"
   ],
   "background": {
     "service_worker": "background.js"
@@ -45,7 +46,7 @@
     "extension_pages": "script-src 'self'; object-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com;"
   },
   "commands": {
-    "mark-moment": {
+    "capture-note": {
       "suggested_key": {
         "default": "Ctrl+Shift+S",
         "mac": "Command+Shift+S"
