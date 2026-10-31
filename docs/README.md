@@ -112,13 +112,13 @@ Every web shortcut is a ⌘ chord (Ctrl on Windows and Linux). Press ⌘/ in the
 |---|---|
 | ⌘K | Command palette |
 | ⌘/ | Show shortcuts |
-| ⌘⇧L / ⌘⇧H / ⌘⇧S | Library / Clipchat / Settings |
+| ⌘⇧L / ⌘⇧H / ⌘⇧P | Library / Clipchat / Settings |
 | ⌘⇧U | Add a video |
 | ⌘⇧E | New note (video page) |
 | ⌘⇧↵ | Mark this moment and let AI write the note (video page) |
-| ⌘↵ | Save the note you are typing |
+| ⌘S (or ⌘↵) | Save the note you are typing (video page) |
 
-**Full-screen capture (Chrome extension).** While watching YouTube, even in full screen, press **⌘⇧Y** (Ctrl+Shift+Y on Windows and Linux). The current second is saved and AI writes the note from the transcript. A short toast confirms it. Change the key at `chrome://extensions/shortcuts`. After updating the extension, reload it there.
+**Capture while watching, even in full screen (Chrome extension).** Press **⌘⇧S** (Ctrl+Shift+S on Windows and Linux) on a YouTube video. The video pauses and a small panel appears over it, stamped with the current second. Type a note and press Enter, or press Enter on an empty box (or click "Let AI write") and the AI drafts the note from the transcript. The video resumes when the panel closes. Esc cancels outside full screen. If the key does nothing, open `chrome://extensions/shortcuts` and set "Add a note at this moment" yourself (Chrome keeps the key from an earlier install). Reload the extension after updating it.
 
 ### 5. iPhone
 

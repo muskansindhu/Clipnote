@@ -7,6 +7,7 @@ export type ShortcutId =
   | "settings"
   | "addVideo"
   | "newNote"
+  | "saveNote"
   | "markMoment";
 
 interface Shortcut {
@@ -24,9 +25,10 @@ export const SHORTCUTS: Record<ShortcutId, Shortcut> = {
   help: { code: "Slash", shift: false, key: "/", label: "Show keyboard shortcuts", scope: "Anywhere" },
   library: { code: "KeyL", shift: true, key: "L", label: "Go to Library", scope: "Anywhere" },
   clipchat: { code: "KeyH", shift: true, key: "H", label: "Go to Clipchat", scope: "Anywhere" },
-  settings: { code: "KeyS", shift: true, key: "S", label: "Go to Settings", scope: "Anywhere" },
+  settings: { code: "KeyP", shift: true, key: "P", label: "Go to Settings", scope: "Anywhere" },
   addVideo: { code: "KeyU", shift: true, key: "U", label: "Add a video", scope: "Anywhere" },
   newNote: { code: "KeyE", shift: true, key: "E", label: "Write a new note", scope: "Video page" },
+  saveNote: { code: "KeyS", shift: false, key: "S", label: "Save the note you are writing", scope: "Video page" },
   markMoment: { code: "Enter", shift: true, key: "↵", label: "Mark this moment and let AI write the note", scope: "Video page" },
 };
 

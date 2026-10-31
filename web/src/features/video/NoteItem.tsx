@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/Button";
 import { Textarea } from "@/components/ui/Field";
 import { NOTE_META } from "@/features/video/noteMeta";
 import { cn } from "@/lib/cn";
+import { matchesShortcut } from "@/lib/shortcuts";
 import { formatClock } from "@/lib/time";
 import type { Note } from "@/lib/types";
 
@@ -102,7 +103,7 @@ export function NoteItem({ note, active, onSeek, onSave, onDelete }: NoteItemPro
               onChange={(event) => setDraft(event.target.value)}
               onKeyDown={(event) => {
                 if (event.key === "Escape") setEditing(false);
-                if (event.key === "Enter" && (event.metaKey || event.ctrlKey)) void save();
+                if (matchesShortcut(event.nativeEvent, "saveNote") || (event.key === "Enter" && (event.metaKey || event.ctrlKey))) void save();
               }}
               aria-label="Edit note text"
               className="min-h-20"

@@ -4,10 +4,8 @@ import {
   Check,
   ChevronDown,
   Download,
-  ExternalLink,
   MessagesSquare,
   Star,
-  Trash2,
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
@@ -224,11 +222,11 @@ export function VideoPage() {
             <MessagesSquare className="size-3.5" /> Chat
           </Link>
           <a href={watchUrl(videoId)} target="_blank" rel="noreferrer" className={buttonStyles("ghost", "sm")}>
-            YouTube <ExternalLink className="size-3.5" />
+            YouTube ↗
           </a>
           {sorted.length > 0 && (
             <Button variant="ghost" size="sm" className="ml-auto hover:text-danger" onClick={() => setRemoving(true)}>
-              <Trash2 className="size-3.5" /> Remove
+              Remove
             </Button>
           )}
         </div>

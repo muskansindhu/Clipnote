@@ -1,11 +1,11 @@
-import { Clock, CornerDownLeft } from "lucide-react";
+import { Clock } from "lucide-react";
 import { forwardRef, useImperativeHandle, useRef, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { Kbd } from "@/components/ui/Misc";
 import { NOTE_META } from "@/features/video/noteMeta";
 import { cn } from "@/lib/cn";
 import { NOTE_TYPES } from "@/lib/constants";
-import { formatShortcut } from "@/lib/shortcuts";
+import { formatShortcut, matchesShortcut } from "@/lib/shortcuts";
 import { formatClock } from "@/lib/time";
 import type { NoteType } from "@/lib/types";
 
@@ -67,10 +67,12 @@ export const NoteComposer = forwardRef<ComposerHandle, NoteComposerProps>(functi
           if (seconds === null) setSeconds(stamp());
         }}
         onKeyDown={(event) => {
-          if (event.key === "Enter" && (event.metaKey || event.ctrlKey) && !event.shiftKey && text.trim()) {
-            event.preventDefault();
-            void submit();
-          }
+          const save =
+            matchesShortcut(event.nativeEvent, "saveNote") ||
+            (event.key === "Enter" && (event.metaKey || event.ctrlKey) && !event.shiftKey);
+          if (!save) return;
+          event.preventDefault(); // also stops the browser's own "save page" on Cmd S
+          if (text.trim()) void submit();
         }}
         placeholder="What's worth remembering?"
         aria-label="New note"
@@ -127,7 +129,7 @@ export const NoteComposer = forwardRef<ComposerHandle, NoteComposerProps>(functi
             <Kbd className="ml-1 hidden sm:inline-flex">{formatShortcut("markMoment")}</Kbd>
           </Button>
           <Button variant="primary" size="sm" loading={busy} disabled={!text.trim()} onClick={() => void submit()}>
-            Add note <CornerDownLeft className="size-3.5" />
+            Add note <Kbd className="ml-1 hidden border-bg/30 bg-transparent text-bg/70 sm:inline-flex">{formatShortcut("saveNote")}</Kbd>
           </Button>
         </div>
       </div>
