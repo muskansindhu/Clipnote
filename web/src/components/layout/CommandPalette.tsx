@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { ArrowRight, Library, LogOut, MessagesSquare, Moon, Plus, Search, Settings, Video } from "lucide-react";
+import { ArrowRight, Keyboard, Library, LogOut, MessagesSquare, Moon, Plus, Search, Settings, Video } from "lucide-react";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import { Dialog } from "@/components/ui/Dialog";
@@ -8,6 +8,7 @@ import { api } from "@/lib/api";
 import { cn } from "@/lib/cn";
 import { SEARCH_DEBOUNCE_MS } from "@/lib/constants";
 import { useSession } from "@/lib/session";
+import { formatShortcut } from "@/lib/shortcuts";
 import type { LibraryPage } from "@/lib/types";
 import { extractVideoId, thumbnailUrl } from "@/lib/youtube";
 
@@ -24,6 +25,7 @@ interface CommandPaletteProps {
   open: boolean;
   onClose: () => void;
   onAddVideo: () => void;
+  onShowShortcuts: () => void;
 }
 
 function useDebounced(value: string, delay: number): string {
@@ -36,7 +38,7 @@ function useDebounced(value: string, delay: number): string {
 }
 
 /** ⌘K: jump anywhere, search the library, open a pasted YouTube link. */
-export function CommandPalette({ open, onClose, onAddVideo }: CommandPaletteProps) {
+export function CommandPalette({ open, onClose, onAddVideo, onShowShortcuts }: CommandPaletteProps) {
   const navigate = useNavigate();
   const { signOut, setTheme, theme } = useSession();
   const [query, setQuery] = useState("");
@@ -68,10 +70,11 @@ export function CommandPalette({ open, onClose, onAddVideo }: CommandPaletteProp
       return list;
     }
     const base: Command[] = [
-      { id: "library", label: "Go to Library", hint: "G L", icon: <Library className="size-4" />, run: go("/dashboard") },
-      { id: "clipchat", label: "Go to Clipchat", hint: "G C", icon: <MessagesSquare className="size-4" />, run: go("/clipchat") },
-      { id: "settings", label: "Go to Settings", hint: "G S", icon: <Settings className="size-4" />, run: go("/profile") },
-      { id: "add", label: "Add a video…", hint: "A", icon: <Plus className="size-4" />, run: () => { onClose(); onAddVideo(); } },
+      { id: "library", label: "Go to Library", hint: formatShortcut("library"), icon: <Library className="size-4" />, run: go("/dashboard") },
+      { id: "clipchat", label: "Go to Clipchat", hint: formatShortcut("clipchat"), icon: <MessagesSquare className="size-4" />, run: go("/clipchat") },
+      { id: "settings", label: "Go to Settings", hint: formatShortcut("settings"), icon: <Settings className="size-4" />, run: go("/profile") },
+      { id: "add", label: "Add a video…", hint: formatShortcut("addVideo"), icon: <Plus className="size-4" />, run: () => { onClose(); onAddVideo(); } },
+      { id: "help", label: "Keyboard shortcuts", hint: formatShortcut("help"), icon: <Keyboard className="size-4" />, run: () => { onClose(); onShowShortcuts(); } },
       {
         id: "theme",
         label: `Switch theme (now ${theme})`,

@@ -1,8 +1,9 @@
-import { Command, LogOut, Plus, Search, Settings } from "lucide-react";
+import { Command, Keyboard, LogOut, Plus, Search, Settings } from "lucide-react";
 import { useEffect, useState } from "react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { AddVideoDialog } from "@/components/layout/AddVideoDialog";
 import { CommandPalette } from "@/components/layout/CommandPalette";
+import { ShortcutsDialog } from "@/components/layout/ShortcutsDialog";
 import { ThemeToggle } from "@/components/layout/ThemeToggle";
 import { Button } from "@/components/ui/Button";
 import { Logo } from "@/components/ui/Logo";
@@ -10,6 +11,7 @@ import { Avatar, Kbd } from "@/components/ui/Misc";
 import { MenuItem, Popover } from "@/components/ui/Popover";
 import { cn } from "@/lib/cn";
 import { useSession } from "@/lib/session";
+import { matchesShortcut } from "@/lib/shortcuts";
 
 const NAV = [
   { to: "/dashboard", label: "Library" },
@@ -17,38 +19,23 @@ const NAV = [
   { to: "/profile", label: "Settings" },
 ] as const;
 
-function isTyping(target: EventTarget | null): boolean {
-  const element = target as HTMLElement | null;
-  return Boolean(element && (element.tagName === "INPUT" || element.tagName === "TEXTAREA" || element.isContentEditable));
-}
-
 export function AppShell() {
   const { user, signOut } = useSession();
   const navigate = useNavigate();
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [addOpen, setAddOpen] = useState(false);
+  const [helpOpen, setHelpOpen] = useState(false);
 
   useEffect(() => {
-    // "g" then a letter jumps to a page, e.g. G L for the library.
-    const GO: Record<string, string> = { l: "/dashboard", c: "/clipchat", s: "/profile" };
-    let armedUntil = 0;
     const onKey = (event: KeyboardEvent) => {
-      const plain = !isTyping(event.target) && !event.metaKey && !event.ctrlKey && !event.altKey;
-      const destination = GO[event.key];
-      if (plain && Date.now() < armedUntil && destination) {
-        event.preventDefault();
-        armedUntil = 0;
-        navigate(destination);
-        return;
-      }
-      armedUntil = plain && event.key === "g" ? Date.now() + 1200 : 0;
-      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
-        event.preventDefault();
-        setPaletteOpen((open) => !open);
-      } else if (!isTyping(event.target) && !event.metaKey && !event.ctrlKey && event.key === "a") {
-        event.preventDefault();
-        setAddOpen(true);
-      }
+      if (matchesShortcut(event, "palette")) setPaletteOpen((open) => !open);
+      else if (matchesShortcut(event, "help")) setHelpOpen((open) => !open);
+      else if (matchesShortcut(event, "library")) navigate("/dashboard");
+      else if (matchesShortcut(event, "clipchat")) navigate("/clipchat");
+      else if (matchesShortcut(event, "settings")) navigate("/profile");
+      else if (matchesShortcut(event, "addVideo")) setAddOpen(true);
+      else return;
+      event.preventDefault();
     };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
@@ -128,6 +115,7 @@ export function AppShell() {
                     <p className="truncate text-xs text-fg-subtle">{user?.email}</p>
                   </div>
                   <MenuItem icon={<Settings />} onClick={() => { close(); navigate("/profile"); }}>Settings</MenuItem>
+                  <MenuItem icon={<Keyboard />} onClick={() => { close(); setHelpOpen(true); }}>Keyboard shortcuts</MenuItem>
                   <MenuItem icon={<LogOut />} danger onClick={logout}>Sign out</MenuItem>
                 </>
               )}
@@ -153,8 +141,9 @@ export function AppShell() {
         ))}
       </nav>
 
-      <CommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} onAddVideo={() => setAddOpen(true)} />
+      <CommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} onAddVideo={() => setAddOpen(true)} onShowShortcuts={() => setHelpOpen(true)} />
       <AddVideoDialog open={addOpen} onClose={() => setAddOpen(false)} />
+      <ShortcutsDialog open={helpOpen} onClose={() => setHelpOpen(false)} />
     </div>
   );
 }
