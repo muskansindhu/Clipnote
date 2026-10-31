@@ -1,6 +1,6 @@
 {
   "name": "clipnote",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "saves timestamp notes for youtube videos and provide summaries",
   "manifest_version": 3,
   "author": "Muskan Sindhu",
@@ -13,6 +13,11 @@
     "scripting",
     "storage"
   ],
+  "host_permissions": [
+    "http://127.0.0.1:5001/*",
+    "http://localhost:5001/*",
+    "https://clipnote.muskansindhu.in/*"
+  ],
   "background": {
     "service_worker": "background.js"
   },
@@ -20,7 +25,7 @@
     "matches": [
       "http://127.0.0.1:5001/*",
       "http://localhost:5001/*",
-      "https://clipnote.muskansindhu.tech/*"
+      "https://clipnote.muskansindhu.in/*"
     ]
   },
   "content_scripts": [
@@ -28,7 +33,7 @@
       "matches": [
         "http://127.0.0.1:5001/*",
         "http://localhost:5001/*",
-        "https://clipnote.muskansindhu.tech/*"
+        "https://clipnote.muskansindhu.in/*"
       ],
       "js": [
         "content-script.js"
@@ -38,5 +43,14 @@
   ],
   "content_security_policy": {
     "extension_pages": "script-src 'self'; object-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com;"
+  },
+  "commands": {
+    "mark-moment": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+Y",
+        "mac": "Command+Shift+Y"
+      },
+      "description": "Save this moment and let AI write the note"
+    }
   }
 }
