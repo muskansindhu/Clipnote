@@ -33,7 +33,8 @@ server/
 │   └── interfaces/http/           Flask app factory, blueprints, auth guards,
 │                                  request schemas (pydantic), error mapping,
 │                                  and container.py, the composition root
-├── static/  templates/            front end (vanilla JS + Jinja)
+├── static/  templates/            built web app output (from web/, git-ignored)
+web/                           React + TypeScript SPA (Vite, Tailwind, TanStack Query)
 └── tests/  unit/ api/ integration/ support/
 ```
 

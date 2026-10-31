@@ -63,6 +63,10 @@ Response (201): `message`, `note_id`, `video_id`, `video_title`, `seconds`, `dis
 | `PATCH /<video_id>` | `{note_id, notes}` (preferred) or `{timestamp, notes}` |
 | `DELETE /<video_id>` | `{note_id}` (preferred) or `{timestamp}` |
 | `POST /summarize` | `{video_url}` → `{message}` (five bullets) |
+| `GET /api/videos/<video_id>` | Video detail with its notes (used by the web app) |
+| `DELETE /api/videos/<video_id>` | Remove the video and all your notes on it |
+| `POST /api/notes` | `{video_id, seconds, text, title, type}` — create a note from the web app |
+| `GET /api/stats` | Library stats (videos, notes, last 7 days) |
 | `POST /fav-note`, `POST /unfav-note` | `{video_id}` (or legacy `{video_title}`). Favourites are **per user** |
 
 ## Labels
@@ -96,7 +100,7 @@ the relevant windows are sent.
 
 ## Pages
 
-`GET /`, `/login`, `/dashboard`, `/profile`, `/clipchat`, `/clipchat/<video_id>` and
+All pages serve the React single-page app: `GET /`, `/login`, `/dashboard`, `/library`, `/profile`, `/settings`, `/clipchat`, `/clipchat/<video_id>` and
 `/<video_id>` (note page; only valid 11-character video ids match).
 
 ## Removed

@@ -1,0 +1,163 @@
+@import "tailwindcss";
+@import "@fontsource-variable/inter";
+@import "@fontsource-variable/jetbrains-mono";
+@import "@fontsource-variable/newsreader";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ---------- Design tokens (light is the base, .dark overrides) ---------- */
+:root {
+  --bg: #f6f3ec;
+  --bg-elev: #fbf9f4;
+  --surface-1: #fbf9f4;
+  --surface-2: #efebe1;
+  --surface-3: #e6e1d4;
+  --line: #e2ddd0;
+  --line-strong: #cfc9b9;
+  --fg: #1c1a16;
+  --fg-muted: #5f5b50;
+  --fg-subtle: #8c8778;
+  --brand: #d23a1c;
+  --brand-strong: #b72f14;
+  --ai: #2d4f8a;
+  --success: #2f7d4f;
+  --danger: #b3261e;
+  --warning: #9a6a0a;
+  --glow-brand: transparent;
+  --glow-ai: transparent;
+  --shadow-card: none;
+  --shadow-pop: 0 18px 50px -12px rgb(28 26 22 / 0.28);
+  color-scheme: light;
+}
+
+.dark {
+  --bg: #151412;
+  --bg-elev: #1b1a17;
+  --surface-1: #1b1a17;
+  --surface-2: #24221f;
+  --surface-3: #2e2c27;
+  --line: #2b2925;
+  --line-strong: #3d3a33;
+  --fg: #ece8dd;
+  --fg-muted: #aaa595;
+  --fg-subtle: #77725f;
+  --brand: #ff6b4a;
+  --brand-strong: #ff5530;
+  --ai: #8fb0ea;
+  --success: #6cc38b;
+  --danger: #ff7a70;
+  --warning: #e5b24a;
+  --shadow-pop: 0 18px 50px -12px rgb(0 0 0 / 0.7);
+  color-scheme: dark;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-bg-elev: var(--bg-elev);
+  --color-surface-1: var(--surface-1);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-fg: var(--fg);
+  --color-fg-muted: var(--fg-muted);
+  --color-fg-subtle: var(--fg-subtle);
+  --color-brand: var(--brand);
+  --color-brand-strong: var(--brand-strong);
+  --color-ai: var(--ai);
+  --color-success: var(--success);
+  --color-danger: var(--danger);
+  --color-warning: var(--warning);
+
+  --font-sans: "Inter Variable", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-serif: "Newsreader Variable", Georgia, "Times New Roman", serif;
+  --font-mono: "JetBrains Mono Variable", ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --radius-xl: 8px;
+  --radius-2xl: 12px;
+  --radius-3xl: 16px;
+
+  --shadow-card: var(--shadow-card);
+  --shadow-pop: var(--shadow-pop);
+
+  --animate-shimmer: shimmer 1.8s ease-in-out infinite;
+  --animate-float: float 6s ease-in-out infinite;
+  --animate-pulse-ring: pulse-ring 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  --animate-fade-up: fade-up 0.5s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  --animate-blink: blink 1s steps(2, start) infinite;
+}
+
+@keyframes shimmer {
+  from { background-position: 200% 0; }
+  to { background-position: -200% 0; }
+}
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+@keyframes pulse-ring {
+  0% { box-shadow: 0 0 0 0 var(--glow-ai); }
+  70% { box-shadow: 0 0 0 10px transparent; }
+  100% { box-shadow: 0 0 0 0 transparent; }
+}
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes blink {
+  to { visibility: hidden; }
+}
+
+/* ---------- Base ---------- */
+html {
+  background: var(--bg);
+  -webkit-text-size-adjust: 100%;
+  scroll-behavior: smooth;
+}
+body {
+  margin: 0;
+  min-height: 100dvh;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-sans);
+  font-feature-settings: "cv11", "calt";
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+::selection { background: color-mix(in oklab, var(--ai) 35%, transparent); }
+:focus-visible {
+  outline: 2px solid var(--ai);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+button, [role="button"], a { -webkit-tap-highlight-color: transparent; }
+* { scrollbar-width: thin; scrollbar-color: var(--line-strong) transparent; }
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+/* ---------- Reusable visual effects ---------- */
+@utility shimmer {
+  background-image: linear-gradient(
+    90deg,
+    transparent 0%,
+    color-mix(in oklab, var(--ai) 18%, transparent) 50%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: var(--animate-shimmer);
+}
+
+@utility safe-bottom {
+  padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
+}
+
+.prose-note strong { font-weight: 650; color: var(--fg); }
+
+h1, h2, h3, .font-serif { font-feature-settings: "kern", "liga"; }

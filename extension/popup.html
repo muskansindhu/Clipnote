@@ -6,57 +6,53 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500&family=Newsreader:wght@400;500;600&display=swap"
       rel="stylesheet"
     />
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
     <div id="popup-container">
+      <header class="brand">
+        <img src="clipnote-mark.svg" alt="" />
+        <span class="brand-name">Clipnote</span>
+        <a id="open-app" class="brand-link" href="#">Open library →</a>
+      </header>
+
       <div id="content-wrapper">
         <form id="notes-form">
           <input type="text" id="video-url" name="video-url" hidden />
+          <p id="video-title" class="video-title"></p>
 
           <div class="timestamp-pill" title="Current timestamp">
             <span class="timestamp-icon" aria-hidden="true">
               <svg viewBox="0 0 24 24" fill="none">
-                <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6"></circle>
-                <path d="M12 7v5l3 2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"
+                <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"></circle>
+                <path d="M12 7v5l3 2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
                   stroke-linejoin="round"></path>
               </svg>
             </span>
             <span id="timestamp-display">--:--</span>
           </div>
 
-          <textarea class="notes-input" id="notes" name="notes" placeholder="Write your note..."></textarea>
+          <textarea class="notes-input" id="notes" name="notes" placeholder="What's worth remembering?" autofocus></textarea>
 
           <div class="button-container">
-            <button type="button" id="submit">Submit</button>
+            <span class="hint"><kbd>⌘</kbd> <kbd>↵</kbd> to save</span>
+            <button type="button" id="submit">Save note</button>
           </div>
         </form>
 
-        <div id="loader-wrapper">
-          <div class="loader-content">
-            <div class="spinner"></div>
-            <div id="loader-message"></div>
-          </div>
-        </div>
-
-      </div>
-      <div
-        id="error-message"
-        style="
-          display: none;
-          margin-top: 10px;
-          text-align: center;
-          font-size: 14px;
-        "
-      >
-        Please open a valid YouTube page to take notes.
+        <div id="status" class="status" role="status" aria-live="polite"></div>
       </div>
 
-      <script src="config.js"></script>
-      <script src="popup.js"></script>
+      <div id="error-message" class="empty" hidden>
+        <img src="clipnote-mark.svg" alt="" />
+        <h2>Open a YouTube video</h2>
+        <p>Play any video on youtube.com, then click Clipnote to save a timestamped note.</p>
+      </div>
     </div>
+    <script src="config.js"></script>
+    <script src="popup.js"></script>
   </body>
 </html>

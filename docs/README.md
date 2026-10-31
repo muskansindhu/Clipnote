@@ -14,7 +14,7 @@ Think of it as your **second brain for YouTube**.
 - **Database**: PostgreSQL with plain SQL migrations
 - **AI**: OpenAI chat models behind a port, so the provider can be swapped
 - **Transcripts**: `youtube-transcript-api` first, Apify as an optional fallback
-- **Front end**: Jinja templates and vanilla JavaScript; Chrome extension (Manifest V3)
+- **Front end**: React 19 + TypeScript SPA (Vite, Tailwind v4, TanStack Query, Framer Motion); Chrome extension (Manifest V3)
 
 ---
 
@@ -77,6 +77,9 @@ export STORAGE_BACKEND=filesystem LLM_PROVIDER=stub TRANSCRIPT_PROVIDERS=youtube
 cd server
 python -m clipnote.infrastructure.db.migrate
 
+# Build the web app (outputs to server/static/app)
+(cd ../web && npm install && npm run build)   # or `npm run dev` for hot reload with an API proxy
+
 # Run
 python app.py            # http://localhost:5001
 ```
@@ -100,6 +103,22 @@ docker run -d -p 5001:5001 --env-file server/.env --name clipnote clipnote-serve
 1. Open `chrome://extensions/` and enable **Developer mode**.
 2. **Load unpacked** and select the `extension/` folder.
 3. Set `BASE_URL` in `extension/config.js` to your backend, then log in at `/login`.
+
+### Keyboard shortcuts
+
+Every web shortcut is a ⌘ chord (Ctrl on Windows and Linux). Press ⌘/ in the app to see the list.
+
+| Shortcut | Action |
+|---|---|
+| ⌘K | Command palette |
+| ⌘/ | Show shortcuts |
+| ⌘⇧L / ⌘⇧H / ⌘⇧S | Library / Clipchat / Settings |
+| ⌘⇧U | Add a video |
+| ⌘⇧E | New note (video page) |
+| ⌘⇧↵ | Mark this moment and let AI write the note (video page) |
+| ⌘↵ | Save the note you are typing |
+
+**Full-screen capture (Chrome extension).** While watching YouTube, even in full screen, press **⌘⇧Y** (Ctrl+Shift+Y on Windows and Linux). The current second is saved and AI writes the note from the transcript. A short toast confirms it. Change the key at `chrome://extensions/shortcuts`. After updating the extension, reload it there.
 
 ### 5. iPhone
 
