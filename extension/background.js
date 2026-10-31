@@ -71,6 +71,12 @@ function showCapturePanel(moment) {
       .row { display: flex; align-items: center; gap: 10px; }
       .mark { width: 22px; height: 22px; flex: none; }
       .stamp { font: 500 13px "JetBrains Mono", ui-monospace, Menlo, monospace; color: #ff6b4a; }
+      .close {
+        flex: none; width: 28px; height: 28px; padding: 0; display: grid; place-items: center;
+        border: 0; border-radius: 6px; background: transparent; color: #aaa595; font-size: 0;
+      }
+      .close:hover { background: #2e2c27; color: #ece8dd; }
+      .close svg { width: 16px; height: 16px; }
       .title { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #aaa595; font-size: 13px; }
       textarea {
         display: block; width: 100%; height: 96px; margin-top: 12px; padding: 10px 12px; resize: none;
@@ -95,6 +101,9 @@ function showCapturePanel(moment) {
         <svg class="mark" viewBox="0 0 32 32"><rect x="1" y="1" width="30" height="30" rx="7" fill="#ece8dd"/><path d="M8 12h16M8 20h9" stroke="#151412" stroke-width="2.6" stroke-linecap="round" fill="none"/><circle cx="23" cy="20" r="2.4" fill="#ff6b4a"/></svg>
         <span class="stamp"></span>
         <span class="title"></span>
+        <button type="button" class="close" aria-label="Close">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+        </button>
       </div>
       <textarea placeholder="Write a note, or leave it empty and let AI write it" aria-label="Note"></textarea>
       <div class="actions">
@@ -108,7 +117,7 @@ function showCapturePanel(moment) {
   root.querySelector(".title").textContent = moment.title;
   const area = root.querySelector("textarea");
   const status = root.querySelector(".status");
-  const buttons = root.querySelectorAll("button");
+  const buttons = root.querySelectorAll("button:not(.close)");
   let busy = false;
 
   const mount = () => (document.fullscreenElement || document.body).appendChild(host);
@@ -162,6 +171,7 @@ function showCapturePanel(moment) {
 
   root.querySelector(".save").addEventListener("click", () => save(area.value.trim()));
   root.querySelector(".ai").addEventListener("click", () => save(""));
+  root.querySelector(".close").addEventListener("click", close);
 }
 
 /** Runs inside the tab. A brief message for cases where the panel cannot open. */
