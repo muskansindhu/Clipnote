@@ -28,9 +28,8 @@ export function HeroMock() {
 
   return (
     <div className="relative mx-auto w-full max-w-5xl">
-      <div className="absolute -inset-x-10 -top-10 bottom-0 -z-10 rounded-[4rem] bg-gradient-to-b from-violet/20 via-brand/10 to-transparent blur-3xl" aria-hidden="true" />
 
-      <div className="overflow-hidden rounded-3xl border border-line-strong bg-bg-elev shadow-pop">
+      <div className="overflow-hidden rounded-2xl border border-line-strong bg-bg-elev shadow-pop">
         <div className="flex items-center gap-2 border-b border-line bg-surface-1 px-4 py-3">
           <span className="size-3 rounded-full bg-[#ff5f57]" />
           <span className="size-3 rounded-full bg-[#febc2e]" />

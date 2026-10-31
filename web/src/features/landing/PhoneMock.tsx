@@ -6,7 +6,6 @@ import { LogoMark } from "@/components/ui/Logo";
 export function PhoneMock() {
   return (
     <div className="relative mx-auto w-[17rem] sm:w-72">
-      <div className="absolute -inset-10 -z-10 rounded-full bg-gradient-to-br from-violet/30 to-brand/25 blur-3xl" aria-hidden="true" />
       <div className="rounded-[3rem] border-[10px] border-[#1c1c24] bg-black p-0 shadow-pop">
         <div className="relative aspect-[9/19] overflow-hidden rounded-[2.2rem] bg-gradient-to-b from-[#150f2e] to-[#0a0a10]">
           <div className="absolute left-1/2 top-2 h-6 w-24 -translate-x-1/2 rounded-full bg-black" />

@@ -61,7 +61,7 @@ export function SettingsPage() {
 
 function Section({ id, icon, title, description, children }: { id?: string; icon: ReactNode; title: string; description?: string; children: ReactNode }) {
   return (
-    <section id={id} className="scroll-mt-24 rounded-3xl border border-line bg-surface-1 p-6 shadow-card sm:p-7">
+    <section id={id} className="scroll-mt-24 rounded-2xl border border-line bg-surface-1 p-6 shadow-card sm:p-7">
       <div className="mb-5 flex items-start gap-3">
         <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-violet/12 text-violet [&_svg]:size-[18px]">{icon}</span>
         <div>
@@ -77,7 +77,7 @@ function Section({ id, icon, title, description, children }: { id?: string; icon
 function ProfileCard() {
   const { user } = useSession();
   return (
-    <div className="flex items-center gap-4 rounded-3xl border border-line bg-surface-1 p-6 shadow-card">
+    <div className="flex items-center gap-4 rounded-2xl border border-line bg-surface-1 p-6 shadow-card">
       <Avatar name={user?.username ?? ""} picture={user?.picture} className="size-16 text-lg" />
       <div className="min-w-0">
         <p className="truncate text-xl font-semibold tracking-tight">{user?.username}</p>

@@ -4,7 +4,7 @@ import { buttonStyles } from "@/components/ui/Button";
 
 export function NotFound() {
   return (
-    <div className="bg-aurora grid min-h-[70dvh] place-items-center px-6 text-center">
+    <div className="grid min-h-[70dvh] place-items-center px-6 text-center">
       <div>
         <div className="mx-auto mb-6 grid size-16 place-items-center rounded-2xl border border-line-strong bg-surface-2 text-violet">
           <Compass className="size-7" />

@@ -25,11 +25,11 @@ export function ClipchatLanding() {
   return (
     <div className="mx-auto max-w-3xl space-y-12 py-6 sm:py-12">
       <header className="text-center">
-        <div className="mx-auto mb-6 grid size-14 place-items-center rounded-2xl bg-violet/14 text-violet shadow-[0_12px_40px_-12px_var(--glow-violet)]">
+        <div className="mx-auto mb-6 grid size-14 place-items-center rounded-2xl bg-violet/14 text-violet">
           <MessagesSquare className="size-7" />
         </div>
         <h1 className="text-4xl font-semibold leading-tight tracking-tight sm:text-5xl">
-          Chat with <span className="text-gradient">any video</span>
+          Chat with <span className="text-brand">any video</span>
         </h1>
         <p className="mx-auto mt-4 max-w-lg text-[17px] leading-relaxed text-fg-muted">
           Ask questions in plain English. Clipchat reads the transcript and answers with timestamps you can click.
