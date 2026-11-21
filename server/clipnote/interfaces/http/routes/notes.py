@@ -13,7 +13,6 @@ from clipnote.interfaces.http.schemas import (
     CreateNoteBody,
     DeleteNoteBody,
     FavouriteBody,
-    SummarizeBody,
     UpdateNoteBody,
     parse_body,
 )
@@ -161,16 +160,6 @@ def delete_note(video_id: str) -> tuple[Response, int]:
         current_user_id(), video_id=video_id, note_id=body.note_id, timestamp=body.timestamp
     )
     return jsonify({"status": "success"}), 200
-
-
-@blueprint.post("/summarize")
-@login_required
-def summarize() -> tuple[Response, int]:
-    body = parse_body(SummarizeBody)
-    video_id = extract_video_id(body.video_url)
-    if video_id is None:
-        raise ValidationError("video_url must be a YouTube video link")
-    return jsonify({"message": container().videos.bullet_summary(video_id)}), 200
 
 
 def _set_favourite(fav: bool) -> tuple[Response, int]:

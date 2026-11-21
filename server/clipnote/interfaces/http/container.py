@@ -19,7 +19,6 @@ from clipnote.application import (
     TranscriptProvider,
     TranscriptService,
     TranscriptStore,
-    VideoService,
 )
 from clipnote.infrastructure.config import Settings
 from clipnote.infrastructure.db import (
@@ -57,7 +56,6 @@ class Container:
     api_tokens: ApiTokenService
     export: ExportService
     clipchat: ClipchatService
-    videos: VideoService
     enrichment: EnrichmentService
 
 
@@ -140,6 +138,5 @@ def build_container(settings: Settings) -> Container:
             llm=llm,
             metadata=metadata,
         ),
-        videos=VideoService(transcripts, llm),
         enrichment=enrichment,
     )

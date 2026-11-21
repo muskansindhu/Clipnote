@@ -34,7 +34,6 @@ from clipnote.application.services import (
     VideoDetail,
     VideoNotes,
     VideoPage,
-    VideoService,
 )
 
 __all__ = [
@@ -69,7 +68,6 @@ __all__ = [
     "VideoNotes",
     "VideoPage",
     "VideoRepository",
-    "VideoService",
     "answer_question",
     "ports",
     "prompts",

@@ -169,9 +169,6 @@ PARENTHESISED_CITATION_PATTERN = re.compile(r"\(\s*((?:\[\d+\](?:\s+\[\d+\])*))\
 
 # --- Prompts -------------------------------------------------------------------------
 
-SUMMARY_SYSTEM_PROMPT = """You summarize video transcripts into exactly five concise bullet points.
-Return only the five bullets and do not add any introduction or closing text."""
-
 VIDEO_SUMMARY_SYSTEM_PROMPT = """You write a short and concise video summary.
 Use only the provided transcript, keep the response within 100-150 words, and return only the summary text."""
 

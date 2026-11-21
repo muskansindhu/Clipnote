@@ -216,17 +216,6 @@ def test_all_video_lists_pages_and_searches(client: FlaskClient) -> None:
     assert first["videos"][0]["note_count"] == 1
 
 
-def test_summarize_returns_the_model_summary(client: FlaskClient, api_world: World) -> None:
-    api_world.llm.text = "five bullets"
-
-    response = client.post(
-        "/summarize", json={"video_url": f"https://youtu.be/{VID}"}, headers=ALICE
-    )
-
-    assert response.status_code == 200 and response.json == {"message": "five bullets"}
-    assert client.post("/summarize", json={"video_url": "nope"}, headers=ALICE).status_code == 400
-
-
 # --- labels ---------------------------------------------------------------------------
 
 

@@ -17,7 +17,6 @@ from clipnote.application.services.notes import (
     VideoPage,
 )
 from clipnote.application.services.transcripts import TranscriptService
-from clipnote.application.services.videos import VideoService
 
 __all__ = [
     "ApiTokenService",
@@ -34,5 +33,4 @@ __all__ = [
     "VideoDetail",
     "VideoNotes",
     "VideoPage",
-    "VideoService",
 ]

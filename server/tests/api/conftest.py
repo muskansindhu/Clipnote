@@ -9,7 +9,6 @@ from flask import Flask
 from flask.testing import FlaskClient
 from support.world import World, build_world
 
-from clipnote.application import VideoService
 from clipnote.infrastructure.config import load_settings
 from clipnote.interfaces.http import Container, create_app
 
@@ -31,7 +30,6 @@ def app(api_world: World, tmp_path: Path) -> Flask:
         api_tokens=w.token_service,
         export=w.export,
         clipchat=w.clipchat,
-        videos=VideoService(w.transcripts, w.llm),
         enrichment=w.enrichment,
     )
     settings = load_settings({"DATABASE_URL": "postgresql://unused", "JWT_SECRET": "test-secret"})

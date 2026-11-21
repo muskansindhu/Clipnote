@@ -54,10 +54,6 @@ class DeleteNoteBody(_Body):
     note_id: int | None = None
 
 
-class SummarizeBody(_Body):
-    video_url: str = ""
-
-
 class FavouriteBody(_Body):
     video_id: str | None = None
     video_title: str | None = None
