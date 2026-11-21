@@ -277,7 +277,7 @@ export function ClipchatPage() {
                   }
                 }}
                 disabled={!ready}
-                placeholder={ready ? "Ask about key ideas, moments, or exact timestamps…" : "Preparing the transcript…"}
+                placeholder={ready ? "Ask about this video…" : "Preparing the transcript…"}
                 aria-label="Your question"
                 className="max-h-32 min-h-10 flex-1 resize-none bg-transparent px-2 py-2 text-[15px] placeholder:text-fg-subtle focus:outline-none disabled:opacity-60"
               />
