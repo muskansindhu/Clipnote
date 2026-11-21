@@ -32,7 +32,6 @@ from clipnote.domain import (
     Video,
     VideoListing,
     is_valid_video_id,
-    parse_clock,
     watch_url,
 )
 
@@ -51,7 +50,6 @@ class VideoNotes:
 
     video: Video
     notes: list[Note]
-    fav: bool
 
 
 @dataclass(frozen=True, slots=True)
@@ -60,7 +58,6 @@ class VideoDetail:
 
     video: Video
     notes: list[Note]
-    fav: bool
 
 
 @dataclass(frozen=True, slots=True)
@@ -179,7 +176,6 @@ class NoteService:
         return VideoNotes(
             video=video,
             notes=self._notes.list_for_video(user_id, video_id),
-            fav=self._library.is_favourite(user_id, video_id),
         )
 
     def video_detail(self, user_id: str, video_id: str) -> VideoDetail:
@@ -202,7 +198,6 @@ class NoteService:
         return VideoDetail(
             video=video,
             notes=self._notes.list_for_video(user_id, video_id),
-            fav=self._library.is_favourite(user_id, video_id),
         )
 
     def library_stats(self, user_id: str) -> LibraryStats:
@@ -219,7 +214,6 @@ class NoteService:
         """
         if not self._notes.delete_for_video(user_id, video_id):
             raise NotFoundError("Video not found in your library")
-        self._library.set_favourite(user_id, video_id, False)
 
     def update_text(
         self,
@@ -227,25 +221,14 @@ class NoteService:
         *,
         video_id: str,
         text: str,
-        note_id: int | None = None,
-        timestamp: str | None = None,
+        note_id: int,
     ) -> None:
-        """Edit a note, addressed by id or (for older clients) by video and clock time.
+        """Edit one of the user's notes.
 
         Raises:
-            ValidationError: If neither an id nor a valid timestamp is given.
-            NotFoundError: If no note matches.
+            NotFoundError: If the user has no note with this id.
         """
-        clean_text = text.strip()
-        if note_id is not None:
-            updated = self._notes.update_text(user_id, note_id, clean_text)
-        else:
-            updated = bool(
-                self._notes.update_text_at(
-                    user_id, video_id, _seconds_from_clock(timestamp), clean_text
-                )
-            )
-        if not updated:
+        if not self._notes.update_text(user_id, note_id, text.strip()):
             raise NotFoundError("Note not found")
 
     def delete(
@@ -253,43 +236,15 @@ class NoteService:
         user_id: str,
         *,
         video_id: str,
-        note_id: int | None = None,
-        timestamp: str | None = None,
+        note_id: int,
     ) -> None:
-        """Delete a note, addressed by id or (for older clients) by video and clock time.
+        """Delete one of the user's notes.
 
         Raises:
-            ValidationError: If neither an id nor a valid timestamp is given.
-            NotFoundError: If no note matches.
+            NotFoundError: If the user has no note with this id.
         """
-        if note_id is not None:
-            deleted = self._notes.delete(user_id, note_id)
-        else:
-            deleted = bool(self._notes.delete_at(user_id, video_id, _seconds_from_clock(timestamp)))
-        if not deleted:
+        if not self._notes.delete(user_id, note_id):
             raise NotFoundError("Note not found")
-
-    def set_favourite(
-        self,
-        user_id: str,
-        *,
-        fav: bool,
-        video_id: str | None = None,
-        video_title: str | None = None,
-    ) -> None:
-        """Mark a video as favourite for this user only.
-
-        Older clients identify the video by title; it is resolved within the user's own
-        library.
-
-        Raises:
-            NotFoundError: If the video cannot be found in the user's library.
-        """
-        if not video_id and video_title:
-            video_id = self._library.find_video_id_by_title(user_id, video_title)
-        if not video_id or self._videos.get(video_id) is None:
-            raise NotFoundError("Video not found")
-        self._library.set_favourite(user_id, video_id, fav)
 
     def _ensure_video(self, user_id: str, video_id: str, title: str | None) -> Video:
         existing = self._videos.get(video_id)
@@ -304,12 +259,3 @@ class NoteService:
         )
         created = self._videos.get(video_id)
         return created or Video(video_id, watch_url(video_id), resolved, None)
-
-
-def _seconds_from_clock(timestamp: str | None) -> int:
-    if not timestamp:
-        raise ValidationError("A note id or timestamp is required")
-    try:
-        return parse_clock(timestamp)
-    except ValueError as exc:
-        raise ValidationError(str(exc)) from exc

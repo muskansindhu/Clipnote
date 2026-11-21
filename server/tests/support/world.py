@@ -99,7 +99,6 @@ def build_world() -> World:
         clipchat=ClipchatService(
             videos=videos,
             notes=notes,
-            library=library,
             transcripts=transcripts,
             llm=llm,
             metadata=metadata,

@@ -57,16 +57,15 @@ Response (201): `message`, `note_id`, `video_id`, `video_title`, `seconds`, `dis
 
 | Endpoint | Description |
 |---|---|
-| `GET /all-video` | Your videos. Query: `page`, `search`, `labels` (comma list), `sort` (`recent`/`title`), `start`, `end` (ISO dates). → `{videos: [{id, video_url, video_title, fav}], has_next}` |
-| `GET /note/<video_id>` | Your notes on a video (list). Each has `id`, `video_timestamp` (`"1:23"` or `null`), `timestamp_seconds`, `note`, `note_source` (`user`/`ai`), `note_type`, `status` (`pending`/`ready`/`failed`), `fav`, `video_title`, `video_url`, `video_summary`, `created_at` |
+| `GET /all-video` | Your videos. Query: `page`, `search`, `labels` (comma list), `sort` (`recent`/`title`), `start`, `end` (ISO dates). → `{videos: [{id, video_url, video_title, note_count, last_note_at}], has_next}` |
+| `GET /note/<video_id>` | Your notes on a video (list). Each has `id`, `video_timestamp` (`"1:23"` or `null`), `timestamp_seconds`, `note`, `note_source` (`user`/`ai`), `note_type`, `status` (`pending`/`ready`/`failed`), `video_title`, `video_url`, `video_summary`, `created_at` |
 | `POST /add-notes` | Used by the Chrome extension. `{videoUrl, videoTitle, currentTimeStamp, notes}`; JSON may be sent as `text/plain`. Returns immediately (201); transcript, summary and AI text are filled in afterwards |
-| `PATCH /<video_id>` | `{note_id, notes}` (preferred) or `{timestamp, notes}` |
-| `DELETE /<video_id>` | `{note_id}` (preferred) or `{timestamp}` |
+| `PATCH /<video_id>` | `{note_id, notes}` (`note_id` is required) |
+| `DELETE /<video_id>` | `{note_id}` (required) |
 | `GET /api/videos/<video_id>` | Video detail with its notes (used by the web app) |
 | `DELETE /api/videos/<video_id>` | Remove the video and all your notes on it |
 | `POST /api/notes` | `{video_id, seconds, text, title, type}` — create a note from the web app |
 | `GET /api/stats` | Library stats (videos, notes, last 7 days) |
-| `POST /fav-note`, `POST /unfav-note` | `{video_id}` (or legacy `{video_title}`). Favourites are **per user** |
 
 ## Labels
 
@@ -88,7 +87,7 @@ Both return `text/markdown` with a `Content-Disposition` attachment header.
 
 | Endpoint | Description |
 |---|---|
-| `GET /clipchat/<video_id>/context` | Title, URL, summary, your notes, favourite flag, `asset_status` |
+| `GET /clipchat/<video_id>/context` | Title, URL, summary, your notes, `asset_status` |
 | `POST /clipchat/<video_id>/prepare` | Fetch the transcript and summary if missing |
 | `POST /clipchat/<video_id>/ask` | `{question}` → `{answer}` |
 | `POST /clipchat/<video_id>/stream` | Same, as server-sent events (`chunk`, then `done`) |

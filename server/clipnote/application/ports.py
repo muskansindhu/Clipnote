@@ -92,11 +92,7 @@ class NoteRepository(Protocol):
 
     def update_text(self, user_id: str, note_id: int, text: str) -> bool: ...
 
-    def update_text_at(self, user_id: str, video_id: str, seconds: int, text: str) -> int: ...
-
     def delete(self, user_id: str, note_id: int) -> bool: ...
-
-    def delete_at(self, user_id: str, video_id: str, seconds: int) -> int: ...
 
     def delete_for_video(self, user_id: str, video_id: str) -> int: ...
 
@@ -123,7 +119,7 @@ class NoteRepository(Protocol):
 
 
 class LibraryRepository(Protocol):
-    """A user's view of videos: listing, search, filtering and favourites."""
+    """A user's view of videos: listing, search and filtering."""
 
     def list_videos(
         self,
@@ -140,13 +136,7 @@ class LibraryRepository(Protocol):
 
     def list_by_label(self, user_id: str, label_name: str) -> list[VideoListing] | None: ...
 
-    def set_favourite(self, user_id: str, video_id: str, fav: bool) -> None: ...
-
-    def is_favourite(self, user_id: str, video_id: str) -> bool: ...
-
     def stats(self, user_id: str) -> LibraryStats: ...
-
-    def find_video_id_by_title(self, user_id: str, title: str) -> str | None: ...
 
 
 class LabelRepository(Protocol):

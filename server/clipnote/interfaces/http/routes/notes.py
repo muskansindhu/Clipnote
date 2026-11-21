@@ -12,7 +12,6 @@ from clipnote.interfaces.http.schemas import (
     AddNoteBody,
     CreateNoteBody,
     DeleteNoteBody,
-    FavouriteBody,
     UpdateNoteBody,
     parse_body,
 )
@@ -147,7 +146,6 @@ def update_note(video_id: str) -> tuple[Response, int]:
         video_id=video_id,
         text=body.notes,
         note_id=body.note_id,
-        timestamp=body.timestamp,
     )
     return jsonify({"status": "success"}), 200
 
@@ -156,28 +154,5 @@ def update_note(video_id: str) -> tuple[Response, int]:
 @login_required
 def delete_note(video_id: str) -> tuple[Response, int]:
     body = parse_body(DeleteNoteBody)
-    container().notes.delete(
-        current_user_id(), video_id=video_id, note_id=body.note_id, timestamp=body.timestamp
-    )
+    container().notes.delete(current_user_id(), video_id=video_id, note_id=body.note_id)
     return jsonify({"status": "success"}), 200
-
-
-def _set_favourite(fav: bool) -> tuple[Response, int]:
-    body = parse_body(FavouriteBody)
-    container().notes.set_favourite(
-        current_user_id(), fav=fav, video_id=body.video_id, video_title=body.video_title
-    )
-    message = "Note marked as favourite." if fav else "Note removed from favourites."
-    return jsonify({"message": message}), 200
-
-
-@blueprint.post("/fav-note")
-@login_required
-def favourite() -> tuple[Response, int]:
-    return _set_favourite(True)
-
-
-@blueprint.post("/unfav-note")
-@login_required
-def unfavourite() -> tuple[Response, int]:
-    return _set_favourite(False)

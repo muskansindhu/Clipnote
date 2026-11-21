@@ -132,7 +132,6 @@ def test_note_page_data_keeps_the_legacy_shape_and_adds_new_fields(client: Flask
     assert note["video_timestamp"] == "1:23"
     assert note["note"] == "first note"
     assert note["note_source"] == "user"
-    assert note["fav"] is False
     assert {"id", "created_at", "video_url", "video_summary"} <= note.keys()
     assert (note["timestamp_seconds"], note["note_type"], note["status"]) == (
         83,
@@ -155,39 +154,33 @@ def test_unknown_video_is_404(client: FlaskClient) -> None:
     assert response.json["message"] == "Video not found"
 
 
-def test_update_and_delete_by_note_id_and_by_timestamp(client: FlaskClient) -> None:
+def test_update_and_delete_by_note_id(client: FlaskClient) -> None:
     _add_note(client)
     (note,) = client.get(f"/note/{VID}", headers=ALICE).json
 
-    by_id = client.patch(f"/{VID}", json={"notes": "edited", "note_id": note["id"]}, headers=ALICE)
-    by_time = client.patch(f"/{VID}", json={"notes": "again", "timestamp": "1:23"}, headers=ALICE)
-    assert by_id.status_code == by_time.status_code == 200
-    assert client.get(f"/note/{VID}", headers=ALICE).json[0]["note"] == "again"
+    edited = client.patch(f"/{VID}", json={"notes": "edited", "note_id": note["id"]}, headers=ALICE)
+    assert edited.status_code == 200
+    assert client.get(f"/note/{VID}", headers=ALICE).json[0]["note"] == "edited"
 
-    assert client.delete(f"/{VID}", json={"timestamp": "1:23"}, headers=ALICE).status_code == 200
+    assert client.delete(f"/{VID}", json={"note_id": note["id"]}, headers=ALICE).status_code == 200
     assert client.get(f"/note/{VID}", headers=ALICE).json == []
     missing = client.delete(f"/{VID}", json={"note_id": note["id"]}, headers=ALICE)
     assert missing.status_code == 404
 
 
-def test_update_without_identifier_is_400(client: FlaskClient) -> None:
+def test_update_and_delete_require_a_note_id(client: FlaskClient) -> None:
+    _add_note(client)
+
     assert client.patch(f"/{VID}", json={"notes": "x"}, headers=ALICE).status_code == 400
+    by_time = client.patch(f"/{VID}", json={"notes": "x", "timestamp": "1:23"}, headers=ALICE)
+    assert by_time.status_code == 400
+    assert client.delete(f"/{VID}", json={"timestamp": "1:23"}, headers=ALICE).status_code == 400
+    assert client.get(f"/note/{VID}", headers=ALICE).json[0]["note"] == "first note"
 
 
-def test_favourites_are_per_user_and_accept_a_title_or_an_id(client: FlaskClient) -> None:
-    _add_note(client, headers=ALICE)
-    _add_note(client, headers=BOB)
-
-    by_title = client.post("/fav-note", json={"video_title": "A Talk"}, headers=ALICE)
-    assert by_title.status_code == 200
-    assert client.get(f"/note/{VID}", headers=ALICE).json[0]["fav"] is True
-    assert client.get(f"/note/{VID}", headers=BOB).json[0]["fav"] is False
-
-    client.post("/unfav-note", json={"video_id": VID}, headers=ALICE)
-    assert client.get(f"/note/{VID}", headers=ALICE).json[0]["fav"] is False
-    assert (
-        client.post("/fav-note", json={"video_id": "zzzzzzzzzzz"}, headers=ALICE).status_code == 404
-    )
+def test_the_favourite_endpoints_are_gone(client: FlaskClient) -> None:
+    for path in ("/fav-note", "/unfav-note"):
+        assert client.post(path, json={"video_id": VID}, headers=ALICE).status_code in (404, 405)
 
 
 def test_all_video_lists_pages_and_searches(client: FlaskClient) -> None:
@@ -209,7 +202,6 @@ def test_all_video_lists_pages_and_searches(client: FlaskClient) -> None:
         "id",
         "video_url",
         "video_title",
-        "fav",
         "note_count",
         "last_note_at",
     }
@@ -529,35 +521,32 @@ def test_video_detail_works_before_any_note_exists(client: FlaskClient) -> None:
 
     assert detail["video"]["id"] == VID
     assert detail["video"]["title"] == "Fetched Title"
-    assert (detail["notes"], detail["fav"], detail["label"]) == ([], False, None)
+    assert (detail["notes"], detail["label"]) == ([], None)
     assert client.get("/api/videos/short", headers=ALICE).status_code == 404
 
 
-def test_video_detail_includes_label_notes_and_favourite(client: FlaskClient) -> None:
+def test_video_detail_includes_label_and_notes(client: FlaskClient) -> None:
     _add_note(client)
     client.post("/label", json={"label_name": "ml"}, headers=ALICE)
     client.post("/video-label", json={"label_name": "ml", "video_id": VID}, headers=ALICE)
-    client.post("/fav-note", json={"video_id": VID}, headers=ALICE)
 
     detail = client.get(f"/api/videos/{VID}", headers=ALICE).json
 
-    assert detail["label"] == "ml" and detail["fav"] is True
+    assert detail["label"] == "ml"
     assert detail["video"]["title"] == "A Talk"
     assert [n["note"] for n in detail["notes"]] == ["first note"]
 
 
-def test_remove_video_deletes_only_my_notes_label_and_favourite(client: FlaskClient) -> None:
+def test_remove_video_deletes_only_my_notes_and_label(client: FlaskClient) -> None:
     _add_note(client, headers=ALICE)
     _add_note(client, headers=BOB)
     client.post("/label", json={"label_name": "ml"}, headers=ALICE)
     client.post("/video-label", json={"label_name": "ml", "video_id": VID}, headers=ALICE)
-    client.post("/fav-note", json={"video_id": VID}, headers=ALICE)
 
     assert client.delete(f"/api/videos/{VID}", headers=ALICE).status_code == 200
 
     assert client.get(f"/api/videos/{VID}", headers=ALICE).json["notes"] == []
     assert client.get(f"/{VID}/label", headers=ALICE).json == {"label": None}
-    assert client.get(f"/api/videos/{VID}", headers=ALICE).json["fav"] is False
     assert len(client.get(f"/api/videos/{VID}", headers=BOB).json["notes"]) == 1
     assert client.delete(f"/api/videos/{VID}", headers=ALICE).status_code == 404
 
@@ -567,13 +556,11 @@ def test_library_stats(client: FlaskClient) -> None:
         "videos": 0,
         "notes": 0,
         "notes_this_week": 0,
-        "favourites": 0,
         "pending": 0,
     }
     _add_note(client)
-    client.post("/fav-note", json={"video_id": VID}, headers=ALICE)
 
     stats = client.get("/api/stats", headers=ALICE).json
 
-    assert (stats["videos"], stats["notes"], stats["favourites"], stats["pending"]) == (1, 1, 1, 1)
+    assert (stats["videos"], stats["notes"], stats["pending"]) == (1, 1, 1)
     assert client.get("/api/stats").status_code == 401
