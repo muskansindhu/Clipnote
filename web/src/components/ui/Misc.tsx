@@ -18,32 +18,6 @@ export function Kbd({ children, className }: { children: ReactNode; className?: 
   );
 }
 
-type BadgeTone = "neutral" | "brand" | "ai" | "success" | "danger" | "warning";
-const tones: Record<BadgeTone, string> = {
-  neutral: "bg-surface-3 text-fg-muted",
-  brand: "bg-brand/12 text-brand",
-  ai: "bg-ai/14 text-ai",
-  success: "bg-success/14 text-success",
-  danger: "bg-danger/14 text-danger",
-  warning: "bg-warning/16 text-warning",
-};
-
-export function Badge({
-  tone = "neutral",
-  className,
-  children,
-}: {
-  tone?: BadgeTone;
-  className?: string;
-  children: ReactNode;
-}) {
-  return (
-    <span className={cn("inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-xs font-medium", tones[tone], className)}>
-      {children}
-    </span>
-  );
-}
-
 export function Avatar({ name, picture, className }: { name: string; picture?: string | null; className?: string }) {
   const initials = name.trim().slice(0, 2).toUpperCase() || "U";
   return picture ? (

@@ -6,7 +6,7 @@ interface LogoProps {
 }
 
 /** The Clipnote mark: a ruled note line ending in a coral timestamp tick. */
-export function LogoMark({ className }: { className?: string }) {
+function LogoMark({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 32 32" className={cn("size-7", className)} aria-hidden="true">
       <rect x="1" y="1" width="30" height="30" rx="7" className="fill-fg" />

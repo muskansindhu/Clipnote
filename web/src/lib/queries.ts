@@ -1,6 +1,6 @@
 import { keepPreviousData, useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
-import { LIBRARY_PAGE_SIZE, PENDING_POLL_MS } from "@/lib/constants";
+import { PENDING_POLL_MS } from "@/lib/constants";
 import type {
   ApiTokenRecord,
   ClipchatContext,
@@ -41,8 +41,6 @@ export function useLibrary(filters: LibraryFilters) {
     getNextPageParam: (last, pages) => (last.has_next ? pages.length + 1 : undefined),
   });
 }
-
-export const LIBRARY_PAGE_LIMIT = LIBRARY_PAGE_SIZE;
 
 /** A video and the user's notes; polls while any note is still being written. */
 export function useVideo(videoId: string) {
