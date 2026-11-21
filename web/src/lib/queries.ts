@@ -88,11 +88,6 @@ export function useVideoActions(videoId: string) {
     mutationFn: (noteId: number) => api(`/${videoId}`, { method: "DELETE", body: { note_id: noteId } }),
     onSuccess: refresh,
   });
-  const setFavourite = useMutation({
-    mutationFn: (fav: boolean) =>
-      api(fav ? "/fav-note" : "/unfav-note", { method: "POST", body: { video_id: videoId } }),
-    onSuccess: refresh,
-  });
   const setLabel = useMutation({
     mutationFn: async (label: string | null) => {
       await api("/video-label", { method: "DELETE", body: { video_id: videoId } });
@@ -105,20 +100,7 @@ export function useVideoActions(videoId: string) {
     onSuccess: refresh,
   });
 
-  return { createNote, updateNote, deleteNote, setFavourite, setLabel, removeVideo };
-}
-
-/** Toggle a favourite from the library grid, where the video id varies per card. */
-export function useToggleFavourite() {
-  const client = useQueryClient();
-  return useMutation({
-    mutationFn: (input: { videoId: string; fav: boolean }) =>
-      api(input.fav ? "/fav-note" : "/unfav-note", { method: "POST", body: { video_id: input.videoId } }),
-    onSuccess: () => {
-      void client.invalidateQueries({ queryKey: ["library"] });
-      void client.invalidateQueries({ queryKey: keys.stats });
-    },
-  });
+  return { createNote, updateNote, deleteNote, setLabel, removeVideo };
 }
 
 export function useLabelActions() {

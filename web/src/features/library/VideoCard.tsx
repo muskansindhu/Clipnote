@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { MessagesSquare, Star, Trash2 } from "lucide-react";
+import { MessagesSquare, Trash2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/cn";
 import { relativeTime } from "@/lib/time";
@@ -9,7 +9,6 @@ import { thumbnailUrl } from "@/lib/youtube";
 interface VideoCardProps {
   video: LibraryVideo;
   index: number;
-  onToggleFavourite: (video: LibraryVideo) => void;
   onRemove: (video: LibraryVideo) => void;
 }
 
@@ -17,7 +16,7 @@ const iconButton =
   "grid size-8 place-items-center rounded-md text-fg-subtle transition-colors hover:bg-surface-2 hover:text-fg";
 
 /** One row of the library: thumbnail, title, and a quiet line of facts. */
-export function VideoCard({ video, index, onToggleFavourite, onRemove }: VideoCardProps) {
+export function VideoCard({ video, index, onRemove }: VideoCardProps) {
   const notes = `${video.note_count} note${video.note_count === 1 ? "" : "s"}`;
 
   return (
@@ -48,15 +47,6 @@ export function VideoCard({ video, index, onToggleFavourite, onRemove }: VideoCa
       </div>
 
       <div className="relative z-20 flex items-center gap-0.5 opacity-100 sm:opacity-0 sm:transition-opacity sm:group-focus-within:opacity-100 sm:group-hover:opacity-100">
-        <button
-          type="button"
-          className={iconButton}
-          onClick={() => onToggleFavourite(video)}
-          aria-label={video.fav ? "Remove from favourites" : "Add to favourites"}
-          aria-pressed={video.fav}
-        >
-          <Star className={cn("size-4", video.fav && "fill-warning text-warning")} />
-        </button>
         <Link to={`/clipchat/${video.id}`} aria-label="Chat with this video" className={iconButton}>
           <MessagesSquare className="size-4" />
         </Link>
