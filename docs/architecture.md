@@ -49,8 +49,7 @@ Rules that keep it clean:
 
 ## Data model (Postgres)
 
-`users`, `video` (shared), `notes`, `label`, `video_label`, `user_video` (no longer
-used by the app; kept so no data is dropped), `api_tokens` (hashed), `schema_migrations`. Notes store `timestamp_seconds`
+`users`, `video` (shared), `notes`, `label`, `video_label`, `api_tokens` (hashed), `schema_migrations`. Notes store `timestamp_seconds`
 (nullable, for video-level notes), `note_type`, `status` and a mirrored legacy
 `video_timestamp` string.
 
