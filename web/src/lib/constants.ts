@@ -7,12 +7,10 @@ export const UNAUTHORIZED_EVENT = "clipnote:unauthorized";
 
 export const VIDEO_ID_PATTERN = /^[A-Za-z0-9_-]{11}$/;
 export const MIN_PASSWORD_LENGTH = 6;
-export const LIBRARY_PAGE_SIZE = 10;
 export const SEARCH_DEBOUNCE_MS = 250;
 export const PENDING_POLL_MS = 3000;
 export const PLAYER_TICK_MS = 400;
 export const TOAST_DURATION_MS = 4200;
-export const RECENT_NOTE_WINDOW_SECONDS = 5;
 
 export const GITHUB_URL = "https://github.com/muskansindhu/Clipnote";
 export const SHORTCUT_DOCS_URL = `${GITHUB_URL}/blob/main/docs/ios-shortcut.md`;

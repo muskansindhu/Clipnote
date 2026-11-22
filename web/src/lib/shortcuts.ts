@@ -32,7 +32,7 @@ export const SHORTCUTS: Record<ShortcutId, Shortcut> = {
   markMoment: { code: "Enter", shift: true, key: "↵", label: "Mark this moment and let AI write the note", scope: "Video page" },
 };
 
-export const isMac = (): boolean => /Mac|iPhone|iPad/.test(navigator.platform);
+const isMac = (): boolean => /Mac|iPhone|iPad/.test(navigator.platform);
 
 /** True when the event is exactly this ⌘ chord. */
 export function matchesShortcut(event: KeyboardEvent, id: ShortcutId): boolean {

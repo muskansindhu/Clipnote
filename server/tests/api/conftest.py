@@ -11,7 +11,6 @@ from flask.testing import FlaskClient
 from support.fakes import FakeHealthProbe
 from support.world import World, build_world
 
-from clipnote.application import VideoService
 from clipnote.infrastructure.config import load_settings
 from clipnote.infrastructure.ratelimit import InMemoryRateLimiter
 from clipnote.interfaces.http import Container, create_app
@@ -42,7 +41,6 @@ def make_app(
         api_tokens=w.token_service,
         export=w.export,
         clipchat=w.clipchat,
-        videos=VideoService(w.transcripts, w.llm, w.budget),
         enrichment=w.enrichment,
         rate_limiter=InMemoryRateLimiter(),
         health=health_probe,

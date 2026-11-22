@@ -24,7 +24,7 @@ import { useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/Button";
 import { ConfirmDialog } from "@/components/ui/Dialog";
 import { Field, Input } from "@/components/ui/Field";
-import { Avatar, Badge, Skeleton } from "@/components/ui/Misc";
+import { Avatar, Skeleton } from "@/components/ui/Misc";
 import { useToast } from "@/components/ui/Toast";
 import { ApiError, api, downloadFile } from "@/lib/api";
 import { copyText } from "@/lib/clipboard";
@@ -78,7 +78,6 @@ function ProfileCard() {
       <div className="min-w-0">
         <p className="truncate font-serif text-2xl font-medium tracking-tight">{user?.username}</p>
         <p className="truncate text-sm text-fg-muted">{user?.email}</p>
-        <Badge tone="ai" className="mt-2">Bring your own key</Badge>
       </div>
     </div>
   );

@@ -7,7 +7,7 @@ export function readTheme(): ThemePreference {
   return saved === "dark" || saved === "system" ? saved : "light";
 }
 
-export function resolveDark(preference: ThemePreference): boolean {
+function resolveDark(preference: ThemePreference): boolean {
   return preference === "dark" || (preference === "system" && matchMedia("(prefers-color-scheme: dark)").matches);
 }
 

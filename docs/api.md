@@ -68,7 +68,6 @@ Response (201): `message`, `note_id`, `video_id`, `video_title`, `seconds`, `dis
 | `POST /add-notes` | Used by the Chrome extension. `{videoUrl, videoTitle, currentTimeStamp, notes}`; JSON may be sent as `text/plain`. Returns immediately (201); transcript, summary and AI text are filled in afterwards |
 | `PATCH /<video_id>` | `{note_id, notes}` (preferred) or `{timestamp, notes}` |
 | `DELETE /<video_id>` | `{note_id}` (preferred) or `{timestamp}` |
-| `POST /summarize` | `{video_url}` → `{message}` (five bullets) |
 | `GET /api/videos/<video_id>` | Video detail with its notes (used by the web app) |
 | `DELETE /api/videos/<video_id>` | Remove the video and all your notes on it |
 | `POST /api/notes` | `{video_id, seconds, text, title, type}` — create a note from the web app |

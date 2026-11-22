@@ -2,8 +2,8 @@ import type { NOTE_TYPES, SORT_OPTIONS } from "@/lib/constants";
 
 export type NoteType = (typeof NOTE_TYPES)[number];
 export type SortOption = (typeof SORT_OPTIONS)[number];
-export type NoteStatus = "pending" | "ready" | "failed";
-export type NoteSource = "user" | "ai";
+type NoteStatus = "pending" | "ready" | "failed";
+type NoteSource = "user" | "ai";
 
 export interface Note {
   id: number;
@@ -16,7 +16,7 @@ export interface Note {
   status: NoteStatus;
 }
 
-export interface VideoSummary {
+interface VideoSummary {
   id: string;
   url: string;
   title: string;

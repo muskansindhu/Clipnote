@@ -28,7 +28,7 @@ const PARTS = [
   },
   {
     title: "Keep it yours",
-    body: "Export any video's notes as Markdown. Bring your own AI key. The whole project is open source and you can host it yourself.",
+    body: "Export any video's notes as Markdown. The whole project is open source: host it yourself with your own AI key.",
   },
 ];
 

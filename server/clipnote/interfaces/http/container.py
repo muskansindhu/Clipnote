@@ -21,7 +21,6 @@ from clipnote.application import (
     TranscriptProvider,
     TranscriptService,
     TranscriptStore,
-    VideoService,
 )
 from clipnote.infrastructure.config import Settings
 from clipnote.infrastructure.db import (
@@ -62,7 +61,6 @@ class Container:
     api_tokens: ApiTokenService
     export: ExportService
     clipchat: ClipchatService
-    videos: VideoService
     enrichment: EnrichmentService
     rate_limiter: RateLimiter
     health: HealthProbe
@@ -155,7 +153,6 @@ def build_container(settings: Settings) -> Container:
             metadata=metadata,
             budget=budget,
         ),
-        videos=VideoService(transcripts, llm, budget),
         enrichment=enrichment,
         rate_limiter=InMemoryRateLimiter(),
         health=PostgresHealthProbe(settings.database_url),

@@ -53,7 +53,6 @@ routes and per user for signed-in routes. Going over returns `429` with a `Retry
 | `POST /api/tokens` | 10 per hour per user |
 | `POST /api/capture` | 60 per minute per user |
 | Clipchat `ask` and `stream` | 20 per minute per user |
-| `POST /summarize` | 10 per minute per user |
 
 The request counters live in memory, so they reset on restart and are not shared between instances.
 The daily AI allowance is stored in Postgres and is shared. A note saved with no text when the

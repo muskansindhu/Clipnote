@@ -35,7 +35,6 @@ RATE_LIMIT_CHANGE_PASSWORD = (5, 600)
 RATE_LIMIT_TOKEN_CREATE = (10, 3600)
 RATE_LIMIT_CAPTURE = (60, 60)
 RATE_LIMIT_CLIPCHAT_ASK = (20, 60)
-RATE_LIMIT_SUMMARIZE = (10, 60)
 # AI calls (notes written by the model, summaries, Clipchat answers) each user may use per UTC day.
 # Override with AI_DAILY_LIMIT; 0 turns the cap off.
 DEFAULT_AI_DAILY_LIMIT = 100
@@ -220,9 +219,6 @@ TIMESTAMP_LABEL_PATTERN = re.compile(
 PARENTHESISED_CITATION_PATTERN = re.compile(r"\(\s*((?:\[\d+\](?:\s+\[\d+\])*))\s*\)")
 
 # --- Prompts -------------------------------------------------------------------------
-
-SUMMARY_SYSTEM_PROMPT = """You summarize video transcripts into exactly five concise bullet points.
-Return only the five bullets and do not add any introduction or closing text."""
 
 VIDEO_SUMMARY_SYSTEM_PROMPT = """You write a short and concise video summary.
 Use only the provided transcript, keep the response within 100-150 words, and return only the summary text."""
