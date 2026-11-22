@@ -247,3 +247,19 @@ class TaskRunner(Protocol):
     """Runs work in the background."""
 
     def submit(self, task: Callable[..., None], *args: Any) -> None: ...
+
+
+@dataclass(frozen=True, slots=True)
+class RateLimitDecision:
+    """The outcome of one rate-limit check."""
+
+    allowed: bool
+    retry_after_seconds: int = 0
+
+
+class RateLimiter(Protocol):
+    """Counts requests per key in a time window."""
+
+    def hit(self, key: str, limit: int, window_seconds: int) -> RateLimitDecision:
+        """Record one request for ``key`` and say whether it is within ``limit`` per window."""
+        ...

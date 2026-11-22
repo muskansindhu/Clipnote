@@ -6,8 +6,10 @@ from datetime import UTC, datetime
 
 from flask import Blueprint, Response, jsonify, request
 
+from clipnote.constants import RATE_LIMIT_SUMMARIZE
 from clipnote.domain import NoteType, ValidationError, extract_video_id, parse_clock
 from clipnote.interfaces.http.auth import container, current_user_id, login_required
+from clipnote.interfaces.http.rate_limit import rate_limited
 from clipnote.interfaces.http.schemas import (
     AddNoteBody,
     CreateNoteBody,
@@ -165,6 +167,7 @@ def delete_note(video_id: str) -> tuple[Response, int]:
 
 @blueprint.post("/summarize")
 @login_required
+@rate_limited("summarize", RATE_LIMIT_SUMMARIZE, by="user")
 def summarize() -> tuple[Response, int]:
     body = parse_body(SummarizeBody)
     video_id = extract_video_id(body.video_url)

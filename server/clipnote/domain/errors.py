@@ -27,5 +27,13 @@ class ConflictError(DomainError):
     """Raised when an action clashes with existing state (e.g. duplicate email)."""
 
 
+class RateLimitError(DomainError):
+    """Raised when a caller has made too many requests or used up a quota."""
+
+    def __init__(self, message: str, retry_after_seconds: int = 1) -> None:
+        super().__init__(message)
+        self.retry_after_seconds = max(1, retry_after_seconds)
+
+
 class ExternalServiceError(DomainError):
     """Raised when a dependency such as the LLM or transcript source fails."""

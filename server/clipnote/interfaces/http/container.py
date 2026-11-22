@@ -16,6 +16,7 @@ from clipnote.application import (
     LabelService,
     LanguageModel,
     NoteService,
+    RateLimiter,
     TranscriptProvider,
     TranscriptService,
     TranscriptStore,
@@ -34,6 +35,7 @@ from clipnote.infrastructure.db import (
 from clipnote.infrastructure.errors import ConfigurationError
 from clipnote.infrastructure.jobs import ThreadPoolTaskRunner
 from clipnote.infrastructure.llm import OpenAILanguageModel, StubLanguageModel
+from clipnote.infrastructure.ratelimit import InMemoryRateLimiter
 from clipnote.infrastructure.security import JwtAccessTokenCodec, WerkzeugPasswordHasher
 from clipnote.infrastructure.storage import FilesystemTranscriptStore, S3TranscriptStore
 from clipnote.infrastructure.transcripts import (
@@ -59,6 +61,7 @@ class Container:
     clipchat: ClipchatService
     videos: VideoService
     enrichment: EnrichmentService
+    rate_limiter: RateLimiter
 
 
 def _build_store(settings: Settings) -> TranscriptStore:
@@ -142,4 +145,5 @@ def build_container(settings: Settings) -> Container:
         ),
         videos=VideoService(transcripts, llm),
         enrichment=enrichment,
+        rate_limiter=InMemoryRateLimiter(),
     )

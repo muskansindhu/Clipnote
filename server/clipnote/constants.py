@@ -25,6 +25,18 @@ MIGRATIONS_DIR = PACKAGE_DIR / "infrastructure" / "db" / "migrations"
 DEFAULT_HOST = "0.0.0.0"  # noqa: S104  # the app runs inside a container
 DEFAULT_PORT = 5001
 BACKGROUND_WORKERS = 4
+
+# Rate limits: (requests, per seconds). Anonymous routes are limited per client IP, signed-in
+# routes per user. See docs/configuration.md for running behind a proxy.
+RATE_LIMIT_PRUNE_EVERY = 500
+RATE_LIMIT_LOGIN = (10, 60)
+RATE_LIMIT_SIGNUP = (5, 3600)
+RATE_LIMIT_CHANGE_PASSWORD = (5, 600)
+RATE_LIMIT_TOKEN_CREATE = (10, 3600)
+RATE_LIMIT_CAPTURE = (60, 60)
+RATE_LIMIT_CLIPCHAT_ASK = (20, 60)
+RATE_LIMIT_SUMMARIZE = (10, 60)
+RATE_LIMIT_MESSAGE = "Too many requests. Please slow down and try again shortly."
 TEMP_TOKEN_COOKIE_SECONDS = 60
 CLIPCHAT_STREAM_CHUNK_CHARS = 28
 CLIPCHAT_ANSWER_FAILED_MESSAGE = "Clipchat could not answer right now"
