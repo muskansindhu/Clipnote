@@ -205,3 +205,9 @@ Notes sit in a ruled list with the timestamp in the margin. Click a time to jump
 ## 🎥 Demo Video
 
 👉 [Click here to watch the Clipnote Demo](https://www.youtube.com/watch?v=jLILbQJOhv8)
+
+---
+
+## 📄 License
+
+[MIT](../LICENSE)
