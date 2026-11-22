@@ -6,7 +6,7 @@ COPY web/ .
 # vite.config.ts writes to ../server/static/app
 RUN mkdir -p /server/static && npm run build
 
-FROM python:3.11-slim
+FROM python:3.15-slim
 
 WORKDIR /server
 
