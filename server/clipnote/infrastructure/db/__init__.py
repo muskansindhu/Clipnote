@@ -1,6 +1,7 @@
 """Postgres access: connection helper, migrations and repositories."""
 
 from clipnote.infrastructure.db.connection import Database
+from clipnote.infrastructure.db.health import PostgresHealthProbe
 from clipnote.infrastructure.db.repositories import (
     PostgresApiTokenRepository,
     PostgresLabelRepository,
@@ -13,6 +14,7 @@ from clipnote.infrastructure.db.repositories import (
 __all__ = [
     "Database",
     "PostgresApiTokenRepository",
+    "PostgresHealthProbe",
     "PostgresLabelRepository",
     "PostgresLibraryRepository",
     "PostgresNoteRepository",

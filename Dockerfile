@@ -23,4 +23,8 @@ COPY --from=web /server/static/app ./static/app
 ENV FLASK_ENV=production
 EXPOSE 5001
 
+# Liveness only: a database blip should not make the host restart a healthy process.
+HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
+  CMD python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:5001/health', timeout=3)"
+
 CMD ["gunicorn", "app:app", "--config", "gunicorn.conf.py"]
