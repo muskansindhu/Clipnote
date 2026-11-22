@@ -14,6 +14,7 @@ from clipnote.infrastructure.config import Settings, load_settings
 from clipnote.interfaces.http.container import Container, build_container
 from clipnote.interfaces.http.errors import register_error_handlers
 from clipnote.interfaces.http.routes import BLUEPRINTS
+from clipnote.interfaces.http.security_headers import register_security_headers
 
 logger = logging.getLogger(__name__)
 
@@ -42,6 +43,7 @@ def create_app(settings: Settings | None = None, container: Container | None = N
     app.extensions["clipnote"] = container or build_container(settings)
     _register_google(app, settings)
     register_error_handlers(app)
+    register_security_headers(app, settings)
     for blueprint in BLUEPRINTS:
         app.register_blueprint(blueprint)
 

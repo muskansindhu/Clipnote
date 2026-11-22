@@ -40,6 +40,7 @@ class Settings:
     local_data_dir: Path
     trusted_proxies: int
     ai_daily_limit: int
+    csp_report_only: bool
 
     @property
     def is_production(self) -> bool:
@@ -119,4 +120,5 @@ def load_settings(env: Mapping[str, str] | None = None) -> Settings:
         ai_daily_limit=_parse_count(
             env.get("AI_DAILY_LIMIT", str(DEFAULT_AI_DAILY_LIMIT)), "AI_DAILY_LIMIT"
         ),
+        csp_report_only=env.get("CSP_REPORT_ONLY", "").strip().lower() in {"1", "true", "yes"},
     )

@@ -51,6 +51,25 @@ GUNICORN_GRACEFUL_TIMEOUT_SECONDS = 30
 GUNICORN_KEEPALIVE_SECONDS = 5
 # How long the readiness check waits for the database before reporting it unavailable.
 HEALTH_DB_TIMEOUT_SECONDS = 2
+# Browser security headers (see clipnote/interfaces/http/security_headers.py). The policy allows
+# exactly what the app loads: its own files, the YouTube player and its script, YouTube
+# thumbnails and Google profile pictures. Inline styles stay allowed because the UI sets style
+# attributes at runtime; inline scripts are not.
+CSP_DIRECTIVES: tuple[tuple[str, tuple[str, ...]], ...] = (
+    ("default-src", ("'self'",)),
+    ("script-src", ("'self'", "https://www.youtube.com", "https://s.ytimg.com")),
+    ("style-src", ("'self'", "'unsafe-inline'")),
+    ("img-src", ("'self'", "data:", "https://i.ytimg.com", "https://*.googleusercontent.com")),
+    ("font-src", ("'self'", "data:")),
+    ("connect-src", ("'self'",)),
+    ("frame-src", ("https://www.youtube.com", "https://www.youtube-nocookie.com")),
+    ("object-src", ("'none'",)),
+    ("base-uri", ("'self'",)),
+    ("form-action", ("'self'",)),
+    ("frame-ancestors", ("'none'",)),
+)
+HSTS_MAX_AGE_SECONDS = 15552000  # 180 days
+PERMISSIONS_POLICY = "camera=(), microphone=(), geolocation=(), payment=(), usb=()"
 TEMP_TOKEN_COOKIE_SECONDS = 60
 CLIPCHAT_STREAM_CHUNK_CHARS = 28
 CLIPCHAT_ANSWER_FAILED_MESSAGE = "Clipchat could not answer right now"
