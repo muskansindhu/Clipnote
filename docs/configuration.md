@@ -74,6 +74,25 @@ If you add a new external script, image or frame source to the web app, add it t
 or the browser will block it. The theme script is a separate file (`web/public/theme-init.js`) for
 this reason.
 
+## Logging
+
+Logs go to standard output. In production each line is one JSON object, ready for a log tool; locally
+it is readable text. Every request gets an id, returned in the `X-Request-ID` response header and
+written on every log line made while handling it, so one request can be followed through the logs.
+A safe `X-Request-ID` sent by a proxy or client is reused. Query strings and request bodies are
+never logged. Static files and health checks are skipped.
+
+| Variable | Default | Purpose |
+|---|---|---|
+| `LOG_FORMAT` | `json` in production, `text` otherwise | `json` or `text` |
+| `LOG_LEVEL` | `INFO` | Standard level name, e.g. `DEBUG` or `WARNING` |
+
+Example request line:
+
+```json
+{"time": "2026-11-22T10:13:31.587+00:00", "level": "INFO", "logger": "clipnote.request", "message": "request", "method": "GET", "path": "/dashboard", "status": 200, "duration_ms": 3.3, "user_id": null, "request_id": "my-trace-1"}
+```
+
 ## Other
 
 | Variable | Purpose |

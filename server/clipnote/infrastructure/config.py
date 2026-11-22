@@ -13,7 +13,9 @@ from clipnote.constants import (
     DEFAULT_AI_DAILY_LIMIT,
     DEFAULT_GOOGLE_DISCOVERY_URL,
     DEFAULT_LOCAL_DATA_DIR,
+    DEFAULT_LOG_LEVEL,
     DEFAULT_OPENAI_MODEL,
+    LOG_FORMATS,
 )
 from clipnote.infrastructure.errors import ConfigurationError
 
@@ -42,6 +44,9 @@ class Settings:
     ai_daily_limit: int
     csp_report_only: bool
 
+    log_format: str
+    log_level: str
+
     @property
     def is_production(self) -> bool:
         """Return whether the app runs with production settings."""
@@ -67,6 +72,15 @@ def _parse_count(value: str, name: str) -> int:
     if count < 0:
         raise ConfigurationError(f"{name} must not be negative.")
     return count
+
+
+def _parse_log_format(env: Mapping[str, str]) -> str:
+    """JSON in production (for log tools), readable text otherwise, unless LOG_FORMAT says."""
+    default = "json" if env.get("FLASK_ENV", "development").lower() == "production" else "text"
+    value = env.get("LOG_FORMAT", default).strip().lower()
+    if value not in LOG_FORMATS:
+        raise ConfigurationError(f"LOG_FORMAT must be one of {', '.join(LOG_FORMATS)}.")
+    return value
 
 
 def load_settings(env: Mapping[str, str] | None = None) -> Settings:
@@ -121,4 +135,6 @@ def load_settings(env: Mapping[str, str] | None = None) -> Settings:
             env.get("AI_DAILY_LIMIT", str(DEFAULT_AI_DAILY_LIMIT)), "AI_DAILY_LIMIT"
         ),
         csp_report_only=env.get("CSP_REPORT_ONLY", "").strip().lower() in {"1", "true", "yes"},
+        log_format=_parse_log_format(env),
+        log_level=env.get("LOG_LEVEL", DEFAULT_LOG_LEVEL).strip().upper(),
     )

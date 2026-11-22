@@ -11,8 +11,10 @@ from werkzeug.middleware.proxy_fix import ProxyFix
 
 from clipnote.constants import SERVER_DIR, SPA_DIST_DIR
 from clipnote.infrastructure.config import Settings, load_settings
+from clipnote.infrastructure.logging_config import configure_logging
 from clipnote.interfaces.http.container import Container, build_container
 from clipnote.interfaces.http.errors import register_error_handlers
+from clipnote.interfaces.http.request_logging import RequestIdFilter, register_request_logging
 from clipnote.interfaces.http.routes import BLUEPRINTS
 from clipnote.interfaces.http.security_headers import register_security_headers
 
@@ -30,6 +32,7 @@ def create_app(settings: Settings | None = None, container: Container | None = N
         The configured application.
     """
     settings = settings or load_settings()
+    configure_logging(settings.log_format, settings.log_level, RequestIdFilter())
     app = Flask(__name__, static_folder=str(SERVER_DIR / "static"))
     app.secret_key = settings.jwt_secret
     app.config["CLIPNOTE_FORCE_HTTPS_CALLBACKS"] = settings.is_production
@@ -44,6 +47,7 @@ def create_app(settings: Settings | None = None, container: Container | None = N
     _register_google(app, settings)
     register_error_handlers(app)
     register_security_headers(app, settings)
+    register_request_logging(app)
     for blueprint in BLUEPRINTS:
         app.register_blueprint(blueprint)
 
