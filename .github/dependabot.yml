@@ -9,6 +9,11 @@ updates:
     groups:
       python-minor-and-patch:
         update-types: [minor, patch]
+    ignore:
+      # 3.x changed the API that clipnote/infrastructure/transcripts/apify.py calls; moving to it
+      # needs a code change and a real Apify token to test.
+      - dependency-name: apify-client
+        update-types: ["version-update:semver-major"]
 
   - package-ecosystem: npm
     directory: /web
@@ -30,4 +35,9 @@ updates:
     directory: /
     schedule:
       interval: weekly
+    ignore:
+      # The Python version is a deliberate choice: pinned packages such as psycopg-binary may have
+      # no release for a newer Python. Change it by hand after testing.
+      - dependency-name: python
+        update-types: ["version-update:semver-major", "version-update:semver-minor"]
     labels: [dependencies]
