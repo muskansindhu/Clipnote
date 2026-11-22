@@ -7,6 +7,7 @@ from pathlib import Path
 import pytest
 from flask import Flask
 from flask.testing import FlaskClient
+from support.fakes import FakeHealthProbe
 from support.world import World, build_world
 
 from clipnote.application import VideoService
@@ -21,7 +22,12 @@ def api_world() -> World:
 
 
 @pytest.fixture
-def app(api_world: World, tmp_path: Path) -> Flask:
+def health_probe() -> FakeHealthProbe:
+    return FakeHealthProbe()
+
+
+@pytest.fixture
+def app(api_world: World, tmp_path: Path, health_probe: FakeHealthProbe) -> Flask:
     w = api_world
     container = Container(
         codec=w.codec,
@@ -35,6 +41,7 @@ def app(api_world: World, tmp_path: Path) -> Flask:
         videos=VideoService(w.transcripts, w.llm, w.budget),
         enrichment=w.enrichment,
         rate_limiter=InMemoryRateLimiter(),
+        health=health_probe,
     )
     settings = load_settings({"DATABASE_URL": "postgresql://unused", "JWT_SECRET": "test-secret"})
     flask_app = create_app(settings, container)

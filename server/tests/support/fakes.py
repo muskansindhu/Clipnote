@@ -456,3 +456,13 @@ class FakeAiBudget:
             return False
         self.used[user_id] = used + 1
         return True
+
+
+class FakeHealthProbe:
+    """Health probe whose answer a test can flip."""
+
+    def __init__(self, reachable: bool = True) -> None:
+        self.reachable = reachable
+
+    def is_database_reachable(self) -> bool:
+        return self.reachable

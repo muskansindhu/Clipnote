@@ -275,3 +275,11 @@ class AiBudget(Protocol):
         when the allowance is already used up. Safe to call from several threads.
         """
         ...
+
+
+class HealthProbe(Protocol):
+    """Reports whether the app's backing services can be reached."""
+
+    def is_database_reachable(self) -> bool:
+        """Return ``True`` when the database answers a trivial query. Never raises."""
+        ...

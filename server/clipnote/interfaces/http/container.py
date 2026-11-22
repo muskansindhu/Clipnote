@@ -13,6 +13,7 @@ from clipnote.application import (
     ClipchatService,
     EnrichmentService,
     ExportService,
+    HealthProbe,
     LabelService,
     LanguageModel,
     NoteService,
@@ -27,6 +28,7 @@ from clipnote.infrastructure.db import (
     Database,
     PostgresAiBudget,
     PostgresApiTokenRepository,
+    PostgresHealthProbe,
     PostgresLabelRepository,
     PostgresLibraryRepository,
     PostgresNoteRepository,
@@ -63,6 +65,7 @@ class Container:
     videos: VideoService
     enrichment: EnrichmentService
     rate_limiter: RateLimiter
+    health: HealthProbe
 
 
 def _build_store(settings: Settings) -> TranscriptStore:
@@ -155,4 +158,5 @@ def build_container(settings: Settings) -> Container:
         videos=VideoService(transcripts, llm, budget),
         enrichment=enrichment,
         rate_limiter=InMemoryRateLimiter(),
+        health=PostgresHealthProbe(settings.database_url),
     )

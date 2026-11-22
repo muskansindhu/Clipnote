@@ -41,6 +41,16 @@ RATE_LIMIT_SUMMARIZE = (10, 60)
 DEFAULT_AI_DAILY_LIMIT = 100
 AI_DAILY_LIMIT_MESSAGE = "You have used today's AI allowance. It resets at midnight UTC."
 RATE_LIMIT_MESSAGE = "Too many requests. Please slow down and try again shortly."
+# Production server (see server/gunicorn.conf.py). One process on purpose: AI notes are written by
+# background threads and recovered at startup inside the process, so more processes would duplicate
+# that work. Scale with threads, not workers, until a real job queue exists.
+GUNICORN_WORKERS = 1
+GUNICORN_THREADS = 8
+GUNICORN_TIMEOUT_SECONDS = 120
+GUNICORN_GRACEFUL_TIMEOUT_SECONDS = 30
+GUNICORN_KEEPALIVE_SECONDS = 5
+# How long the readiness check waits for the database before reporting it unavailable.
+HEALTH_DB_TIMEOUT_SECONDS = 2
 TEMP_TOKEN_COOKIE_SECONDS = 60
 CLIPCHAT_STREAM_CHUNK_CHARS = 28
 CLIPCHAT_ANSWER_FAILED_MESSAGE = "Clipchat could not answer right now"
