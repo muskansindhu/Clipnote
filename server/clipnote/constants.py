@@ -25,6 +25,14 @@ MIGRATIONS_DIR = PACKAGE_DIR / "infrastructure" / "db" / "migrations"
 DEFAULT_HOST = "0.0.0.0"  # noqa: S104  # the app runs inside a container
 DEFAULT_PORT = 5001
 BACKGROUND_WORKERS = 4
+
+# Logging (see clipnote/infrastructure/logging_config.py and interfaces/http/request_logging.py).
+DEFAULT_LOG_LEVEL = "INFO"
+LOG_FORMATS = ("json", "text")
+REQUEST_ID_HEADER = "X-Request-ID"
+REQUEST_ID_PATTERN = r"^[A-Za-z0-9._-]{1,64}$"  # inbound ids outside this are replaced
+# Static files and probes would drown the log without telling anyone anything.
+REQUEST_LOG_SKIP_PREFIXES = ("/static/", "/health", "/ready")
 TEMP_TOKEN_COOKIE_SECONDS = 60
 CLIPCHAT_STREAM_CHUNK_CHARS = 28
 CLIPCHAT_ANSWER_FAILED_MESSAGE = "Clipchat could not answer right now"

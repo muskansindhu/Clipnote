@@ -12,7 +12,9 @@ from dotenv import load_dotenv
 from clipnote.constants import (
     DEFAULT_GOOGLE_DISCOVERY_URL,
     DEFAULT_LOCAL_DATA_DIR,
+    DEFAULT_LOG_LEVEL,
     DEFAULT_OPENAI_MODEL,
+    LOG_FORMATS,
 )
 from clipnote.infrastructure.errors import ConfigurationError
 
@@ -37,6 +39,8 @@ class Settings:
     llm_provider: str
     transcript_providers: tuple[str, ...]
     local_data_dir: Path
+    log_format: str
+    log_level: str
 
     @property
     def is_production(self) -> bool:
@@ -52,6 +56,15 @@ def _resolve_database_url(env: Mapping[str, str]) -> str | None:
     is_production = env.get("FLASK_ENV", "development").lower() == "production"
     preferred = f"IPv{4 if is_production else 6}_SUPABASE_CONNECTION_STRING"
     return env.get(preferred) or env.get("SUPABASE_CONNECTION_STRING")
+
+
+def _parse_log_format(env: Mapping[str, str]) -> str:
+    """JSON in production (for log tools), readable text otherwise, unless LOG_FORMAT says."""
+    default = "json" if env.get("FLASK_ENV", "development").lower() == "production" else "text"
+    value = env.get("LOG_FORMAT", default).strip().lower()
+    if value not in LOG_FORMATS:
+        raise ConfigurationError(f"LOG_FORMAT must be one of {', '.join(LOG_FORMATS)}.")
+    return value
 
 
 def load_settings(env: Mapping[str, str] | None = None) -> Settings:
@@ -101,4 +114,6 @@ def load_settings(env: Mapping[str, str] | None = None) -> Settings:
         llm_provider=env.get("LLM_PROVIDER", "openai"),
         transcript_providers=providers,
         local_data_dir=Path(env.get("LOCAL_DATA_DIR", str(DEFAULT_LOCAL_DATA_DIR))),
+        log_format=_parse_log_format(env),
+        log_level=env.get("LOG_LEVEL", DEFAULT_LOG_LEVEL).strip().upper(),
     )
