@@ -16,6 +16,7 @@ from clipnote.application import (
     TranscriptService,
 )
 from support.fakes import (
+    FakeAiBudget,
     FakeApiTokens,
     FakeCodec,
     FakeLabels,
@@ -57,6 +58,7 @@ class World:
     token_service: ApiTokenService
     export: ExportService
     clipchat: ClipchatService
+    budget: FakeAiBudget
 
 
 def build_world() -> World:
@@ -67,13 +69,24 @@ def build_world() -> World:
     provider = FakeProvider("fake", [{"start": 10, "text": "intro words"}])
     llm, metadata, runner = FakeLLM(), FakeMetadata(), QueueRunner()
     codec = FakeCodec()
+    budget = FakeAiBudget()
 
     transcripts = TranscriptService(store, [provider])
     enrichment = EnrichmentService(
-        videos=videos, notes=notes, transcripts=transcripts, llm=llm, runner=runner
+        videos=videos,
+        notes=notes,
+        transcripts=transcripts,
+        llm=llm,
+        runner=runner,
+        budget=budget,
     )
     note_service = NoteService(
-        notes=notes, videos=videos, library=library, metadata=metadata, enrichment=enrichment
+        notes=notes,
+        videos=videos,
+        library=library,
+        metadata=metadata,
+        enrichment=enrichment,
+        budget=budget,
     )
     return World(
         users=users,
@@ -102,5 +115,7 @@ def build_world() -> World:
             transcripts=transcripts,
             llm=llm,
             metadata=metadata,
+            budget=budget,
         ),
+        budget=budget,
     )

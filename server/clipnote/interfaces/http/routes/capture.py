@@ -4,7 +4,9 @@ from __future__ import annotations
 
 from flask import Blueprint, Response, jsonify, request
 
+from clipnote.constants import RATE_LIMIT_CAPTURE
 from clipnote.interfaces.http.auth import capture_auth_required, container, current_user_id
+from clipnote.interfaces.http.rate_limit import rate_limited
 from clipnote.interfaces.http.schemas import CaptureBody, parse_body
 
 blueprint = Blueprint("capture", __name__)
@@ -12,6 +14,7 @@ blueprint = Blueprint("capture", __name__)
 
 @blueprint.post("/api/capture")
 @capture_auth_required
+@rate_limited("capture", RATE_LIMIT_CAPTURE, by="user")
 def capture() -> tuple[Response, int]:
     body = parse_body(CaptureBody)
     result = container().capture.capture(

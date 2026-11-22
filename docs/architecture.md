@@ -88,6 +88,6 @@ startup.
 
 ## Deployment
 
-- Backend: any container host (Render today). `Dockerfile` runs `python3 app.py`.
+- Backend: any container host (Render today). `Dockerfile` runs Gunicorn (`server/gunicorn.conf.py`): one process, eight threads. `python app.py` is for local development only.
 - Chrome extension: loaded unpacked from `extension/`.
 - Local development: `docker compose up -d db`, see the README.

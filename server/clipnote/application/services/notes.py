@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from datetime import datetime
 
 from clipnote.application.ports import (
+    AiBudget,
     LibraryRepository,
     NoteRepository,
     VideoMetadataProvider,
@@ -80,7 +81,9 @@ class NoteService:
         library: LibraryRepository,
         metadata: VideoMetadataProvider,
         enrichment: EnrichmentService,
+        budget: AiBudget,
     ) -> None:
+        self._budget = budget
         self._notes = notes
         self._videos = videos
         self._library = library
@@ -101,7 +104,8 @@ class NoteService:
 
         The note is stored before any transcript or AI call, so saving stays fast. When
         the text is empty, or the video has no summary yet, the note is stored as pending
-        and completed in the background.
+        and completed in the background. An empty note uses one of the user's daily AI calls;
+        when none are left the note is kept with the "failed" status so the user can write it.
 
         Raises:
             ValidationError: If the video id or timestamp is invalid.
@@ -124,6 +128,10 @@ class NoteService:
             return CreatedNote(duplicate, video, duplicate=True)
 
         needs_enrichment = clean_text is None or not video.summary
+        out_of_ai = clean_text is None and not self._budget.try_consume(user_id)
+        if out_of_ai:
+            # Keep the moment; the user can write the text themselves.
+            needs_enrichment = False
         note = self._notes.add(
             NewNote(
                 user_id=user_id,
@@ -132,7 +140,13 @@ class NoteService:
                 timestamp_seconds=seconds,
                 source=NoteSource.USER if clean_text else NoteSource.AI,
                 note_type=note_type,
-                status=EnrichmentStatus.PENDING if needs_enrichment else EnrichmentStatus.READY,
+                status=(
+                    EnrichmentStatus.FAILED
+                    if out_of_ai
+                    else EnrichmentStatus.PENDING
+                    if needs_enrichment
+                    else EnrichmentStatus.READY
+                ),
             )
         )
         if needs_enrichment:

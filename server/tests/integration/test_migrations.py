@@ -29,7 +29,12 @@ def test_apply_migrations_is_idempotent(make_database: Callable[[], str]) -> Non
     first = apply_migrations(url)
     second = apply_migrations(url)
 
-    assert first == ["0001_baseline", "0002_capture_features", "0003_drop_user_video"]
+    assert first == [
+        "0001_baseline",
+        "0002_capture_features",
+        "0003_ai_usage",
+        "0004_drop_user_video",
+    ]
     assert second == []
 
 
@@ -65,7 +70,7 @@ def test_0002_backfills_seconds_and_per_user_favourites(
     assert favourites == [("alice", "vid1")]
 
 
-def test_0003_drops_user_video_and_keeps_everything_else(
+def test_0004_drops_user_video_and_keeps_everything_else(
     make_database: Callable[[], str], tmp_path: Path
 ) -> None:
     url = make_database()
@@ -86,6 +91,6 @@ def test_0003_drops_user_video_and_keeps_everything_else(
         table = conn.execute("SELECT to_regclass('user_video')").fetchone()
         notes = conn.execute("SELECT note FROM notes").fetchall()
         videos = conn.execute("SELECT id FROM video").fetchall()
-    assert applied == ["0003_drop_user_video"]
+    assert applied == ["0003_ai_usage", "0004_drop_user_video"]
     assert table == (None,)
     assert notes == [("keep me",)] and videos == [("vid1",)]
