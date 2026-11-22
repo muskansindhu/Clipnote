@@ -35,6 +35,22 @@ The old `GEMINI_API_KEY` is **not read** by the code; remove it.
 `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, optional `GOOGLE_DISCOVERY_URL`. Google sign-in is
 disabled when the first two are unset.
 
+## Security headers
+
+Every response carries a Content-Security-Policy (CSP) and related headers
+(`X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, `Permissions-Policy`, and
+`Strict-Transport-Security` when `FLASK_ENV=production`). The policy allows only the app's own files,
+the YouTube player and its script, YouTube thumbnails and Google profile pictures, and forbids inline
+scripts and framing. It is defined in `server/clipnote/constants.py` (`CSP_DIRECTIVES`).
+
+| Variable | Default | Purpose |
+|---|---|---|
+| `CSP_REPORT_ONLY` | off | Set to `1` to send the policy as `Content-Security-Policy-Report-Only`: the browser logs violations in its console but blocks nothing. Use it to trial a change safely |
+
+If you add a new external script, image or frame source to the web app, add it to `CSP_DIRECTIVES`
+or the browser will block it. The theme script is a separate file (`web/public/theme-init.js`) for
+this reason.
+
 ## Other
 
 | Variable | Purpose |

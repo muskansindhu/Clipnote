@@ -37,6 +37,7 @@ class Settings:
     llm_provider: str
     transcript_providers: tuple[str, ...]
     local_data_dir: Path
+    csp_report_only: bool
 
     @property
     def is_production(self) -> bool:
@@ -101,4 +102,5 @@ def load_settings(env: Mapping[str, str] | None = None) -> Settings:
         llm_provider=env.get("LLM_PROVIDER", "openai"),
         transcript_providers=providers,
         local_data_dir=Path(env.get("LOCAL_DATA_DIR", str(DEFAULT_LOCAL_DATA_DIR))),
+        csp_report_only=env.get("CSP_REPORT_ONLY", "").strip().lower() in {"1", "true", "yes"},
     )
