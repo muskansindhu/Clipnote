@@ -441,3 +441,18 @@ class QueueRunner:
         while self.tasks:
             task, args = self.tasks.pop(0)
             task(*args)
+
+
+class FakeAiBudget:
+    """An AI allowance that tests can shrink; unlimited by default."""
+
+    def __init__(self, limit: int | None = None) -> None:
+        self.limit = limit
+        self.used: dict[str, int] = {}
+
+    def try_consume(self, user_id: str) -> bool:
+        used = self.used.get(user_id, 0)
+        if self.limit is not None and used >= self.limit:
+            return False
+        self.used[user_id] = used + 1
+        return True

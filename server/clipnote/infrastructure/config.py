@@ -10,6 +10,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 from clipnote.constants import (
+    DEFAULT_AI_DAILY_LIMIT,
     DEFAULT_GOOGLE_DISCOVERY_URL,
     DEFAULT_LOCAL_DATA_DIR,
     DEFAULT_OPENAI_MODEL,
@@ -38,6 +39,7 @@ class Settings:
     transcript_providers: tuple[str, ...]
     local_data_dir: Path
     trusted_proxies: int
+    ai_daily_limit: int
 
     @property
     def is_production(self) -> bool:
@@ -114,4 +116,7 @@ def load_settings(env: Mapping[str, str] | None = None) -> Settings:
         transcript_providers=providers,
         local_data_dir=Path(env.get("LOCAL_DATA_DIR", str(DEFAULT_LOCAL_DATA_DIR))),
         trusted_proxies=_parse_count(env.get("TRUSTED_PROXIES", "0"), "TRUSTED_PROXIES"),
+        ai_daily_limit=_parse_count(
+            env.get("AI_DAILY_LIMIT", str(DEFAULT_AI_DAILY_LIMIT)), "AI_DAILY_LIMIT"
+        ),
     )

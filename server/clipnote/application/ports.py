@@ -263,3 +263,15 @@ class RateLimiter(Protocol):
     def hit(self, key: str, limit: int, window_seconds: int) -> RateLimitDecision:
         """Record one request for ``key`` and say whether it is within ``limit`` per window."""
         ...
+
+
+class AiBudget(Protocol):
+    """A per-user daily allowance of language-model calls."""
+
+    def try_consume(self, user_id: str) -> bool:
+        """Use one call from today's (UTC) allowance.
+
+        Returns ``True`` when the call is within the limit and has been counted, ``False``
+        when the allowance is already used up. Safe to call from several threads.
+        """
+        ...

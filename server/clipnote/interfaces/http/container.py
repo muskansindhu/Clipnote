@@ -25,6 +25,7 @@ from clipnote.application import (
 from clipnote.infrastructure.config import Settings
 from clipnote.infrastructure.db import (
     Database,
+    PostgresAiBudget,
     PostgresApiTokenRepository,
     PostgresLabelRepository,
     PostgresLibraryRepository,
@@ -106,6 +107,7 @@ def _build_llm(settings: Settings) -> LanguageModel:
 def build_container(settings: Settings) -> Container:
     """Create the adapters from ``settings`` and wire them into the services."""
     db = Database(settings.database_url)
+    budget = PostgresAiBudget(db, settings.ai_daily_limit)
     users = PostgresUserRepository(db)
     videos = PostgresVideoRepository(db)
     notes = PostgresNoteRepository(db)
@@ -123,9 +125,15 @@ def build_container(settings: Settings) -> Container:
         transcripts=transcripts,
         llm=llm,
         runner=ThreadPoolTaskRunner(),
+        budget=budget,
     )
     note_service = NoteService(
-        notes=notes, videos=videos, library=library, metadata=metadata, enrichment=enrichment
+        notes=notes,
+        videos=videos,
+        library=library,
+        metadata=metadata,
+        enrichment=enrichment,
+        budget=budget,
     )
     return Container(
         codec=codec,
@@ -142,8 +150,9 @@ def build_container(settings: Settings) -> Container:
             transcripts=transcripts,
             llm=llm,
             metadata=metadata,
+            budget=budget,
         ),
-        videos=VideoService(transcripts, llm),
+        videos=VideoService(transcripts, llm, budget),
         enrichment=enrichment,
         rate_limiter=InMemoryRateLimiter(),
     )

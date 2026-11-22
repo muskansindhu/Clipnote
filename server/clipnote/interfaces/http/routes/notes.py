@@ -173,7 +173,7 @@ def summarize() -> tuple[Response, int]:
     video_id = extract_video_id(body.video_url)
     if video_id is None:
         raise ValidationError("video_url must be a YouTube video link")
-    return jsonify({"message": container().videos.bullet_summary(video_id)}), 200
+    return jsonify({"message": container().videos.bullet_summary(current_user_id(), video_id)}), 200
 
 
 def _set_favourite(fav: bool) -> tuple[Response, int]:

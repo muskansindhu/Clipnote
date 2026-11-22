@@ -36,6 +36,10 @@ RATE_LIMIT_TOKEN_CREATE = (10, 3600)
 RATE_LIMIT_CAPTURE = (60, 60)
 RATE_LIMIT_CLIPCHAT_ASK = (20, 60)
 RATE_LIMIT_SUMMARIZE = (10, 60)
+# AI calls (notes written by the model, summaries, Clipchat answers) each user may use per UTC day.
+# Override with AI_DAILY_LIMIT; 0 turns the cap off.
+DEFAULT_AI_DAILY_LIMIT = 100
+AI_DAILY_LIMIT_MESSAGE = "You have used today's AI allowance. It resets at midnight UTC."
 RATE_LIMIT_MESSAGE = "Too many requests. Please slow down and try again shortly."
 TEMP_TOKEN_COOKIE_SECONDS = 60
 CLIPCHAT_STREAM_CHUNK_CHARS = 28

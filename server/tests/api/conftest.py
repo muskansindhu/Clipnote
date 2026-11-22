@@ -32,7 +32,7 @@ def app(api_world: World, tmp_path: Path) -> Flask:
         api_tokens=w.token_service,
         export=w.export,
         clipchat=w.clipchat,
-        videos=VideoService(w.transcripts, w.llm),
+        videos=VideoService(w.transcripts, w.llm, w.budget),
         enrichment=w.enrichment,
         rate_limiter=InMemoryRateLimiter(),
     )
