@@ -13,9 +13,11 @@ from clipnote.application import (
     ClipchatService,
     EnrichmentService,
     ExportService,
+    HealthProbe,
     LabelService,
     LanguageModel,
     NoteService,
+    RateLimiter,
     TranscriptProvider,
     TranscriptService,
     TranscriptStore,
@@ -24,7 +26,9 @@ from clipnote.application import (
 from clipnote.infrastructure.config import Settings
 from clipnote.infrastructure.db import (
     Database,
+    PostgresAiBudget,
     PostgresApiTokenRepository,
+    PostgresHealthProbe,
     PostgresLabelRepository,
     PostgresLibraryRepository,
     PostgresNoteRepository,
@@ -34,6 +38,7 @@ from clipnote.infrastructure.db import (
 from clipnote.infrastructure.errors import ConfigurationError
 from clipnote.infrastructure.jobs import ThreadPoolTaskRunner
 from clipnote.infrastructure.llm import OpenAILanguageModel, StubLanguageModel
+from clipnote.infrastructure.ratelimit import InMemoryRateLimiter
 from clipnote.infrastructure.security import JwtAccessTokenCodec, WerkzeugPasswordHasher
 from clipnote.infrastructure.storage import FilesystemTranscriptStore, S3TranscriptStore
 from clipnote.infrastructure.transcripts import (
@@ -59,6 +64,8 @@ class Container:
     clipchat: ClipchatService
     videos: VideoService
     enrichment: EnrichmentService
+    rate_limiter: RateLimiter
+    health: HealthProbe
 
 
 def _build_store(settings: Settings) -> TranscriptStore:
@@ -103,6 +110,7 @@ def _build_llm(settings: Settings) -> LanguageModel:
 def build_container(settings: Settings) -> Container:
     """Create the adapters from ``settings`` and wire them into the services."""
     db = Database(settings.database_url)
+    budget = PostgresAiBudget(db, settings.ai_daily_limit)
     users = PostgresUserRepository(db)
     videos = PostgresVideoRepository(db)
     notes = PostgresNoteRepository(db)
@@ -120,9 +128,15 @@ def build_container(settings: Settings) -> Container:
         transcripts=transcripts,
         llm=llm,
         runner=ThreadPoolTaskRunner(),
+        budget=budget,
     )
     note_service = NoteService(
-        notes=notes, videos=videos, library=library, metadata=metadata, enrichment=enrichment
+        notes=notes,
+        videos=videos,
+        library=library,
+        metadata=metadata,
+        enrichment=enrichment,
+        budget=budget,
     )
     return Container(
         codec=codec,
@@ -139,7 +153,10 @@ def build_container(settings: Settings) -> Container:
             transcripts=transcripts,
             llm=llm,
             metadata=metadata,
+            budget=budget,
         ),
-        videos=VideoService(transcripts, llm),
+        videos=VideoService(transcripts, llm, budget),
         enrichment=enrichment,
+        rate_limiter=InMemoryRateLimiter(),
+        health=PostgresHealthProbe(settings.database_url),
     )

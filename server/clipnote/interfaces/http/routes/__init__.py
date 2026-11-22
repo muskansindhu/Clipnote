@@ -8,6 +8,7 @@ from clipnote.interfaces.http.routes import (
     capture,
     clipchat,
     export,
+    health,
     labels,
     notes,
     pages,
@@ -16,6 +17,7 @@ from clipnote.interfaces.http.routes import (
 # Order matters: literal-prefixed routes are registered before the catch-all
 # "/<video_id>" page and note routes so they can never be shadowed.
 BLUEPRINTS: tuple[Blueprint, ...] = (
+    health.blueprint,
     accounts.blueprint,
     api_tokens.blueprint,
     export.blueprint,

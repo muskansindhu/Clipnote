@@ -7,7 +7,13 @@ from collections.abc import Callable
 from typing import Any, TypeVar
 
 from clipnote.application import prompts
-from clipnote.application.ports import LanguageModel, NoteRepository, TaskRunner, VideoRepository
+from clipnote.application.ports import (
+    AiBudget,
+    LanguageModel,
+    NoteRepository,
+    TaskRunner,
+    VideoRepository,
+)
 from clipnote.application.services.transcripts import TranscriptService
 from clipnote.constants import (
     AI_NOTE_SYSTEM_PROMPT,
@@ -37,7 +43,9 @@ class EnrichmentService:
         transcripts: TranscriptService,
         llm: LanguageModel,
         runner: TaskRunner,
+        budget: AiBudget,
     ) -> None:
+        self._budget = budget
         self._videos = videos
         self._notes = notes
         self._transcripts = transcripts
@@ -70,7 +78,7 @@ class EnrichmentService:
         # Transcript and summary are best effort: a note that already has the user's own
         # text must never be marked failed because they are unavailable.
         entries = self._best_effort(self._transcripts.get_or_fetch, note.video_id)
-        summary = self._best_effort(self._ensure_summary, note.video_id, entries)
+        summary = self._best_effort(self._ensure_summary, note.video_id, entries, note.user_id)
 
         if note.text:
             self._notes.complete_enrichment(note.id, status=EnrichmentStatus.READY)
@@ -92,7 +100,9 @@ class EnrichmentService:
             logger.warning("Enrichment step %s failed", step.__name__, exc_info=True)
             return None
 
-    def _ensure_summary(self, video_id: str, entries: list[dict[str, object]] | None) -> str | None:
+    def _ensure_summary(
+        self, video_id: str, entries: list[dict[str, object]] | None, user_id: str | None
+    ) -> str | None:
         video = self._videos.get(video_id)
         if video is not None and video.summary:
             return video.summary
@@ -100,6 +110,8 @@ class EnrichmentService:
             return None
         text = transcript_text(entries)
         if not text:
+            return None
+        if user_id is not None and not self._budget.try_consume(user_id):
             return None
         summary = self._llm.complete_text(
             system=VIDEO_SUMMARY_SYSTEM_PROMPT, user=prompts.transcript_user_prompt(text)

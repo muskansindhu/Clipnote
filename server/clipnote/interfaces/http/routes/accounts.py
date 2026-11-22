@@ -17,22 +17,28 @@ from flask import (
 from werkzeug.wrappers import Response as WerkzeugResponse
 
 from clipnote.constants import (
+    RATE_LIMIT_CHANGE_PASSWORD,
+    RATE_LIMIT_LOGIN,
+    RATE_LIMIT_SIGNUP,
     TEMP_TOKEN_COOKIE_SECONDS,
 )
 from clipnote.domain import AuthenticationError
 from clipnote.interfaces.http.auth import container, current_user_id, login_required
+from clipnote.interfaces.http.rate_limit import rate_limited
 from clipnote.interfaces.http.schemas import ChangePasswordBody, LoginBody, SignupBody, parse_body
 
 blueprint = Blueprint("accounts", __name__)
 
 
 @blueprint.post("/login")
+@rate_limited("login", RATE_LIMIT_LOGIN)
 def login() -> tuple[Response, int]:
     body = parse_body(LoginBody)
     return jsonify(access_token=container().auth.login(body.email, body.password)), 200
 
 
 @blueprint.post("/signup")
+@rate_limited("signup", RATE_LIMIT_SIGNUP)
 def signup() -> tuple[Response, int]:
     body = parse_body(SignupBody)
     token = container().auth.signup(body.username, body.email, body.password)
@@ -41,6 +47,7 @@ def signup() -> tuple[Response, int]:
 
 @blueprint.post("/change-password")
 @login_required
+@rate_limited("change-password", RATE_LIMIT_CHANGE_PASSWORD, by="user")
 def change_password() -> tuple[Response, int]:
     body = parse_body(ChangePasswordBody)
     container().auth.change_password(current_user_id(), body.current_password, body.new_password)
