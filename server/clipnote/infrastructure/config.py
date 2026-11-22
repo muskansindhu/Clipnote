@@ -10,6 +10,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 from clipnote.constants import (
+    DEFAULT_AI_DAILY_LIMIT,
     DEFAULT_GOOGLE_DISCOVERY_URL,
     DEFAULT_LOCAL_DATA_DIR,
     DEFAULT_LOG_LEVEL,
@@ -39,6 +40,11 @@ class Settings:
     llm_provider: str
     transcript_providers: tuple[str, ...]
     local_data_dir: Path
+    trusted_proxies: int
+    ai_daily_limit: int
+    csp_report_only: bool
+
+
     log_format: str
     log_level: str
 
@@ -56,6 +62,17 @@ def _resolve_database_url(env: Mapping[str, str]) -> str | None:
     is_production = env.get("FLASK_ENV", "development").lower() == "production"
     preferred = f"IPv{4 if is_production else 6}_SUPABASE_CONNECTION_STRING"
     return env.get(preferred) or env.get("SUPABASE_CONNECTION_STRING")
+
+
+def _parse_count(value: str, name: str) -> int:
+    """Parse a non-negative whole number from an environment variable."""
+    try:
+        count = int(value)
+    except ValueError as exc:
+        raise ConfigurationError(f"{name} must be a whole number, got {value!r}.") from exc
+    if count < 0:
+        raise ConfigurationError(f"{name} must not be negative.")
+    return count
 
 
 def _parse_log_format(env: Mapping[str, str]) -> str:
@@ -114,6 +131,13 @@ def load_settings(env: Mapping[str, str] | None = None) -> Settings:
         llm_provider=env.get("LLM_PROVIDER", "openai"),
         transcript_providers=providers,
         local_data_dir=Path(env.get("LOCAL_DATA_DIR", str(DEFAULT_LOCAL_DATA_DIR))),
+        trusted_proxies=_parse_count(env.get("TRUSTED_PROXIES", "0"), "TRUSTED_PROXIES"),
+        ai_daily_limit=_parse_count(
+            env.get("AI_DAILY_LIMIT", str(DEFAULT_AI_DAILY_LIMIT)), "AI_DAILY_LIMIT"
+        ),
+        csp_report_only=env.get("CSP_REPORT_ONLY", "").strip().lower() in {"1", "true", "yes"},
+
+
         log_format=_parse_log_format(env),
         log_level=env.get("LOG_LEVEL", DEFAULT_LOG_LEVEL).strip().upper(),
     )

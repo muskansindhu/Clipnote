@@ -7,6 +7,7 @@ import logging
 from authlib.integrations.flask_client import OAuth
 from flask import Flask
 from flask_cors import CORS
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 from clipnote.constants import SERVER_DIR, SPA_DIST_DIR
 from clipnote.infrastructure.config import Settings, load_settings
@@ -15,6 +16,7 @@ from clipnote.interfaces.http.container import Container, build_container
 from clipnote.interfaces.http.errors import register_error_handlers
 from clipnote.interfaces.http.request_logging import RequestIdFilter, register_request_logging
 from clipnote.interfaces.http.routes import BLUEPRINTS
+from clipnote.interfaces.http.security_headers import register_security_headers
 
 logger = logging.getLogger(__name__)
 
@@ -36,10 +38,15 @@ def create_app(settings: Settings | None = None, container: Container | None = N
     app.config["CLIPNOTE_FORCE_HTTPS_CALLBACKS"] = settings.is_production
     app.config["CLIPNOTE_SPA_DIR"] = SPA_DIST_DIR
     CORS(app)
+    if settings.trusted_proxies:
+        # Behind a reverse proxy the client IP arrives in X-Forwarded-For; without this every
+        # visitor would look like the proxy and share one rate limit.
+        app.wsgi_app = ProxyFix(app.wsgi_app, x_for=settings.trusted_proxies)  # type: ignore[method-assign]
 
     app.extensions["clipnote"] = container or build_container(settings)
     _register_google(app, settings)
     register_error_handlers(app)
+    register_security_headers(app, settings)
     register_request_logging(app)
     for blueprint in BLUEPRINTS:
         app.register_blueprint(blueprint)

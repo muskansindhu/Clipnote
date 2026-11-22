@@ -14,6 +14,7 @@ from clipnote.domain import (
     ExternalServiceError,
     NotFoundError,
     PermissionDeniedError,
+    RateLimitError,
     ValidationError,
 )
 
@@ -25,6 +26,7 @@ _STATUS_BY_ERROR: tuple[tuple[type[DomainError], int], ...] = (
     (PermissionDeniedError, 403),
     (NotFoundError, 404),
     (ConflictError, 409),
+    (RateLimitError, 429),
     (ExternalServiceError, 502),
 )
 
@@ -41,7 +43,10 @@ def register_error_handlers(app: Flask) -> None:
     def handle_domain_error(exc: DomainError) -> tuple[Response, int]:
         for error_type, status in _STATUS_BY_ERROR:
             if isinstance(exc, error_type):
-                return error_response(str(exc), status)
+                response, code = error_response(str(exc), status)
+                if isinstance(exc, RateLimitError):
+                    response.headers["Retry-After"] = str(exc.retry_after_seconds)
+                return response, code
         return error_response(str(exc), 400)
 
     @app.errorhandler(HTTPException)

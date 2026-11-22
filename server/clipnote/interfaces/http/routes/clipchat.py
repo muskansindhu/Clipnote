@@ -10,10 +10,12 @@ from flask import Blueprint, Response, jsonify, stream_with_context
 from clipnote.constants import (
     CLIPCHAT_ANSWER_FAILED_MESSAGE,
     CLIPCHAT_STREAM_CHUNK_CHARS,
+    RATE_LIMIT_CLIPCHAT_ASK,
 )
 from clipnote.domain import ExternalServiceError
 from clipnote.interfaces.http.auth import container, current_user_id, login_required
 from clipnote.interfaces.http.errors import error_response
+from clipnote.interfaces.http.rate_limit import rate_limited
 from clipnote.interfaces.http.schemas import QuestionBody, parse_body
 from clipnote.interfaces.http.serializers import clipchat_json
 
@@ -34,6 +36,7 @@ def prepare(video_id: str) -> tuple[Response, int]:
 
 @blueprint.post("/<video_id>/ask")
 @login_required
+@rate_limited("clipchat-ask", RATE_LIMIT_CLIPCHAT_ASK, by="user")
 def ask(video_id: str) -> tuple[Response, int]:
     question = parse_body(QuestionBody).question
     try:
@@ -52,6 +55,7 @@ def _server_sent_events(answer: str) -> Iterator[str]:
 
 @blueprint.post("/<video_id>/stream")
 @login_required
+@rate_limited("clipchat-ask", RATE_LIMIT_CLIPCHAT_ASK, by="user")
 def stream(video_id: str) -> Response | tuple[Response, int]:
     question = parse_body(QuestionBody).question
     try:
