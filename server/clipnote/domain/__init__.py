@@ -25,6 +25,7 @@ from clipnote.domain.errors import (
     ExternalServiceError,
     NotFoundError,
     PermissionDeniedError,
+    RateLimitError,
     ValidationError,
 )
 from clipnote.domain.timecode import format_clock, parse_clock
@@ -52,6 +53,7 @@ __all__ = [
     "NoteType",
     "NotFoundError",
     "PermissionDeniedError",
+    "RateLimitError",
     "TranscriptEntry",
     "User",
     "ValidationError",

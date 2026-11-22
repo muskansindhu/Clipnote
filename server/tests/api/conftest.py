@@ -8,10 +8,12 @@ from pathlib import Path
 import pytest
 from flask import Flask
 from flask.testing import FlaskClient
+from support.fakes import FakeHealthProbe
 from support.world import World, build_world
 
 from clipnote.application import VideoService
 from clipnote.infrastructure.config import load_settings
+from clipnote.infrastructure.ratelimit import InMemoryRateLimiter
 from clipnote.interfaces.http import Container, create_app
 
 
@@ -21,7 +23,14 @@ def api_world() -> World:
 
 
 @pytest.fixture
-def make_app(api_world: World, tmp_path: Path) -> Callable[..., Flask]:
+def health_probe() -> FakeHealthProbe:
+    return FakeHealthProbe()
+
+
+@pytest.fixture
+def make_app(
+    api_world: World, tmp_path: Path, health_probe: FakeHealthProbe
+) -> Callable[..., Flask]:
     """Build the app with extra environment settings, e.g. ``make_app(FLASK_ENV="production")``."""
     w = api_world
     container = Container(
@@ -33,8 +42,10 @@ def make_app(api_world: World, tmp_path: Path) -> Callable[..., Flask]:
         api_tokens=w.token_service,
         export=w.export,
         clipchat=w.clipchat,
-        videos=VideoService(w.transcripts, w.llm),
+        videos=VideoService(w.transcripts, w.llm, w.budget),
         enrichment=w.enrichment,
+        rate_limiter=InMemoryRateLimiter(),
+        health=health_probe,
     )
 
     def build(**env: str) -> Flask:

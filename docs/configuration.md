@@ -35,6 +35,29 @@ The old `GEMINI_API_KEY` is **not read** by the code; remove it.
 `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, optional `GOOGLE_DISCOVERY_URL`. Google sign-in is
 disabled when the first two are unset.
 
+## Limits and abuse protection
+
+| Variable | Default | Purpose |
+|---|---|---|
+| `AI_DAILY_LIMIT` | `100` | AI calls each user may use per UTC day: notes written by the model, summaries and Clipchat answers. `0` turns the cap off. Counted in the `ai_usage` table, so it survives restarts |
+| `TRUSTED_PROXIES` | `0` | How many reverse proxies sit in front of the app. **Set this to `1` on a host such as Render**, otherwise every visitor looks like the proxy and shares one rate limit |
+
+Rate limits (named constants in `server/clipnote/constants.py`), counted per client IP for anonymous
+routes and per user for signed-in routes. Going over returns `429` with a `Retry-After` header.
+
+| Route | Limit |
+|---|---|
+| `POST /login` | 10 per minute per IP |
+| `POST /signup` | 5 per hour per IP |
+| `POST /change-password` | 5 per 10 minutes per user |
+| `POST /api/tokens` | 10 per hour per user |
+| `POST /api/capture` | 60 per minute per user |
+| Clipchat `ask` and `stream` | 20 per minute per user |
+| `POST /summarize` | 10 per minute per user |
+
+The request counters live in memory, so they reset on restart and are not shared between instances.
+The daily AI allowance is stored in Postgres and is shared. A note saved with no text when the
+allowance is used up is kept and marked failed, so the user can write it themselves.
 ## Security headers
 
 Every response carries a Content-Security-Policy (CSP) and related headers
