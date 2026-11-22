@@ -35,6 +35,64 @@ The old `GEMINI_API_KEY` is **not read** by the code; remove it.
 `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, optional `GOOGLE_DISCOVERY_URL`. Google sign-in is
 disabled when the first two are unset.
 
+## Limits and abuse protection
+
+| Variable | Default | Purpose |
+|---|---|---|
+| `AI_DAILY_LIMIT` | `100` | AI calls each user may use per UTC day: notes written by the model, summaries and Clipchat answers. `0` turns the cap off. Counted in the `ai_usage` table, so it survives restarts |
+| `TRUSTED_PROXIES` | `0` | How many reverse proxies sit in front of the app. **Set this to `1` on a host such as Render**, otherwise every visitor looks like the proxy and shares one rate limit |
+
+Rate limits (named constants in `server/clipnote/constants.py`), counted per client IP for anonymous
+routes and per user for signed-in routes. Going over returns `429` with a `Retry-After` header.
+
+| Route | Limit |
+|---|---|
+| `POST /login` | 10 per minute per IP |
+| `POST /signup` | 5 per hour per IP |
+| `POST /change-password` | 5 per 10 minutes per user |
+| `POST /api/tokens` | 10 per hour per user |
+| `POST /api/capture` | 60 per minute per user |
+| Clipchat `ask` and `stream` | 20 per minute per user |
+| `POST /summarize` | 10 per minute per user |
+
+The request counters live in memory, so they reset on restart and are not shared between instances.
+The daily AI allowance is stored in Postgres and is shared. A note saved with no text when the
+allowance is used up is kept and marked failed, so the user can write it themselves.
+## Security headers
+
+Every response carries a Content-Security-Policy (CSP) and related headers
+(`X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, `Permissions-Policy`, and
+`Strict-Transport-Security` when `FLASK_ENV=production`). The policy allows only the app's own files,
+the YouTube player and its script, YouTube thumbnails and Google profile pictures, and forbids inline
+scripts and framing. It is defined in `server/clipnote/constants.py` (`CSP_DIRECTIVES`).
+
+| Variable | Default | Purpose |
+|---|---|---|
+| `CSP_REPORT_ONLY` | off | Set to `1` to send the policy as `Content-Security-Policy-Report-Only`: the browser logs violations in its console but blocks nothing. Use it to trial a change safely |
+
+If you add a new external script, image or frame source to the web app, add it to `CSP_DIRECTIVES`
+or the browser will block it. The theme script is a separate file (`web/public/theme-init.js`) for
+this reason.
+
+## Logging
+
+Logs go to standard output. In production each line is one JSON object, ready for a log tool; locally
+it is readable text. Every request gets an id, returned in the `X-Request-ID` response header and
+written on every log line made while handling it, so one request can be followed through the logs.
+A safe `X-Request-ID` sent by a proxy or client is reused. Query strings and request bodies are
+never logged. Static files and health checks are skipped.
+
+| Variable | Default | Purpose |
+|---|---|---|
+| `LOG_FORMAT` | `json` in production, `text` otherwise | `json` or `text` |
+| `LOG_LEVEL` | `INFO` | Standard level name, e.g. `DEBUG` or `WARNING` |
+
+Example request line:
+
+```json
+{"time": "2026-11-22T10:13:31.587+00:00", "level": "INFO", "logger": "clipnote.request", "message": "request", "method": "GET", "path": "/dashboard", "status": 200, "duration_ms": 3.3, "user_id": null, "request_id": "my-trace-1"}
+```
+
 ## Other
 
 | Variable | Purpose |

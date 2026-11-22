@@ -1,5 +1,7 @@
 # Clipnote
 
+[![CI](https://github.com/muskansindhu/Clipnote/actions/workflows/ci.yml/badge.svg)](https://github.com/muskansindhu/Clipnote/actions/workflows/ci.yml)
+
 Clipnote makes learning from YouTube easier. Capture **timestamp-linked notes** while you
 watch, let AI write the ones you do not have time to type, chat with the video, and export
 everything to Markdown for Obsidian, Notion or plain files.
@@ -96,12 +98,19 @@ python app.py            # http://localhost:5001
 
 ### 2. Tests and checks
 
+CI runs all of this on every pull request (`.github/workflows/ci.yml`).
+
 ```bash
+pip install -r requirements-dev.txt
+ruff check server && ruff format --check server && mypy server/clipnote
 pytest                   # unit + API tests; integration tests use the docker Postgres
-ruff check . && mypy server/clipnote
+
+cd web && npm run typecheck && npm test
 ```
 
 ### 3. Docker image
+
+The image serves the app with Gunicorn (settings in `server/gunicorn.conf.py`), not Flask's development server. It runs **one worker process with several threads on purpose**: AI notes are written by background threads and recovered at startup inside the process, so extra processes would duplicate that work. Scale with threads until a job queue exists.
 
 ```bash
 docker build -t clipnote-server .

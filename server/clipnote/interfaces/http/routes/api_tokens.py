@@ -4,7 +4,9 @@ from __future__ import annotations
 
 from flask import Blueprint, Response, jsonify
 
+from clipnote.constants import RATE_LIMIT_TOKEN_CREATE
 from clipnote.interfaces.http.auth import container, current_user_id, login_required
+from clipnote.interfaces.http.rate_limit import rate_limited
 from clipnote.interfaces.http.schemas import TokenCreateBody, parse_body
 from clipnote.interfaces.http.serializers import token_json
 
@@ -19,6 +21,7 @@ def list_tokens() -> Response:
 
 @blueprint.post("")
 @login_required
+@rate_limited("token-create", RATE_LIMIT_TOKEN_CREATE, by="user")
 def create_token() -> tuple[Response, int]:
     created = container().api_tokens.create(current_user_id(), parse_body(TokenCreateBody).label)
     return jsonify({"token": created.secret, "record": token_json(created.record)}), 201
