@@ -11,6 +11,12 @@ All endpoints return JSON unless noted. Errors look like
 | 409 | Conflict, such as a duplicate email or label |
 | 502 | The language model failed |
 
+## Rate limits
+
+Routes that sign in, create tokens, capture notes or call the AI are limited per client or per
+user, and AI features have a daily allowance per user. Going over returns `429` with
+`{"message": "..."}` and a `Retry-After` header (seconds). See [configuration.md](configuration.md).
+
 ## Authentication
 
 Protected endpoints take `Authorization: Bearer <token>`. There are two token kinds:

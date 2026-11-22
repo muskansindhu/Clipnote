@@ -5,6 +5,7 @@ from clipnote.application.clipchat import ClipchatContext, ClipchatService, answ
 from clipnote.application.ports import (
     AccessClaims,
     AccessTokenCodec,
+    AiBudget,
     ApiTokenRepository,
     HealthProbe,
     LabelRepository,
@@ -12,6 +13,8 @@ from clipnote.application.ports import (
     LibraryRepository,
     NoteRepository,
     PasswordHasher,
+    RateLimitDecision,
+    RateLimiter,
     TaskRunner,
     TranscriptProvider,
     TranscriptStore,
@@ -41,6 +44,7 @@ from clipnote.application.services import (
 __all__ = [
     "AccessClaims",
     "AccessTokenCodec",
+    "AiBudget",
     "ApiTokenRepository",
     "ApiTokenService",
     "AuthService",
@@ -59,6 +63,8 @@ __all__ = [
     "NoteRepository",
     "NoteService",
     "PasswordHasher",
+    "RateLimitDecision",
+    "RateLimiter",
     "HealthProbe",
     "TaskRunner",
     "TranscriptProvider",

@@ -20,7 +20,7 @@ def test_apply_migrations_is_idempotent(make_database: Callable[[], str]) -> Non
     first = apply_migrations(url)
     second = apply_migrations(url)
 
-    assert first == ["0001_baseline", "0002_capture_features"]
+    assert first == ["0001_baseline", "0002_capture_features", "0003_ai_usage"]
     assert second == []
 
 

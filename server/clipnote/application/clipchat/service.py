@@ -7,12 +7,14 @@ from dataclasses import dataclass, field
 from clipnote.application import prompts
 from clipnote.application.clipchat.engine import answer_question
 from clipnote.application.ports import (
+    AiBudget,
     LanguageModel,
     LibraryRepository,
     NoteRepository,
     VideoMetadataProvider,
     VideoRepository,
 )
+from clipnote.application.services.ai_budget import spend_ai_call
 from clipnote.application.services.transcripts import TranscriptService
 from clipnote.constants import (
     DEFAULT_VIDEO_TITLE,
@@ -54,7 +56,9 @@ class ClipchatService:
         transcripts: TranscriptService,
         llm: LanguageModel,
         metadata: VideoMetadataProvider,
+        budget: AiBudget,
     ) -> None:
+        self._budget = budget
         self._videos = videos
         self._notes = notes
         self._library = library
@@ -83,7 +87,7 @@ class ClipchatService:
             NotFoundError: If the id is invalid or no transcript exists for the video.
         """
         context = self._load(user_id, video_id)
-        _, status, summary = self._ensure_assets(context)
+        _, status, summary = self._ensure_assets(context, user_id)
         return _with_status(_with_summary(context, summary), status)
 
     def ask(self, user_id: str, video_id: str, question: str) -> str:
@@ -98,7 +102,8 @@ class ClipchatService:
         if not question:
             raise ValidationError("Question is required")
         context = self._load(user_id, video_id)
-        transcript, _, _ = self._ensure_assets(context)
+        transcript, _, _ = self._ensure_assets(context, user_id)
+        spend_ai_call(self._budget, user_id)
         response = answer_question(
             self._llm,
             video_title=context.title or DEFAULT_VIDEO_TITLE,
@@ -130,7 +135,7 @@ class ClipchatService:
         )
 
     def _ensure_assets(
-        self, context: ClipchatContext
+        self, context: ClipchatContext, user_id: str
     ) -> tuple[list[TranscriptEntry], dict[str, str], str | None]:
         transcript = self._transcripts.get_or_fetch(context.video_id)
         if not transcript:
@@ -139,6 +144,8 @@ class ClipchatService:
             return transcript, {"transcript": "ready", "summary": "ready"}, context.summary
 
         text = transcript_text(transcript)
+        if text:
+            spend_ai_call(self._budget, user_id)
         summary = (
             self._llm.complete_text(
                 system=VIDEO_SUMMARY_SYSTEM_PROMPT,

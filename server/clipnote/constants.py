@@ -25,6 +25,22 @@ MIGRATIONS_DIR = PACKAGE_DIR / "infrastructure" / "db" / "migrations"
 DEFAULT_HOST = "0.0.0.0"  # noqa: S104  # the app runs inside a container
 DEFAULT_PORT = 5001
 BACKGROUND_WORKERS = 4
+
+# Rate limits: (requests, per seconds). Anonymous routes are limited per client IP, signed-in
+# routes per user. See docs/configuration.md for running behind a proxy.
+RATE_LIMIT_PRUNE_EVERY = 500
+RATE_LIMIT_LOGIN = (10, 60)
+RATE_LIMIT_SIGNUP = (5, 3600)
+RATE_LIMIT_CHANGE_PASSWORD = (5, 600)
+RATE_LIMIT_TOKEN_CREATE = (10, 3600)
+RATE_LIMIT_CAPTURE = (60, 60)
+RATE_LIMIT_CLIPCHAT_ASK = (20, 60)
+RATE_LIMIT_SUMMARIZE = (10, 60)
+# AI calls (notes written by the model, summaries, Clipchat answers) each user may use per UTC day.
+# Override with AI_DAILY_LIMIT; 0 turns the cap off.
+DEFAULT_AI_DAILY_LIMIT = 100
+AI_DAILY_LIMIT_MESSAGE = "You have used today's AI allowance. It resets at midnight UTC."
+RATE_LIMIT_MESSAGE = "Too many requests. Please slow down and try again shortly."
 # Production server (see server/gunicorn.conf.py). One process on purpose: AI notes are written by
 # background threads and recovered at startup inside the process, so more processes would duplicate
 # that work. Scale with threads, not workers, until a real job queue exists.
