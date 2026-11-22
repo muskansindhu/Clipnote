@@ -44,7 +44,6 @@ class Settings:
     ai_daily_limit: int
     csp_report_only: bool
 
-
     log_format: str
     log_level: str
 
@@ -136,8 +135,6 @@ def load_settings(env: Mapping[str, str] | None = None) -> Settings:
             env.get("AI_DAILY_LIMIT", str(DEFAULT_AI_DAILY_LIMIT)), "AI_DAILY_LIMIT"
         ),
         csp_report_only=env.get("CSP_REPORT_ONLY", "").strip().lower() in {"1", "true", "yes"},
-
-
         log_format=_parse_log_format(env),
         log_level=env.get("LOG_LEVEL", DEFAULT_LOG_LEVEL).strip().upper(),
     )
