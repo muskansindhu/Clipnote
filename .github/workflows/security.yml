@@ -1,0 +1,45 @@
+name: Dependency audit
+
+# Checks pinned dependencies against known vulnerabilities. It runs weekly and on demand, not on
+# pull requests, so an advisory published today cannot block an unrelated change.
+on:
+  schedule:
+    - cron: "0 5 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  python:
+    name: Python packages
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Audit requirements.txt
+        run: |
+          pip install pip-audit
+          pip-audit -r requirements.txt
+
+  web:
+    name: npm packages
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Audit production dependencies
+        run: npm audit --omit=dev --audit-level=moderate
