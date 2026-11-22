@@ -26,7 +26,6 @@ interface VideoSummary {
 export interface VideoDetail {
   video: VideoSummary;
   notes: Note[];
-  fav: boolean;
   label: string | null;
 }
 
@@ -34,7 +33,6 @@ export interface LibraryVideo {
   id: string;
   video_url: string;
   video_title: string;
-  fav: boolean;
   note_count: number;
   last_note_at: string | null;
 }
@@ -48,7 +46,6 @@ export interface LibraryStats {
   videos: number;
   notes: number;
   notes_this_week: number;
-  favourites: number;
   pending: number;
 }
 
@@ -71,7 +68,6 @@ export interface ClipchatContext {
   video_id: string;
   video_url: string;
   video_title: string;
-  fav: boolean;
   video_summary: string | null;
   notes: Array<{
     id: number;

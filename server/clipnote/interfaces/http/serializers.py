@@ -32,7 +32,6 @@ def video_notes_json(result: VideoNotes) -> list[dict[str, Any]]:
             "video_url": video.url,
             "video_title": video.title,
             "video_summary": video.summary,
-            "fav": result.fav,
         }
         for note in result.notes
     ]
@@ -44,7 +43,6 @@ def listing_json(video: VideoListing) -> dict[str, Any]:
         "id": video.id,
         "video_url": video.url,
         "video_title": video.title,
-        "fav": video.fav,
         "note_count": video.note_count,
         "last_note_at": video.last_note_at,
     }
@@ -56,7 +54,6 @@ def stats_json(stats: LibraryStats) -> dict[str, Any]:
         "videos": stats.videos,
         "notes": stats.notes,
         "notes_this_week": stats.notes_this_week,
-        "favourites": stats.favourites,
         "pending": stats.pending,
     }
 
@@ -72,7 +69,6 @@ def video_detail_json(detail: VideoDetail, label: str | None) -> dict[str, Any]:
             "summary": video.summary,
         },
         "notes": [note_json(note) for note in detail.notes],
-        "fav": detail.fav,
         "label": label,
     }
 
@@ -101,7 +97,6 @@ def clipchat_json(context: ClipchatContext) -> dict[str, Any]:
         "video_id": context.video_id,
         "video_url": context.url,
         "video_title": context.title,
-        "fav": context.fav,
         "video_summary": context.summary,
         "notes": [
             {

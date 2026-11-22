@@ -147,7 +147,6 @@ def build_container(settings: Settings) -> Container:
         clipchat=ClipchatService(
             videos=videos,
             notes=notes,
-            library=library,
             transcripts=transcripts,
             llm=llm,
             metadata=metadata,

@@ -45,18 +45,11 @@ class AddNoteBody(_Body):
 
 class UpdateNoteBody(_Body):
     notes: str = ""
-    timestamp: str | None = None
-    note_id: int | None = None
+    note_id: int
 
 
 class DeleteNoteBody(_Body):
-    timestamp: str | None = None
-    note_id: int | None = None
-
-
-class FavouriteBody(_Body):
-    video_id: str | None = None
-    video_title: str | None = None
+    note_id: int
 
 
 class LabelBody(_Body):

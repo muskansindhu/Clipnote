@@ -110,34 +110,12 @@ class PostgresNoteRepository:
             )
         return cur.rowcount > 0
 
-    def update_text_at(self, user_id: str, video_id: str, seconds: int, text: str) -> int:
-        with self._db.connection() as conn:
-            cur = conn.execute(
-                """
-                UPDATE notes SET note = %s, updated_at = now()
-                WHERE user_id = %s AND video_id = %s AND timestamp_seconds = %s
-                """,
-                (text, user_id, video_id, seconds),
-            )
-        return cur.rowcount
-
     def delete(self, user_id: str, note_id: int) -> bool:
         with self._db.connection() as conn:
             cur = conn.execute(
                 "DELETE FROM notes WHERE id = %s AND user_id = %s", (note_id, user_id)
             )
         return cur.rowcount > 0
-
-    def delete_at(self, user_id: str, video_id: str, seconds: int) -> int:
-        with self._db.connection() as conn:
-            cur = conn.execute(
-                """
-                DELETE FROM notes
-                WHERE user_id = %s AND video_id = %s AND timestamp_seconds = %s
-                """,
-                (user_id, video_id, seconds),
-            )
-        return cur.rowcount
 
     def delete_for_video(self, user_id: str, video_id: str) -> int:
         with self._db.connection() as conn:

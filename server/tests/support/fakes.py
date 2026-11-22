@@ -132,28 +132,12 @@ class FakeNotes:
         self.rows[note_id] = replace(note, text=text)
         return True
 
-    def update_text_at(self, user_id: str, video_id: str, seconds: int, text: str) -> int:
-        ids = [
-            n.id for n in self.list_for_video(user_id, video_id) if n.timestamp_seconds == seconds
-        ]
-        for note_id in ids:
-            self.rows[note_id] = replace(self.rows[note_id], text=text)
-        return len(ids)
-
     def delete(self, user_id: str, note_id: int) -> bool:
         note = self.rows.get(note_id)
         if note is None or note.user_id != user_id:
             return False
         del self.rows[note_id]
         return True
-
-    def delete_at(self, user_id: str, video_id: str, seconds: int) -> int:
-        ids = [
-            n.id for n in self.list_for_video(user_id, video_id) if n.timestamp_seconds == seconds
-        ]
-        for note_id in ids:
-            del self.rows[note_id]
-        return len(ids)
 
     def delete_for_video(self, user_id: str, video_id: str) -> int:
         ids = [n.id for n in self.list_for_video(user_id, video_id)]
@@ -205,7 +189,6 @@ class FakeLibrary:
     def __init__(self, videos: FakeVideos, notes: FakeNotes) -> None:
         self._videos = videos
         self._notes = notes
-        self.favourites: set[tuple[str, str]] = set()
         self.labelled: dict[tuple[str, str], list[str]] = {}
 
     def list_videos(
@@ -228,7 +211,6 @@ class FakeLibrary:
                 v.id,
                 v.url,
                 v.title,
-                (user_id, v.id) in self.favourites,
                 note_count=len(self._notes.list_for_video(user_id, v.id)),
             )
             for v in (self._videos.rows[i] for i in ids)
@@ -241,31 +223,14 @@ class FakeLibrary:
     def list_by_label(self, user_id: str, label_name: str) -> list[VideoListing] | None:
         return None
 
-    def set_favourite(self, user_id: str, video_id: str, fav: bool) -> None:
-        if fav:
-            self.favourites.add((user_id, video_id))
-        else:
-            self.favourites.discard((user_id, video_id))
-
-    def is_favourite(self, user_id: str, video_id: str) -> bool:
-        return (user_id, video_id) in self.favourites
-
     def stats(self, user_id: str) -> LibraryStats:
         mine = self._notes.list_for_user(user_id)
         return LibraryStats(
             videos=len({n.video_id for n in mine}),
             notes=len(mine),
             notes_this_week=len(mine),
-            favourites=sum(1 for owner, _ in self.favourites if owner == user_id),
             pending=sum(1 for n in mine if n.status is EnrichmentStatus.PENDING),
         )
-
-    def find_video_id_by_title(self, user_id: str, title: str) -> str | None:
-        for note in self._notes.rows.values():
-            video = self._videos.rows.get(note.video_id)
-            if note.user_id == user_id and video and video.title == title:
-                return video.id
-        return None
 
 
 class FakeLabels:

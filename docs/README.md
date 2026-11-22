@@ -50,7 +50,7 @@ Think of it as your **second brain for YouTube**.
 
 📚 **Library**
 
-- Search, labels, per-user favourites, edit and delete. A command palette (⌘K) jumps anywhere.
+- Search, labels, edit and delete. A command palette (⌘K) jumps anywhere.
   Light and dark themes.
 
 💬 **Clipchat**

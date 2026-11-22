@@ -9,7 +9,6 @@ from clipnote.application.clipchat.engine import answer_question
 from clipnote.application.ports import (
     AiBudget,
     LanguageModel,
-    LibraryRepository,
     NoteRepository,
     VideoMetadataProvider,
     VideoRepository,
@@ -39,7 +38,6 @@ class ClipchatContext:
     url: str
     title: str
     summary: str | None
-    fav: bool
     notes: list[Note]
     asset_status: dict[str, str] = field(default_factory=dict)
 
@@ -52,7 +50,6 @@ class ClipchatService:
         *,
         videos: VideoRepository,
         notes: NoteRepository,
-        library: LibraryRepository,
         transcripts: TranscriptService,
         llm: LanguageModel,
         metadata: VideoMetadataProvider,
@@ -61,7 +58,6 @@ class ClipchatService:
         self._budget = budget
         self._videos = videos
         self._notes = notes
-        self._library = library
         self._transcripts = transcripts
         self._llm = llm
         self._metadata = metadata
@@ -130,7 +126,6 @@ class ClipchatService:
             url=url,
             title=title or DEFAULT_VIDEO_TITLE,
             summary=video.summary if video else None,
-            fav=self._library.is_favourite(user_id, video_id),
             notes=self._notes.list_for_video(user_id, video_id),
         )
 
@@ -166,7 +161,6 @@ def _with_status(context: ClipchatContext, status: dict[str, str]) -> ClipchatCo
         context.url,
         context.title,
         context.summary,
-        context.fav,
         context.notes,
         status,
     )
@@ -178,7 +172,6 @@ def _with_summary(context: ClipchatContext, summary: str | None) -> ClipchatCont
         context.url,
         context.title,
         summary,
-        context.fav,
         context.notes,
         context.asset_status,
     )

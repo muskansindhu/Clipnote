@@ -15,14 +15,12 @@ def test_context_reports_assets_as_pending_without_fetching_anything(world: Worl
     assert world.provider.calls == []
 
 
-def test_context_includes_the_users_notes_and_favourite_flag(world: World) -> None:
+def test_context_includes_only_the_users_own_notes(world: World) -> None:
     world.note_service.create_note("alice", video_id=VID, title="T", text="mine", seconds=5)
-    world.note_service.set_favourite("alice", video_id=VID, fav=True)
 
     context = world.clipchat.context("alice", VID)
 
     assert [n.text for n in context.notes] == ["mine"]
-    assert context.fav is True
     assert world.clipchat.context("bob", VID).notes == []
 
 

@@ -112,14 +112,12 @@ def test_video_notes_raises_for_unknown_video(world: World) -> None:
         world.note_service.video_notes("alice", VID)
 
 
-def test_update_text_by_id_and_by_clock_time(world: World) -> None:
+def test_update_text_by_id_trims_the_text(world: World) -> None:
     note = _create(world, seconds=83).note
 
     world.note_service.update_text("alice", video_id=VID, text=" by id ", note_id=note.id)
-    assert world.notes.rows[note.id].text == "by id"
 
-    world.note_service.update_text("alice", video_id=VID, text="by clock", timestamp="1:23")
-    assert world.notes.rows[note.id].text == "by clock"
+    assert world.notes.rows[note.id].text == "by id"
 
 
 def test_update_text_cannot_touch_another_users_note(world: World) -> None:
@@ -129,43 +127,15 @@ def test_update_text_cannot_touch_another_users_note(world: World) -> None:
         world.note_service.update_text("bob", video_id=VID, text="x", note_id=note.id)
 
 
-def test_update_and_delete_require_an_identifier(world: World) -> None:
-    with pytest.raises(ValidationError):
-        world.note_service.update_text("alice", video_id=VID, text="x")
-    with pytest.raises(ValidationError, match="Invalid clock string"):
-        world.note_service.delete("alice", video_id=VID, timestamp="--:--")
-
-
-def test_delete_by_id_and_by_clock_time(world: World) -> None:
+def test_delete_by_id_removes_only_that_note(world: World) -> None:
     first = _create(world, seconds=10, text="a").note
-    _create(world, seconds=83, text="b")
+    second = _create(world, seconds=83, text="b").note
 
     world.note_service.delete("alice", video_id=VID, note_id=first.id)
-    world.note_service.delete("alice", video_id=VID, timestamp="1:23")
 
-    assert world.notes.rows == {}
+    assert list(world.notes.rows) == [second.id]
     with pytest.raises(NotFoundError):
         world.note_service.delete("alice", video_id=VID, note_id=first.id)
-
-
-def test_favourites_are_per_user(world: World) -> None:
-    _create(world, user="alice")
-    _create(world, user="bob")
-
-    world.note_service.set_favourite("alice", video_id=VID, fav=True)
-
-    assert world.note_service.video_notes("alice", VID).fav is True
-    assert world.note_service.video_notes("bob", VID).fav is False
-
-
-def test_favourite_by_title_resolves_within_the_users_library(world: World) -> None:
-    _create(world, user="alice", title="Same Title")
-
-    world.note_service.set_favourite("alice", video_title="Same Title", fav=True)
-
-    assert world.library.is_favourite("alice", VID)
-    with pytest.raises(NotFoundError):
-        world.note_service.set_favourite("bob", video_title="Same Title", fav=True)
 
 
 def test_list_videos_paginates_and_reports_next_page(world: World) -> None:

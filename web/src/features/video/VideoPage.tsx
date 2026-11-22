@@ -5,7 +5,6 @@ import {
   ChevronDown,
   Download,
   MessagesSquare,
-  Star,
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
@@ -160,18 +159,6 @@ export function VideoPage() {
           <Skeleton className="h-8 w-3/4" />
         )}
         <div className="mt-5 flex flex-wrap items-center gap-2">
-          <Button
-            variant="secondary"
-            size="sm"
-            aria-pressed={detail?.fav}
-            disabled={!detail || sorted.length === 0}
-            onClick={() => actions.setFavourite.mutate(!detail?.fav)}
-            title={sorted.length === 0 ? "Add a note to favourite this video" : undefined}
-          >
-            <Star className={cn("size-3.5", detail?.fav && "fill-warning text-warning")} />
-            {detail?.fav ? "Favourite" : "Favourite"}
-          </Button>
-
           <Popover
             align="start"
             className="w-60"

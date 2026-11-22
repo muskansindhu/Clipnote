@@ -12,7 +12,7 @@ import { useToast } from "@/components/ui/Toast";
 import { VideoCard, VideoCardSkeleton } from "@/features/library/VideoCard";
 import { cn } from "@/lib/cn";
 import { SEARCH_DEBOUNCE_MS } from "@/lib/constants";
-import { useLabels, useLibrary, useRemoveVideo, useStats, useToggleFavourite } from "@/lib/queries";
+import { useLabels, useLibrary, useRemoveVideo, useStats } from "@/lib/queries";
 import type { LibraryFilters, LibraryVideo, SortOption } from "@/lib/types";
 
 
@@ -38,7 +38,6 @@ export function LibraryPage() {
   const library = useLibrary(filters);
   const stats = useStats();
   const labelList = useLabels();
-  const toggleFav = useToggleFavourite();
   const remove = useRemoveVideo();
 
   const videos = library.data?.pages.flatMap((page) => page.videos) ?? [];
@@ -202,7 +201,6 @@ export function LibraryPage() {
                   key={video.id}
                   video={video}
                   index={index}
-                  onToggleFavourite={(item) => toggleFav.mutate({ videoId: item.id, fav: !item.fav })}
                   onRemove={setRemoving}
                 />
               ))}

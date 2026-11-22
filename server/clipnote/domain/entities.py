@@ -67,7 +67,6 @@ class VideoListing:
     id: str
     url: str
     title: str
-    fav: bool
     note_count: int = 0
     last_note_at: datetime | None = None
 
@@ -79,7 +78,6 @@ class LibraryStats:
     videos: int
     notes: int
     notes_this_week: int
-    favourites: int
     pending: int
 
 

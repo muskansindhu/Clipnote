@@ -116,10 +116,8 @@ def test_notes_update_and_delete_cannot_cross_users(
     assert not notes.update_text("bob", note.id, "hijack")
     assert not notes.delete("bob", note.id)
     assert notes.update_text("alice", note.id, "edited")
-    assert notes.update_text_at("alice", VID_A, 10, "by time") == 1
-    assert notes.get_by_id(note.id).text == "by time"  # type: ignore[union-attr]
-    assert notes.delete_at("bob", VID_A, 10) == 0
-    assert notes.delete_at("alice", VID_A, 10) == 1
+    assert notes.get_by_id(note.id).text == "edited"  # type: ignore[union-attr]
+    assert notes.delete("alice", note.id)
     assert notes.get_by_id(note.id) is None
 
 
@@ -196,7 +194,7 @@ def test_list_for_user_filters_by_date_and_orders_untimed_last(
     assert notes.list_for_user("alice", since=future) == []
 
 
-def test_library_listing_search_labels_dates_and_per_user_favourites(
+def test_library_listing_search_labels_and_dates(
     db: Database, videos: PostgresVideoRepository
 ) -> None:
     notes, library = PostgresNoteRepository(db), PostgresLibraryRepository(db)
@@ -206,9 +204,8 @@ def test_library_listing_search_labels_dates_and_per_user_favourites(
     notes.add(_new("bob", VID_A, 1))
     label = labels.add("alice", "ml")
     labels.assign("alice", label.id, VID_B)
-    library.set_favourite("alice", VID_A, True)
 
-    def listing(**overrides: object) -> list[tuple[str, bool]]:
+    def listing(**overrides: object) -> list[str]:
         params: dict[str, object] = {
             "user_id": "alice",
             "search": "",
@@ -220,24 +217,18 @@ def test_library_listing_search_labels_dates_and_per_user_favourites(
             "offset": 0,
         }
         params.update(overrides)
-        return [(v.id, v.fav) for v in library.list_videos(**params)]  # type: ignore[arg-type]
+        return [v.id for v in library.list_videos(**params)]  # type: ignore[arg-type]
 
-    assert listing(sort="title") == [(VID_B, False), (VID_A, True)]
-    assert listing(search="alpha") == [(VID_A, True)]
-    assert listing(search="100%") == [(VID_B, False)]
-    assert listing(search="%") == [(VID_B, False)]
-    assert listing(search="_") == [(VID_B, False)]
-    assert listing(label_names=["ml"]) == [(VID_B, False)]
+    assert listing(sort="title") == [VID_B, VID_A]
+    assert listing(search="alpha") == [VID_A]
+    assert listing(search="100%") == [VID_B]
+    assert listing(search="%") == [VID_B]
+    assert listing(search="_") == [VID_B]
+    assert listing(label_names=["ml"]) == [VID_B]
     assert listing(label_names=["other"]) == []
-    assert listing(user_id="bob") == [(VID_A, False)]
+    assert listing(user_id="bob") == [VID_A]
     assert listing(start=datetime.now(UTC) + timedelta(days=1)) == []
     assert listing(limit=1, offset=1) != listing(limit=1, offset=0)
-    assert library.is_favourite("alice", VID_A)
-    assert not library.is_favourite("bob", VID_A)
-    library.set_favourite("alice", VID_A, False)
-    assert not library.is_favourite("alice", VID_A)
-    assert library.find_video_id_by_title("alice", "Alpha Talk") == VID_A
-    assert library.find_video_id_by_title("bob", "100% Beta_Test") is None
 
 
 def test_labels_are_user_scoped_and_assignment_is_idempotent(
@@ -292,7 +283,6 @@ def test_library_counts_stats_and_removal(db: Database, videos: PostgresVideoRep
     notes.add(_new("alice", VID_A, 2))
     notes.add(_new("alice", VID_B, 3, None))
     notes.add(_new("bob", VID_A, 1))
-    library.set_favourite("alice", VID_A, True)
 
     def listing(user: str) -> dict[str, tuple[int, bool]]:
         rows = library.list_videos(
@@ -311,7 +301,7 @@ def test_library_counts_stats_and_removal(db: Database, videos: PostgresVideoRep
     assert listing("bob") == {VID_A: (1, True)}
     stats = library.stats("alice")
     assert (stats.videos, stats.notes, stats.notes_this_week) == (2, 3, 3)
-    assert (stats.favourites, stats.pending) == (1, 1)
+    assert stats.pending == 1
     assert library.stats("nobody") == library.stats("nobody")
     assert notes.delete_for_video("alice", VID_A) == 2
     assert notes.delete_for_video("alice", VID_A) == 0
