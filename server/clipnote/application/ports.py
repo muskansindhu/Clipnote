@@ -247,3 +247,39 @@ class TaskRunner(Protocol):
     """Runs work in the background."""
 
     def submit(self, task: Callable[..., None], *args: Any) -> None: ...
+
+
+@dataclass(frozen=True, slots=True)
+class RateLimitDecision:
+    """The outcome of one rate-limit check."""
+
+    allowed: bool
+    retry_after_seconds: int = 0
+
+
+class RateLimiter(Protocol):
+    """Counts requests per key in a time window."""
+
+    def hit(self, key: str, limit: int, window_seconds: int) -> RateLimitDecision:
+        """Record one request for ``key`` and say whether it is within ``limit`` per window."""
+        ...
+
+
+class AiBudget(Protocol):
+    """A per-user daily allowance of language-model calls."""
+
+    def try_consume(self, user_id: str) -> bool:
+        """Use one call from today's (UTC) allowance.
+
+        Returns ``True`` when the call is within the limit and has been counted, ``False``
+        when the allowance is already used up. Safe to call from several threads.
+        """
+        ...
+
+
+class HealthProbe(Protocol):
+    """Reports whether the app's backing services can be reached."""
+
+    def is_database_reachable(self) -> bool:
+        """Return ``True`` when the database answers a trivial query. Never raises."""
+        ...

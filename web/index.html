@@ -10,16 +10,7 @@
     />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <title>Clipnote — your second brain for YouTube</title>
-    <script>
-      // Apply the saved theme before first paint to avoid a flash.
-      (function () {
-        try {
-          var saved = localStorage.getItem("theme") || "light";
-          var dark = saved === "dark" || (saved === "system" && matchMedia("(prefers-color-scheme: dark)").matches);
-          document.documentElement.classList.toggle("dark", dark);
-        } catch (e) {}
-      })();
-    </script>
+    <script src="/theme-init.js"></script>
   </head>
   <body>
     <div id="root"></div>

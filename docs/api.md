@@ -11,6 +11,12 @@ All endpoints return JSON unless noted. Errors look like
 | 409 | Conflict, such as a duplicate email or label |
 | 502 | The language model failed |
 
+## Rate limits
+
+Routes that sign in, create tokens, capture notes or call the AI are limited per client or per
+user, and AI features have a daily allowance per user. Going over returns `429` with
+`{"message": "..."}` and a `Retry-After` header (seconds). See [configuration.md](configuration.md).
+
 ## Authentication
 
 Protected endpoints take `Authorization: Bearer <token>`. There are two token kinds:
@@ -96,6 +102,15 @@ Both return `text/markdown` with a `Content-Disposition` attachment header.
 Answers cite moments as raw seconds in square brackets, for example `[159]`; the front end
 formats them. Short transcripts use one model call; long ones are indexed by keyword and only
 the relevant windows are sent.
+
+## Health
+
+No authentication. Used by hosts, load balancers and the Docker `HEALTHCHECK`.
+
+| Endpoint | Description |
+|---|---|
+| `GET /health` | Liveness. `200 {"status": "ok"}` while the process runs. Does not touch the database. |
+| `GET /ready` | Readiness. `200 {"status": "ready"}` when the database answers, otherwise `503 {"status": "unavailable"}`. |
 
 ## Pages
 
