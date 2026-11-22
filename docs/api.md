@@ -98,6 +98,15 @@ Answers cite moments as raw seconds in square brackets, for example `[159]`; the
 formats them. Short transcripts use one model call; long ones are indexed by keyword and only
 the relevant windows are sent.
 
+## Health
+
+No authentication. Used by hosts, load balancers and the Docker `HEALTHCHECK`.
+
+| Endpoint | Description |
+|---|---|
+| `GET /health` | Liveness. `200 {"status": "ok"}` while the process runs. Does not touch the database. |
+| `GET /ready` | Readiness. `200 {"status": "ready"}` when the database answers, otherwise `503 {"status": "unavailable"}`. |
+
 ## Pages
 
 All pages serve the React single-page app: `GET /`, `/login`, `/dashboard`, `/library`, `/profile`, `/settings`, `/clipchat`, `/clipchat/<video_id>` and

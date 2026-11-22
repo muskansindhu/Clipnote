@@ -441,3 +441,13 @@ class QueueRunner:
         while self.tasks:
             task, args = self.tasks.pop(0)
             task(*args)
+
+
+class FakeHealthProbe:
+    """Health probe whose answer a test can flip."""
+
+    def __init__(self, reachable: bool = True) -> None:
+        self.reachable = reachable
+
+    def is_database_reachable(self) -> bool:
+        return self.reachable

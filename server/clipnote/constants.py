@@ -25,6 +25,8 @@ MIGRATIONS_DIR = PACKAGE_DIR / "infrastructure" / "db" / "migrations"
 DEFAULT_HOST = "0.0.0.0"  # noqa: S104  # the app runs inside a container
 DEFAULT_PORT = 5001
 BACKGROUND_WORKERS = 4
+# How long the readiness check waits for the database before reporting it unavailable.
+HEALTH_DB_TIMEOUT_SECONDS = 2
 TEMP_TOKEN_COOKIE_SECONDS = 60
 CLIPCHAT_STREAM_CHUNK_CHARS = 28
 CLIPCHAT_ANSWER_FAILED_MESSAGE = "Clipchat could not answer right now"
