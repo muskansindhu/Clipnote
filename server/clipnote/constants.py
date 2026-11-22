@@ -25,6 +25,14 @@ MIGRATIONS_DIR = PACKAGE_DIR / "infrastructure" / "db" / "migrations"
 DEFAULT_HOST = "0.0.0.0"  # noqa: S104  # the app runs inside a container
 DEFAULT_PORT = 5001
 BACKGROUND_WORKERS = 4
+# Production server (see server/gunicorn.conf.py). One process on purpose: AI notes are written by
+# background threads and recovered at startup inside the process, so more processes would duplicate
+# that work. Scale with threads, not workers, until a real job queue exists.
+GUNICORN_WORKERS = 1
+GUNICORN_THREADS = 8
+GUNICORN_TIMEOUT_SECONDS = 120
+GUNICORN_GRACEFUL_TIMEOUT_SECONDS = 30
+GUNICORN_KEEPALIVE_SECONDS = 5
 TEMP_TOKEN_COOKIE_SECONDS = 60
 CLIPCHAT_STREAM_CHUNK_CHARS = 28
 CLIPCHAT_ANSWER_FAILED_MESSAGE = "Clipchat could not answer right now"

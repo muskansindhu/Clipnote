@@ -23,4 +23,4 @@ COPY --from=web /server/static/app ./static/app
 ENV FLASK_ENV=production
 EXPOSE 5001
 
-CMD ["python3", "app.py"]
+CMD ["gunicorn", "app:app", "--config", "gunicorn.conf.py"]

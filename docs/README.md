@@ -103,6 +103,8 @@ ruff check . && mypy server/clipnote
 
 ### 3. Docker image
 
+The image serves the app with Gunicorn (settings in `server/gunicorn.conf.py`), not Flask's development server. It runs **one worker process with several threads on purpose**: AI notes are written by background threads and recovered at startup inside the process, so extra processes would duplicate that work. Scale with threads until a job queue exists.
+
 ```bash
 docker build -t clipnote-server .
 docker run -d -p 5001:5001 --env-file server/.env --name clipnote clipnote-server
